@@ -1,0 +1,29 @@
+{
+    "extractor": {
+        "postprocessors": [
+            {
+                "name": "exec",
+                "async": false,
+                "command": ["python", "file_confirmed.py", "{id}"],
+                "event": "after,skip"
+            }
+        ],
+
+        "500px": {
+            "gallery": {
+                "filename": "{id}_{name}.{extension}",
+                "directory": ["{category}", "{gallery[name]}"]
+            },
+            "image": {
+                "filename": "{id}_{name}.{extension}"
+            }
+        },
+        "pinterest": {
+            "videos": false,
+            "cookies": {
+                "_pinterest_sess": "<replace with your own cookie value>"
+            }
+        }
+    }
+
+}
