@@ -24,6 +24,7 @@ class ObjectIdField(fields.Field):
             raise ValidationError('Invalid ObjectId')
 
 class SourceSchema(Schema):
+    _id = ObjectIdField()
     type = fields.Str()
     url = fields.Url()
     sync_remote_deletes = fields.Bool()

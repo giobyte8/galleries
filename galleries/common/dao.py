@@ -2,6 +2,7 @@ import contextlib
 from pymongo import MongoClient
 
 import galleries.common.config as cfg
+from galleries.common.models import FilesGallery
 from galleries.common.schemas import FilesGallerySchema
 
 
@@ -24,7 +25,7 @@ def _galleries_collection():
     except Exception as e:
         raise DBError(e)
 
-def get_files_galleries():
+def get_files_galleries() -> list[FilesGallery]:
     with _galleries_collection() as galleries:
         files_gl_schema = FilesGallerySchema()
         for gallery_doc in galleries.find({ 'type': 'files' }):

@@ -21,6 +21,10 @@ def db_password():
     return os.getenv('DB_PASSWORD')
 
 
+def config_path():
+    return os.getenv('CONFIG_PATH')
+
+
 def runtime_path():
     return os.getenv('RUNTIME_PATH')
 
