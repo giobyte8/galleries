@@ -1,10 +1,12 @@
-import galleries.common.cache_dao as cache_dao
+import galleries.common.queues as queues
 from galleries.common.models import FilesGallery
 
 
 def on_gallery_downloaded(gallery: FilesGallery) -> None:
-    # TODO Mark all skipped files like still belongs to remote source
-    # TODO Delete all non skipeed files (Not belong to gallery anymore)
+    """This hook notifies the system that all sources in a gallery
+    had been processed.
 
-    for skipped_item in cache_dao.skipped_items(gallery._id):
-        print(f'Skipped file: { skipped_item["filename"]}')
+    Args:
+        gallery (FilesGallery): Gallery that was processed
+    """
+    queues.queue_downloaded_gallery(gallery._id)

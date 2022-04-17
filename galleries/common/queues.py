@@ -1,10 +1,12 @@
 import contextlib
 import json
 import pika
+from bson.objectid import ObjectId
 import galleries.common.config as cfg
 
 
 DOWNLOADED_FILES_QUEUE='downloaded-files'
+DOWNLOADED_GALLERIES_QUEUE='downloaded-galleries'
 
 
 @contextlib.contextmanager
@@ -42,4 +44,16 @@ def queue_downloaded_file(
             exchange='',
             routing_key=DOWNLOADED_FILES_QUEUE,
             body=json.dumps(dl_item)
+        )
+
+
+def queue_downloaded_gallery(gallery_id: ObjectId) -> None:
+    with _rb_channel() as channel:
+        dl_gallery = { 'gallery_id': str(gallery_id) }
+
+        channel.queue_declare(queue=DOWNLOADED_GALLERIES_QUEUE)
+        channel.basic_publish(
+            exchange='',
+            routing_key=DOWNLOADED_GALLERIES_QUEUE,
+            body=json.dumps(dl_gallery)
         )
