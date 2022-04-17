@@ -13,11 +13,11 @@ if __name__ == '__main__':
     project_root = os.path.dirname(os.path.dirname(project_root))
     sys.path.insert(0, os.path.realpath(project_root))
 
-from galleries.common.models import FilesGallery
+import galleries.common.cache_dao as cache
 
 
 gallery_id = sys.argv[1]
 source_id = sys.argv[2]
 filename = sys.argv[3]
 
-print(f'Skipped file: {filename}, for source: {source_id}, for gallery: {gallery_id}')
+cache.add_skipped_file(gallery_id, source_id, filename)

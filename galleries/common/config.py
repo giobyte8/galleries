@@ -21,8 +21,32 @@ def db_password():
     return os.getenv('DB_PASSWORD')
 
 
+def cache_host():
+    return os.getenv('CACHE_HOST')
+
+
+def cache_port():
+    return os.getenv('CACHE_PORT')
+
+
 def config_path():
     return os.getenv('CONFIG_PATH')
+
+
+def rabbitmq_host():
+    return os.getenv('RABBITMQ_HOST')
+
+
+def rabbitmq_port():
+    return os.getenv('RABBITMQ_PORT')
+
+
+def rabbitmq_user():
+    return os.getenv('RABBITMQ_USER')
+
+
+def rabbitmq_pass():
+    return os.getenv('RABBITMQ_PASS')
 
 
 def runtime_path():
