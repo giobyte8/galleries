@@ -55,3 +55,7 @@ def runtime_path():
 
 def galleries_content_root():
     return os.getenv('GALLERIES_CONTENT_ROOT')
+
+
+def galleries_transformations_root():
+    return os.getenv('GALLERIES_TRANSFORMATIONS_ROOT')

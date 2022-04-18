@@ -1,3 +1,5 @@
+import os
+import galleries.common.config as cfg
 from galleries.common.models import FilesGallery
 
 class TestFilesGallery:
@@ -7,24 +9,49 @@ class TestFilesGallery:
             'Random',
             'files',
             'random',
-            True,
             'random',
             True,
+            [],
             []
         )
 
         assert gallery.abs_path() == '/tmp/random'
 
-    def test_rel_path(self):
+    def test_abs_trans_path(self):
         gallery = FilesGallery(
             '123',
             'Random',
             'files',
             '/random',
+            '/random',
             False,
-            '/random/thumbs',
-            True,
+            [],
             []
         )
 
-        assert gallery.abs_path() == '/random'
+        expected_path = os.path.join(
+            cfg.galleries_transformations_root(),
+            'random'
+        )
+
+        assert gallery.abs_trans_path() == expected_path
+
+
+    def test_rel_trans_path(self):
+        gallery = FilesGallery(
+            '123',
+            'Random',
+            'files',
+            '/random',
+            '/random_transformations/',
+            True,
+            [],
+            []
+        )
+
+        expected_path = os.path.join(
+            gallery.abs_path(),
+            'random_transformations'
+        )
+
+        assert gallery.abs_trans_path() == expected_path
