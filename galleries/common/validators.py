@@ -9,12 +9,13 @@ from galleries.common.models import FilesGallery
 
 
 def validate_env():
-    validate_dir_path(cfg.config_path())
-    validate_dir_path(cfg.runtime_path())
-    validate_dir_path(cfg.galleries_content_root())
+    validate_dir_exists(cfg.config_path())
+    validate_dir_exists(cfg.runtime_path())
+    validate_dir_exists(cfg.galleries_content_root())
+    validate_dir_exists(cfg.galleries_transformations_root())
 
 
-def validate_dir_path(path: str) -> None:
+def validate_dir_exists(path: str) -> None:
     if not os.path.exists(path):
         raise PathNotFoundError(path)
 
@@ -22,11 +23,11 @@ def validate_dir_path(path: str) -> None:
         raise PathNotDirectoryError(path)
 
 
-def validate_file(path: str) -> None:
+def validate_file_exists(path: str) -> None:
     if not os.path.isfile(path):
         raise PathNotFoundError(path)
 
-
+# TODO Move this to futils as 'ensure_dir_existence'
 def validate_files_gallery(gallery: FilesGallery):
     gl_path = gallery.abs_path()
 

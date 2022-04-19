@@ -1,34 +1,36 @@
 import galleries.downloader.gdl_wrapper as gdl_wrapper
-from galleries.common.models import FilesGallery, Source
+from galleries.common.dao import get_files_galleries
+from galleries.common.models import FilesGallery, HttpSource
 from galleries.downloader.hooks import downloader_hooks
 
 
-def sync(gallery: FilesGallery) -> None:
-    """Syncs gallery with its remote sources.
+def sync_all_galleries() -> None:
+    """Syncs all galleries with its remote sources
 
     Adds to cache:
-        - Every skipped source item
+        - Every item of every source that already exists
+          in downloaded gallery files
 
     Triggers:
-        - Event for every downloaded file
-        - Event when all gallery sources have been processed
-
-    Args:
-        gallery (FilesGallery): Gallery to sync
+        - Event for every downloaded file of every gallery
+        - Event for every gallery that has been processed
     """
-    print(f'Syncing gallery: { gallery.name }')
+    for gallery in get_files_galleries():
+        print(f'Syncing gallery: { gallery.name }')
 
-    for source in gallery.sources:
-        if source.sync_remote_deletes:
-            # TODO Mark source items as '?'
-            pass
+        for source in gallery.sources:
+            if isinstance(source, HttpSource):
+                print(f'Syncing source: { source.url }')
 
-        print(f'Syncing source: { source.url }')
-        if source.type == 'http':
-            sync_http(gallery, source)
+                if source.sync_remote_deletes:
+                    # TODO Mark source items as '?'
+                    pass
 
-    downloader_hooks.on_gallery_downloaded(gallery)
+                if source.type == 'http':
+                    _sync_http(gallery, source)
+
+        downloader_hooks.on_gallery_downloaded(gallery)
 
 
-def sync_http(gallery: FilesGallery, source: Source):
+def _sync_http(gallery: FilesGallery, source: HttpSource):
     gdl_wrapper.download(gallery, source)

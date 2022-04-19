@@ -7,7 +7,7 @@ from bson.objectid import ObjectId
 import galleries.common.config as cfg
 import galleries.common.futils as futils
 import galleries.common.validators as validators
-from galleries.common.models import FilesGallery, Source
+from galleries.common.models import FilesGallery, HttpSource
 
 
 _CONF_TEMPLATE='gallery-dl.conf.template.json'
@@ -16,8 +16,8 @@ _conf_template_path=os.path.join(cfg.config_path(), _CONF_TEMPLATE)
 _RUNTIME_PATH = cfg.runtime_path()
 _gallery_dl_conf_path = os.path.join(_RUNTIME_PATH, 'gallery-dl-config')
 
-def download(gallery: FilesGallery, source: Source) -> None:
-    validators.validate_file(_conf_template_path)
+def download(gallery: FilesGallery, source: HttpSource) -> None:
+    validators.validate_file_exists(_conf_template_path)
     futils.mkdirs(_gallery_dl_conf_path)
 
     gl_config_file = _prepare_config_file(gallery._id, source._id)

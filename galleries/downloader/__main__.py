@@ -9,8 +9,10 @@ if not __package__ and not hasattr(sys, "frozen"):
 
     sys.path.insert(0, os.path.realpath(gl_root))
 
-from galleries.downloader.sync_galleries import do_sync
+from galleries.common.validators import validate_env
+from galleries.downloader.downloader import sync_all_galleries
 
 
 if __name__ == "__main__":
-    do_sync()
+    validate_env()
+    sync_all_galleries()
