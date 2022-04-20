@@ -5,7 +5,6 @@ from galleries.common.errors import (
     PathNotDirectoryError,
     PathNotFoundError
 )
-from galleries.common.models import FilesGallery
 
 
 def validate_env():
@@ -26,13 +25,3 @@ def validate_dir_exists(path: str) -> None:
 def validate_file_exists(path: str) -> None:
     if not os.path.isfile(path):
         raise PathNotFoundError(path)
-
-# TODO Move this to futils as 'ensure_dir_existence'
-def validate_files_gallery(gallery: FilesGallery):
-    gl_path = gallery.abs_path()
-
-    if os.path.exists(gl_path):
-        if not os.path.isdir(gl_path):
-            raise PathNotDirectoryError(gl_path)
-    else:
-        os.makedirs(gl_path)

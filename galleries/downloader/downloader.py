@@ -25,9 +25,7 @@ def sync_all_galleries() -> None:
                 if source.sync_remote_deletes:
                     # TODO Mark source items as '?'
                     pass
-
-                if source.type == 'http':
-                    _sync_http(gallery, source)
+                _sync_http(gallery, source)
 
         downloader_hooks.on_gallery_downloaded(gallery)
 
