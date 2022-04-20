@@ -10,6 +10,7 @@ import os
 import pika
 import sys
 
+from bson.objectid import ObjectId
 from pika.adapters.blocking_connection import BlockingChannel
 
 # Add project root to sys.path
@@ -27,8 +28,8 @@ from galleries.common.queues import DOWNLOADED_FILES_QUEUE
 def on_message(channel: BlockingChannel, basic_deliver, props, body):
     j_body = json.loads(body.decode('utf-8'))
     gfile = GalleryFile(
-        j_body['gallery_id'],
-        j_body['source_id'],
+        ObjectId(j_body['gallery_id']),
+        ObjectId(j_body['source_id']),
         j_body['filename']
     )
 
