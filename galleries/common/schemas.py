@@ -16,7 +16,9 @@ from galleries.common.models import (
     GitSource,
     LocalSource,
     CropOperation,
-    ResizeOperation
+    ResizeOperation,
+    GalleryFile,
+    TransformedVersion
 )
 
 
@@ -134,3 +136,23 @@ class FilesGallerySchema(Schema):
 
     class Meta:
         unknown = EXCLUDE
+
+class TransformedVersionSchema(Schema):
+    name = fields.Str()
+    rel_file_path = fields.Str()
+    w = fields.Int()
+    h = fields.Int()
+
+    def to_model(self, data):
+        return TransformedVersion(**data)
+
+class GalleryFileSchema(Schema):
+    _id = ObjectIdField()
+    gallery_id = ObjectIdField()
+    source_id = ObjectIdField()
+    filename = fields.Str()
+    deleted_on_remote = fields.Str()
+    transformed_versions = fields.List(fields.Nested(TransformedVersionSchema))
+
+    def to_model(self, data):
+        return GalleryFile(**data)
