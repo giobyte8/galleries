@@ -18,11 +18,11 @@ _gallery_dl_conf_path = os.path.join(_RUNTIME_PATH, 'gallery-dl-config')
 
 def download(gallery: FilesGallery, source: HttpSource) -> None:
     validators.validate_file_exists(_conf_template_path)
-    futils.mkdirs(_gallery_dl_conf_path)
+    futils.ensure_dir_existence(_gallery_dl_conf_path)
 
     gl_config_file = _prepare_config_file(gallery._id, source._id)
     p = subprocess.run(['gallery-dl', '-D', gallery.abs_path(), '-c', gl_config_file, source.url])
-    # TODO Remove tmp config file
+    os.remove(gl_config_file)
 
 
 def _prepare_config_file(gallery_id: ObjectId, source_id: ObjectId):
