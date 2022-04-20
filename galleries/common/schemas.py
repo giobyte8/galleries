@@ -24,10 +24,14 @@ from galleries.common.models import (
 
 class ObjectIdField(fields.Field):
     def _serialize(self,
-    value: typing.Any, attr: str, obj: typing.Any, **kwargs):
+        value: typing.Any,
+        attr: str,
+        obj: typing.Any,
+        **kwargs
+    ):
         if value is None:
             return None
-        return str(value)
+        return value
 
     def _deserialize(
         self,

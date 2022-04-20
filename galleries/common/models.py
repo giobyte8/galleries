@@ -1,6 +1,7 @@
 import os
 from bson.objectid import ObjectId
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Union
 
 import galleries.common.config as cfg
@@ -72,6 +73,12 @@ class FilesGallery:
                 root,
                 self.transformations_path.strip('/')
             )
+
+
+class RemoteStatus(Enum):
+    DELETED = 'y'
+    EXISTS = 'n'
+    UNKNOWN = '?'
 
 @dataclass
 class TransformedVersion:

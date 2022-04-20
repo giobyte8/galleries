@@ -1,8 +1,13 @@
 import contextlib
+from bson.objectid import ObjectId
 from pymongo import MongoClient
 
 import galleries.common.config as cfg
-from galleries.common.models import FilesGallery, GalleryFile
+from galleries.common.models import (
+    FilesGallery,
+    GalleryFile,
+    RemoteStatus
+)
 from galleries.common.schemas import FilesGallerySchema, GalleryFileSchema
 
 
@@ -44,3 +49,16 @@ def save_gallery_file(gfile: GalleryFile):
 
         id = db.gallery_items.insert_one(j_gfile).inserted_id
         gfile._id = id
+
+
+def set_files_remote_status(
+    gallery_id: ObjectId,
+    status: RemoteStatus
+) -> int:
+    with _galleries_db() as db:
+        db.gallery_items\
+            .update_many(
+                { 'gallery_id': gallery_id },
+                { '$set': { 'deleted_on_remote': str(status) }}
+            )\
+            .modified_count
