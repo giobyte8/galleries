@@ -20,14 +20,14 @@ if __name__ == '__main__':
     sys.path.insert(0, os.path.realpath(project_root))
 
 import galleries.common.config as cfg
-import galleries.common.dao as dao
+from galleries.db import gallery_file_dao
 from galleries.common.models import GalleryFile
 from galleries.common.queues import DOWNLOADED_FILES_QUEUE
 
 
 def on_message(channel: BlockingChannel, basic_deliver, props, body):
     j_body = json.loads(body.decode('utf-8'))
-    gfile = GalleryFile(
+    gl_file = GalleryFile(
         ObjectId(j_body['gallery_id']),
         ObjectId(j_body['source_id']),
         j_body['filename']
@@ -35,9 +35,9 @@ def on_message(channel: BlockingChannel, basic_deliver, props, body):
 
     # TODO Apply transformations
 
-    dao.save_gallery_file(gfile)
+    gallery_file_dao.save(gl_file)
     channel.basic_ack(basic_deliver.delivery_tag)
-    print(f'Processed: { gfile.filename } with _id { gfile._id }')
+    print(f'Processed: { gl_file.filename } with _id { gl_file._id }')
 
 
 conn = pika.BlockingConnection(pika.ConnectionParameters(

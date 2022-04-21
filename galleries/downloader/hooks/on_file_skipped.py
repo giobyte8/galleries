@@ -20,4 +20,4 @@ gallery_id = sys.argv[1]
 source_id = sys.argv[2]
 filename = sys.argv[3]
 
-cache.add_skipped_file(gallery_id, source_id, filename)
+cache.add_skipped_item(gallery_id, source_id, filename)

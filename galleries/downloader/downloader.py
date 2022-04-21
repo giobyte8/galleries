@@ -1,6 +1,6 @@
 import galleries.downloader.gdl_wrapper as gdl_wrapper
-from galleries.common import dao
 from galleries.common.models import FilesGallery, HttpSource, RemoteStatus
+from galleries.db import gallery_dao, gallery_file_dao
 from galleries.downloader.hooks import downloader_hooks
 
 
@@ -15,7 +15,7 @@ def sync_all_galleries() -> None:
         - Event for every downloaded file of every gallery
         - Event for every gallery that has been processed
     """
-    for gallery in dao.get_files_galleries():
+    for gallery in gallery_dao.all():
         print(f'Syncing gallery: { gallery.name }')
 
         for source in gallery.sources:
@@ -23,7 +23,7 @@ def sync_all_galleries() -> None:
                 print(f'Syncing source: { source.url }')
 
                 if source.sync_remote_deletes:
-                    dao.set_files_remote_status(
+                    gallery_file_dao.set_deleted_on_remote_by_gallery(
                         gallery._id,
                         RemoteStatus.UNKNOWN
                     )
