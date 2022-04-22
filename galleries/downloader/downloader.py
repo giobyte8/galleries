@@ -23,7 +23,7 @@ def sync_all_galleries() -> None:
                 print(f'Syncing source: { source.url }')
 
                 if source.sync_remote_deletes:
-                    gallery_file_dao.set_deleted_on_remote_by_gallery(
+                    gallery_file_dao.set_remote_status_by_gallery(
                         gallery._id,
                         RemoteStatus.UNKNOWN
                     )

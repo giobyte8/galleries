@@ -9,13 +9,39 @@ from galleries.common.schemas import GalleryFileSchema
 _gl_file_schema = GalleryFileSchema()
 
 
-def paginate_by_gallery_and_delete_on_remote(
+def count_by_gallery_and_remote_status(
+    gallery_id: ObjectId,
+    status: RemoteStatus
+) -> int:
+    with galleries_db() as db:
+        return db.gallery_items.count_documents({
+            'gallery_id': gallery_id,
+            'remote_status': status.value
+        })
+
+
+def paginate_by_gallery_and_remote_status(
     gallery_id: ObjectId,
     status: RemoteStatus,
     page_size: int,
     page_index: int
 ) -> typing.Generator[GalleryFile, None, None]:
-    pass
+    with galleries_db() as db:
+        skips = page_size * page_index
+        cursor = db.gallery_items\
+            .find(
+                {
+                    'gallery_id': gallery_id,
+                    'remote_status': status.value
+                }
+            )\
+            .skip(skips)\
+            .limit(page_size)
+
+        for gl_file_doc in cursor:
+            gl_file = _gl_file_schema.load(gl_file_doc)
+            yield gl_file
+
 
 def save(gl_file: GalleryFile) -> None:
     with galleries_db() as db:
@@ -26,7 +52,7 @@ def save(gl_file: GalleryFile) -> None:
         gl_file._id = db.gallery_items.insert_one(j_gl_file).inserted_id
 
 
-def set_deleted_on_remote(
+def set_remote_status(
     gallery_id: ObjectId,
     source_id: ObjectId,
     filename: str,
@@ -40,12 +66,12 @@ def set_deleted_on_remote(
                     'source_id': source_id,
                     'filename': filename
                 },
-                { '$set': { 'deleted_on_remote': status.value }}
+                { '$set': { 'remote_status': status.value }}
             )\
             .modified_count
 
 
-def set_deleted_on_remote_by_gallery(
+def set_remote_status_by_gallery(
     gallery_id: ObjectId,
     status: RemoteStatus
 ) -> int:
@@ -53,6 +79,13 @@ def set_deleted_on_remote_by_gallery(
         return db.gallery_items\
             .update_many(
                 { 'gallery_id': gallery_id },
-                { '$set': { 'deleted_on_remote': status.value }}
+                { '$set': { 'remote_status': status.value }}
             )\
             .modified_count
+
+
+def delete_by_ids(gl_files_ids: list[ObjectId]) -> int:
+    with galleries_db() as db:
+        return db.gallery_items\
+            .delete_many({ '_id': {'$in': gl_files_ids }})\
+            .deleted_count

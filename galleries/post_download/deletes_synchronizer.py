@@ -19,10 +19,8 @@ if __name__ == '__main__':
     project_root = os.path.dirname(project_root)
     sys.path.insert(0, os.path.realpath(project_root))
 
-import galleries.common.cache_dao as cache
 import galleries.common.config as cfg
-from galleries.db import gallery_file_dao
-from galleries.common.models import RemoteStatus
+import galleries.services.gallery_file_service as gl_file_service
 from galleries.common.queues import DOWNLOADED_GALLERIES_QUEUE
 
 
@@ -31,19 +29,15 @@ def on_message(channel: BlockingChannel, basic_deliver, props, body):
     j_body = json.loads(body.decode('utf-8'))
     gallery_id = ObjectId(j_body['gallery_id'])
 
-    for skipped_item in cache.skipped_items(gallery_id):
-        source_id = ObjectId(skipped_item['source_id'])
-        filename = skipped_item['filename']
-        gallery_file_dao.set_deleted_on_remote(
-            gallery_id,
-            source_id,
-            filename,
-            RemoteStatus.EXISTS
-        )
+    # Mark files that are still part of remote gallery
+    # as part of local gallery
+    gl_file_service.set_download_skipped_items_as_found(gallery_id)
 
-    # TODO Get all gallery files with UNKNOWN remote status (paginated)
-    # TODO Delete each item file and append item id to list of items to delete
-    # TODO Delete page of items and go to next page
+    # Delete files that don't belongs to gallery anymore
+    # in reasonable batches
+    gl_file_service.delete_remote_unknown_files(gallery_id)
+
+    channel.basic_ack(basic_deliver.delivery_tag)
 
 
 conn = pika.BlockingConnection(pika.ConnectionParameters(

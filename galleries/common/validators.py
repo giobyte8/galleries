@@ -2,7 +2,7 @@ import os
 
 import galleries.common.config as cfg
 from galleries.common.errors import (
-    PathNotDirectoryError,
+    PathNotADirectoryError,
     PathNotFoundError
 )
 
@@ -19,7 +19,7 @@ def validate_dir_exists(path: str) -> None:
         raise PathNotFoundError(path)
 
     if not os.path.isdir(path):
-        raise PathNotDirectoryError(path)
+        raise PathNotADirectoryError(path)
 
 
 def validate_file_exists(path: str) -> None:

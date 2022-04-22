@@ -7,7 +7,11 @@ class PathNotCreatedError(Exception):
     def __init__(self, path: str) -> None:
         Exception.__init__(self, f'Path could not be created: { path }')
 
-class PathNotDirectoryError(Exception):
+class PathNotAFileError(Exception):
+    def __init__(self, path: str) -> None:
+        Exception.__init__(self, f'Path is not a file: { path }')
+
+class PathNotADirectoryError(Exception):
     def __init__(self, path: str) -> None:
         Exception.__init__(self, f'Path is not a directory: { path }')
 

@@ -36,9 +36,25 @@ def skipped_items(gallery_id: ObjectId) -> typing.Generator[dict, None, None]:
 
 def gallery_content_path(gallery_id: ObjectId) -> Union[str, None]:
     key = f'{ GL_CONTENT_PATH_PREFIX }{ str(gallery_id) }'
-    return r.get(key)
+    path = r.get(key)
+    if path:
+        return path.decode('utf-8')
+    return None
 
 
 def set_gallery_content_path(gallery_id: ObjectId, path: str) -> None:
     key = f'{ GL_CONTENT_PATH_PREFIX }{ str(gallery_id) }'
+    r.set(key, path)
+
+
+def gallery_transformations_path(gallery_id: ObjectId) -> Union[str, None]:
+    key = f'{ GL_TRANSFORMATIONS_PATH_PREFIX }{ str(gallery_id) }'
+    path = r.get(key)
+    if path:
+        return path.decode('utf-8')
+    return None
+
+
+def set_gallery_transformations_path(gallery_id: ObjectId, path: str) -> None:
+    key = f'{ GL_TRANSFORMATIONS_PATH_PREFIX }{ str(gallery_id) }'
     r.set(key, path)

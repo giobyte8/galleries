@@ -1,12 +1,12 @@
 import bson
 import typing
-from typing import Union
 from marshmallow import (
     EXCLUDE,
     Schema,
     ValidationError,
     fields,
-    post_load
+    post_load,
+    validate
 )
 from marshmallow_oneofschema import OneOfSchema
 
@@ -16,6 +16,7 @@ from galleries.common.models import (
     GitSource,
     LocalSource,
     CropOperation,
+    RemoteStatus,
     ResizeOperation,
     GalleryFile,
     TransformedVersion
@@ -147,7 +148,8 @@ class TransformedVersionSchema(Schema):
     w = fields.Int()
     h = fields.Int()
 
-    def to_model(self, data):
+    @post_load
+    def to_model(self, data, **kwargs):
         return TransformedVersion(**data)
 
 class GalleryFileSchema(Schema):
@@ -155,8 +157,13 @@ class GalleryFileSchema(Schema):
     gallery_id = ObjectIdField()
     source_id = ObjectIdField()
     filename = fields.Str()
-    deleted_on_remote = fields.Str()
+    remote_status = fields.Str(validate=validate.OneOf([
+        RemoteStatus.FOUND.value,
+        RemoteStatus.NOT_FOUND.value,
+        RemoteStatus.UNKNOWN.value
+    ]))
     transformed_versions = fields.List(fields.Nested(TransformedVersionSchema))
 
-    def to_model(self, data):
+    @post_load
+    def to_model(self, data, **kwargs):
         return GalleryFile(**data)

@@ -76,9 +76,9 @@ class FilesGallery:
 
 
 class RemoteStatus(Enum):
-    DELETED = 'y'
-    EXISTS = 'n'
-    UNKNOWN = '?'
+    FOUND = 'Found'
+    NOT_FOUND = 'Not found'
+    UNKNOWN = 'Unknown'
 
 @dataclass
 class TransformedVersion:
@@ -93,5 +93,5 @@ class GalleryFile:
     source_id: ObjectId
     filename: str
     _id: ObjectId = None
-    deleted_on_remote: str = 'n'
+    remote_status: str = RemoteStatus.FOUND.value
     transformed_versions: list[TransformedVersion] = field(default_factory=list)
