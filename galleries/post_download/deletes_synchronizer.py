@@ -25,7 +25,7 @@ from galleries.common.queues import DOWNLOADED_GALLERIES_QUEUE
 
 
 def on_message(channel: BlockingChannel, basic_deliver, props, body):
-    print(f'Received message: {body}')
+    print(f'Synchronizing deletes for: { body.decode("utf-8") }')
     j_body = json.loads(body.decode('utf-8'))
     gallery_id = ObjectId(j_body['gallery_id'])
 
@@ -48,8 +48,11 @@ conn = pika.BlockingConnection(pika.ConnectionParameters(
         cfg.rabbitmq_pass()
     )
 ))
+
 channel = conn.channel()
+channel.queue_declare(queue=DOWNLOADED_GALLERIES_QUEUE)
 channel.basic_consume(DOWNLOADED_GALLERIES_QUEUE, on_message)
+
 try:
     channel.start_consuming()
 except KeyboardInterrupt:

@@ -26,6 +26,7 @@ from galleries.common.queues import DOWNLOADED_FILES_QUEUE
 
 
 def on_message(channel: BlockingChannel, basic_deliver, props, body):
+    print(f'Postprocessing: { body.decode("utf-8") }')
     j_body = json.loads(body.decode('utf-8'))
     gl_file = GalleryFile(
         ObjectId(j_body['gallery_id']),
@@ -37,7 +38,6 @@ def on_message(channel: BlockingChannel, basic_deliver, props, body):
 
     gallery_file_dao.save(gl_file)
     channel.basic_ack(basic_deliver.delivery_tag)
-    print(f'Processed: { gl_file.filename } with _id { gl_file._id }')
 
 
 conn = pika.BlockingConnection(pika.ConnectionParameters(
@@ -48,8 +48,11 @@ conn = pika.BlockingConnection(pika.ConnectionParameters(
         cfg.rabbitmq_pass()
     )
 ))
+
 channel = conn.channel()
+channel.queue_declare(queue=DOWNLOADED_FILES_QUEUE)
 channel.basic_consume(DOWNLOADED_FILES_QUEUE, on_message)
+
 try:
     channel.start_consuming()
 except KeyboardInterrupt:
