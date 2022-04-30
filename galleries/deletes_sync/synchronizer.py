@@ -22,10 +22,12 @@ if __name__ == '__main__':
 import galleries.common.config as cfg
 import galleries.services.gallery_file_service as gl_file_service
 from galleries.common.queues import DOWNLOADED_GALLERIES_QUEUE
+from galleries.deletes_sync.ds_logging import logger
 
 
 def on_message(channel: BlockingChannel, basic_deliver, props, body):
-    print(f'Synchronizing deletes for: { body.decode("utf-8") }')
+    logger.info('Processing messages: %s', body.decode('utf-8'))
+
     j_body = json.loads(body.decode('utf-8'))
     gallery_id = ObjectId(j_body['gallery_id'])
 
@@ -37,6 +39,7 @@ def on_message(channel: BlockingChannel, basic_deliver, props, body):
     # in reasonable batches
     gl_file_service.delete_remote_unknown_files(gallery_id)
 
+    logger.debug('Message processed, queue will be notified')
     channel.basic_ack(basic_deliver.delivery_tag)
 
 
@@ -54,7 +57,9 @@ channel.queue_declare(queue=DOWNLOADED_GALLERIES_QUEUE)
 channel.basic_consume(DOWNLOADED_GALLERIES_QUEUE, on_message)
 
 try:
+    logger.info('Consuming from queue: %s', DOWNLOADED_GALLERIES_QUEUE)
     channel.start_consuming()
 except KeyboardInterrupt:
+    logger.info('Stopping messages consumption')
     channel.stop_consuming()
 conn.close()

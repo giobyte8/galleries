@@ -23,10 +23,12 @@ import galleries.common.config as cfg
 from galleries.db import gallery_file_dao
 from galleries.common.models import GalleryFile
 from galleries.common.queues import DOWNLOADED_FILES_QUEUE
+from galleries.postprocessor.pp_logging import logger
 
 
 def on_message(channel: BlockingChannel, basic_deliver, props, body):
-    print(f'Postprocessing: { body.decode("utf-8") }')
+    logger.info('Processing message: %s', body.decode('utf-8'))
+
     j_body = json.loads(body.decode('utf-8'))
     gl_file = GalleryFile(
         ObjectId(j_body['gallery_id']),
@@ -37,6 +39,7 @@ def on_message(channel: BlockingChannel, basic_deliver, props, body):
     # TODO Apply transformations
 
     gallery_file_dao.save(gl_file)
+    logger.debug('Message processed, queue will be notified')
     channel.basic_ack(basic_deliver.delivery_tag)
 
 
@@ -54,7 +57,10 @@ channel.queue_declare(queue=DOWNLOADED_FILES_QUEUE)
 channel.basic_consume(DOWNLOADED_FILES_QUEUE, on_message)
 
 try:
+    logger.info('Consuming from queue: %s', DOWNLOADED_FILES_QUEUE)
     channel.start_consuming()
 except KeyboardInterrupt:
+    logger.info('Stopping messages consumption')
     channel.stop_consuming()
+
 conn.close()

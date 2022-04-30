@@ -8,6 +8,7 @@ import galleries.common.config as cfg
 import galleries.common.futils as futils
 import galleries.common.validators as validators
 from galleries.common.models import FilesGallery, HttpSource
+from galleries.downloader.dl_logging import logger
 
 
 _CONF_TEMPLATE='gallery-dl.conf.template.json'
@@ -21,11 +22,23 @@ def download(gallery: FilesGallery, source: HttpSource) -> None:
     futils.ensure_dir_existence(_gallery_dl_conf_path)
 
     gl_config_file = _prepare_config_file(gallery._id, source._id)
+    logger.info(
+        'Starting download for gallery: %s, source: %s, url: %s',
+        gallery._id,
+        source._id,
+        source.url
+    )
     p = subprocess.run(['gallery-dl', '-D', gallery.abs_path(), '-c', gl_config_file, source.url])
     os.remove(gl_config_file)
 
 
 def _prepare_config_file(gallery_id: ObjectId, source_id: ObjectId):
+    logger.debug(
+        'Preparing gallery-dl config file for gallery: %s and source %s',
+        gallery_id,
+        source_id
+    )
+
     with open(_conf_template_path, 'r') as conf_template:
         gl_config = json.loads(conf_template.read())
 

@@ -53,6 +53,14 @@ def runtime_path():
     return os.getenv('RUNTIME_PATH')
 
 
+def log_level():
+    return os.getenv('LOG_LEVEL', 'error')
+
+
+def logs_path():
+    return os.path.join(runtime_path(), 'logs')
+
+
 def galleries_content_root():
     return os.getenv('GALLERIES_CONTENT_ROOT')
 
