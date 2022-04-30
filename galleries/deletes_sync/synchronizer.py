@@ -26,10 +26,12 @@ from galleries.deletes_sync.ds_logging import logger
 
 
 def on_message(channel: BlockingChannel, basic_deliver, props, body):
-    logger.info('Processing messages: %s', body.decode('utf-8'))
+    logger.info('Processing message: %s', body.decode('utf-8'))
 
     j_body = json.loads(body.decode('utf-8'))
     gallery_id = ObjectId(j_body['gallery_id'])
+
+    logger.info('Synchronizing deletes for gallery: %s', gallery_id)
 
     # Mark files that are still part of remote gallery
     # as part of local gallery
