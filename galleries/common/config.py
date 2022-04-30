@@ -5,20 +5,20 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def db_host():
-    return os.getenv('DB_HOST')
+def mongodb_host():
+    return os.getenv('MONGODB_HOST')
 
 
-def db_port():
-    return int(os.getenv('DB_PORT'))
+def mongodb_port():
+    return int(os.getenv('MONGODB_PORT'))
 
 
-def db_username():
-    return os.getenv('DB_USERNAME')
+def mongodb_username():
+    return os.getenv('MONGODB_USERNAME')
 
 
-def db_password():
-    return os.getenv('DB_PASSWORD')
+def mongodb_password():
+    return os.getenv('MONGODB_PASSWORD')
 
 
 def cache_host():

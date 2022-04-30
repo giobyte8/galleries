@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  postprocessor:
+    image: giobyte8/galleries:1.0.0
+    container_name: gl_postprocessor
+    user: $UID:$GID
+    volumes:
+      - "$GALLERIES_CONTENT_ROOT:/media/galleries"
+      - "$GALLERIES_TRANSFORMATIONS_ROOT:/media/transformations"
+      - "$RUNTIME_PATH:/media/runtime"
+      - "$CONFIG_PATH:/media/config"
+    env_file:
+      - .env
+    environment:
+      - "GALLERIES_CONTENT_ROOT=/media/galleries"
+      - "GALLERIES_TRANSFORMATIONS_ROOT=/media/transformations"
+      - "RUNTIME_PATH=/media/runtime"
+      - "CONFIG_PATH=/media/config"
+    command: ["python", "/opt/galleries/galleries/postprocessor/items_postprocessor.py"]
+
+  deletes_sync:
+    image: giobyte8/galleries:1.0.0
+    container_name: gl_deletes_sync
+    user: $UID:$GID
+    volumes:
+      - "$GALLERIES_CONTENT_ROOT:/media/galleries"
+      - "$GALLERIES_TRANSFORMATIONS_ROOT:/media/transformations"
+      - "$RUNTIME_PATH:/media/runtime"
+      - "$CONFIG_PATH:/media/config"
+    env_file:
+      - .env
+    environment:
+      - "GALLERIES_CONTENT_ROOT=/media/galleries"
+      - "GALLERIES_TRANSFORMATIONS_ROOT=/media/transformations"
+      - "RUNTIME_PATH=/media/runtime"
+      - "CONFIG_PATH=/media/config"
+    command: ["python", "/opt/galleries/galleries/deletes_sync/synchronizer.py"]
+
+  downloader:
+    image: giobyte8/galleries-downloader:1.0.0
+    container_name: gl_downloader
+    user: $UID:$GID
+    volumes:
+      - "$GALLERIES_CONTENT_ROOT:/media/galleries"
+      - "$GALLERIES_TRANSFORMATIONS_ROOT:/media/transformations"
+      - "$RUNTIME_PATH:/media/runtime"
+      - "$CONFIG_PATH:/media/config"
+    env_file:
+      - .env
+    environment:
+      - "GALLERIES_CONTENT_ROOT=/media/galleries"
+      - "GALLERIES_TRANSFORMATIONS_ROOT=/media/transformations"
+      - "RUNTIME_PATH=/media/runtime"
+      - "CONFIG_PATH=/media/config"

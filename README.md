@@ -23,3 +23,14 @@ several local and internet sources.
 Please be aware that content on remotes sites such as pinterest, unsplash or
 500px may be subject to copyrights, use content from those sources
 appropriately
+
+## Deployment
+
+1. Clone repo and navigate to root
+2. Setup crontab
+  1. `cd config && cp downloader.template.crontab downloader.crontab`
+  2. Edit `downloader.crontab` and adjust to your needs
+3. Setup containers env
+  1. `cd docker && cp env.template .env`
+  2. Edit `.env` and adjust to your own environment
+4. Start containers: `cd docker && docker-compose up -d`

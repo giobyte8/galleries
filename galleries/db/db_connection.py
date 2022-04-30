@@ -12,10 +12,10 @@ class DBError(Exception):
 def galleries_db():
     try:
         with MongoClient(
-            host=cfg.db_host(),
-            port=cfg.db_port(),
-            username=cfg.db_username(),
-            password=cfg.db_password()
+            host=cfg.mongodb_host(),
+            port=cfg.mongodb_port(),
+            username=cfg.mongodb_username(),
+            password=cfg.mongodb_password()
         ) as client:
             db = client.galleries
             yield db
