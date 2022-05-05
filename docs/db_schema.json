@@ -1,0 +1,122 @@
+[
+{
+    "#": "App global config",
+
+    "galleries_content_root": "/path/to/galleries/root"
+},
+
+{
+    "#": "gallery of images",
+
+    "_id": "...",
+    "name": "Portraits",
+    "type": "files",
+    "path": "/Portraits",
+    "transformations_path": "/transformations",
+    "transformations_path_relative_to_originals": true,
+    "sources": [
+        {
+            "id": "...",
+            "type": "http|git|local",
+            "url": "https://unsplash.com/collections/72573628/portraits",
+            "path_inside_repo": "path/to/dir/for/git/sources",
+            "sync_remote_deletes": true
+        }
+    ],
+    "transformations": [
+        {
+            "name": "LG Ultrawide",
+            "path": "LGUltrawide",
+            "operations": [
+                {
+                    "type": "resize",
+                    "w": 3440,
+                    "h": 1440,
+                    "verify_min_width": true,
+                    "verify_min_height": true
+                }
+            ]
+        },
+        {
+            "name": "LG Ultrawide PiP Screen 1",
+            "path": "LGUltrawidePiP1",
+            "from": "LG Ultrawide",
+            "operations": [
+                {
+                    "type": "crop",
+                    "w": 1720,
+                    "h": 1440,
+                    "start_x": 0,
+                    "start_y": 0
+                }
+            ]
+        },
+        {
+            "name": "LG Ultrawide PiP Screen 2",
+            "path": "LGUltrawidePiP2",
+            "operations": [
+                {
+                    "type": "resize",
+                    "w": 3440,
+                    "h": 1440,
+                    "verify_min_width": true,
+                    "verify_min_height": true
+                },
+                {
+                    "type": "crop",
+                    "w": 1720,
+                    "h": 1440,
+                    "start_x": 1720,
+                    "start_y": 0
+                }
+            ]
+        }
+    ]
+},
+
+{
+    "#": "gallery of objects",
+
+    "_id": "...",
+    "name": "Quotes",
+    "type": "objects",
+    "sources": [
+        {
+            "id": "...",
+            "type": "http|git|local",
+            "url": "https://unsplash.com/random/collection",
+            "path": "path/to/dir/for/git/sources",
+            "transformation": "CAPITALIZE|LOWERCASE|UPPERCASE"
+        }
+    ]
+},
+
+{
+    "#": "gallery item (file)",
+
+    "_id": "...",
+    "gallery_id": "...",
+    "source_id": "...",
+    "type": "file|object",
+    "filename": "file.ext",
+    "deleted_on_remote": "n|y|?",
+    "transformed_versions": [
+        {
+            "name": "LG Ultrawide",
+            "rel_file_path": "lgultrawide/file.ext",
+            "w": 3440,
+            "h": 1440
+        }
+    ]
+},
+
+{
+    "#": "gallery item (object)",
+
+    "_id": "...",
+    "gallery_id": "...",
+    "source_id": "...",
+    "type": "file|object",
+    "content": {}
+}
+]
