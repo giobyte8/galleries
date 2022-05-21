@@ -1,17 +1,14 @@
 version: '3.1'
 
 services:
-  couchdb:
-    image: couchdb:3.2
-    container_name: gcouchdb
+  cassandra:
+    image: cassandra:4
+    container_name: gcassandra
     restart: unless-stopped
     ports:
-      - 5984:5984
-    environment:
-      - 'COUCHDB_USER=$COUCHDB_USER'
-      - 'COUCHDB_PASSWORD=$COUCHDB_PASS'
+      - 9042:9042
     volumes:
-      - ${COUCHDB_PATH}:/opt/couchdb/data
+      - ${CASSANDRA_DATA}:/var/lib/cassandra
 
   redis:
     image: redis:6.2.6-alpine
