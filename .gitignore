@@ -1,6 +1,10 @@
+*.pyc
+.env
 
 data.dev/
-.env
-downloader.crontab
+config/downloader.crontab
+config/gallery-dl.conf.json
 
-*.pyc
+# draw.io diagrams backups
+docs/*.drawio.bkp
+docs/*.drawio.dtmp
