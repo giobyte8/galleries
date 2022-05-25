@@ -1,14 +1,19 @@
 version: '3.1'
 
 services:
-  cassandra:
-    image: cassandra:4
-    container_name: gcassandra
+  mysql:
+    image: mysql:8.0.29
+    container_name: gmysql
     restart: unless-stopped
     ports:
-      - 9042:9042
+      - 3306:3306
     volumes:
-      - ${CASSANDRA_DATA}:/var/lib/cassandra
+      - ${MYSQL_DATA}:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
 
   redis:
     image: redis:6.2.6-alpine
