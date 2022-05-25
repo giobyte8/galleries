@@ -8,3 +8,6 @@ config/gallery-dl.conf.json
 # draw.io diagrams backups
 docs/*.drawio.bkp
 docs/*.drawio.dtmp
+
+# Mat migrations manager
+db/migrations.yml
