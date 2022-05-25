@@ -10,10 +10,10 @@ CREATE TABLE IF NOT EXISTS gl.http_source(
 
 -- Should it be only for http source items?
 CREATE TABLE IF NOT EXISTS gl.source_item(
-    id UUID PRIMARY KEY,
-    source_id TEXT,
+    source_id UUID,
     path TEXT,
-    deleted_on_remote TEXT
+    remote_status TEXT,
+    PRIMARY KEY (source_id, remote_status, path)
 );
 
 -- Insert some test data

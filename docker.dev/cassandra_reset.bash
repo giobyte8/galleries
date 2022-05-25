@@ -8,7 +8,7 @@ CURR_PATH="${pwd}"
 cd $HERE
 
 echo "Stopping cassandra container"
-docker-compose down cassandra
+docker-compose stop cassandra
 
 echo
 echo "Deleting cassandra data"
