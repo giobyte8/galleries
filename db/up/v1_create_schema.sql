@@ -9,7 +9,7 @@ CREATE TABLE http_source(
 CREATE TABLE http_source_item(
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     source_id INTEGER NOT NULL,
-    `path` VARCHAR(5000) NOT NULL,
+    `filename` VARCHAR(1000) NOT NULL,
     remote_status VARCHAR(255) NOT NULL,
 
     CONSTRAINT fk_source FOREIGN KEY (source_id)
