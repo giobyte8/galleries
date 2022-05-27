@@ -16,7 +16,7 @@ if __name__ == '__main__':
 from http_downloader.messaging import producer
 
 
-source_id = sys.argv[1]
+source_id = int(sys.argv[1])
 filename = sys.argv[2]
 
 producer.send_file_downloaded(source_id, filename)

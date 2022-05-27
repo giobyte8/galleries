@@ -15,7 +15,7 @@ _conf_template_path=os.path.join(cfg.config_path(), _CONF_TEMPLATE)
 _RUNTIME_PATH = cfg.runtime_path()
 _gallery_dl_conf_path = os.path.join(_RUNTIME_PATH, 'gallery-dl-config')
 
-def download(source_id: str, url: str, dst_path: str) -> None:
+def download(source_id: int, url: str, dst_path: str) -> None:
     futils.assert_file_exists(_conf_template_path)
     futils.ensure_dir_existence(_gallery_dl_conf_path)
     futils.ensure_dir_existence(dst_path)
@@ -30,7 +30,7 @@ def download(source_id: str, url: str, dst_path: str) -> None:
     os.remove(gl_config_file)
 
 
-def _prepare_config_file(source_id: str):
+def _prepare_config_file(source_id: int):
     logger.debug(
         'Preparing gallery-dl config file for source: %s',
         source_id
@@ -55,7 +55,7 @@ def _prepare_config_file(source_id: str):
 
 
 def _set_on_file_skipped_hook_call(
-    source_id: str,
+    source_id: int,
     postprocessors: List[dict]
 ) -> None:
     for postprocessor in postprocessors:
@@ -63,14 +63,14 @@ def _set_on_file_skipped_hook_call(
             postprocessor['command'] = [
                 'python',
                 'http_downloader/hooks/on_file_skipped.py',
-                source_id,
+                str(source_id),
                 '{_filename}'
             ]
             break
 
 
 def _set_on_file_downloaded_hook_call(
-    source_id: str,
+    source_id: int,
     postprocessors: List[dict]
 ) -> None:
     for postprocessor in postprocessors:
@@ -78,6 +78,6 @@ def _set_on_file_downloaded_hook_call(
             postprocessor['command'] = [
                 'python',
                 'http_downloader/hooks/on_file_downloaded.py',
-                source_id,
+                str(source_id),
                 '{_filename}'
             ]

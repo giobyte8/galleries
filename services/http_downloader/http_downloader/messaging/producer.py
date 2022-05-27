@@ -9,7 +9,7 @@ _FILE_SKIPPED_QUEUE = 'file_skipped'
 _SOURCE_SYNCHRONIZED_QUEUE = 'source_synchronized'
 
 
-def send_file_downloaded(source_id: str, filename: str) -> None:
+def send_file_downloaded(source_id: int, filename: str) -> None:
     """Publishes a message to inform about a new downloaded file \
         for given source
 
@@ -37,7 +37,7 @@ def send_file_downloaded(source_id: str, filename: str) -> None:
             source_id)
 
 
-def send_file_skipped(source_id: str, filename: str) -> None:
+def send_file_skipped(source_id: int, filename: str) -> None:
     """Publishes a message to inform about a skipped file \
         for given source
 
@@ -65,12 +65,12 @@ def send_file_skipped(source_id: str, filename: str) -> None:
             source_id)
 
 
-def send_source_synchronized(source_id: str) -> None:
+def send_source_synchronized(source_id: int) -> None:
     """Publishes a message to inform that given source has been \
         synchronized
 
     Args:
-        source_id (str): Id of synchronized source
+        source_id (int): Id of synchronized source
     """
     with rb_channel() as channel:
         channel.queue_declare(_SOURCE_SYNCHRONIZED_QUEUE)

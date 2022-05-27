@@ -4,6 +4,26 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def mysql_host():
+    return os.getenv('MYSQL_HOST')
+
+
+def mysql_port():
+    return os.getenv('MYSQL_PORT')
+
+
+def mysql_database():
+    return os.getenv('MYSQL_DATABASE')
+
+
+def mysql_user():
+    return os.getenv('MYSQL_USER')
+
+
+def mysql_password():
+    return os.getenv('MYSQL_PASSWORD')
+
+
 def rabbitmq_host():
     return os.getenv('RABBITMQ_HOST')
 

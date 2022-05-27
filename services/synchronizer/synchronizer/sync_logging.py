@@ -10,7 +10,7 @@ _LOGGER_NAME = 'synchronizer'
 _LOG_FILENAME = f'{_LOGGER_NAME}.log'
 
 logger = logging.getLogger(_LOGGER_NAME)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 _formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -30,6 +30,6 @@ _fh = RotatingFileHandler(
     backupCount=5,
     encoding='utf-8'
 )
-_fh.setLevel(logging.INFO)
+_fh.setLevel(logging.DEBUG)
 _fh.setFormatter(_formatter)
 logger.addHandler(_fh)

@@ -1,15 +1,33 @@
-import uuid
-from cassandra.cqlengine import columns, connection
-from cassandra.cqlengine.models import Model
+from enum import Enum
+from sqlalchemy import (
+    Boolean,
+    Column,
+    ForeignKey,
+    Integer,
+    String
+)
+from sqlalchemy.orm import declarative_base
 
 
-_GALLERIES_KEYSPACE = 'gl'
-connection.setup(['127.0.0.1'], _GALLERIES_KEYSPACE)
+Base = declarative_base()
 
-class DBHttpSource(Model):
-    __table_name__ = 'http_source'
+class SIRemoteStatus(Enum):
+    FOUND = 'Found'
+    NOT_FOUND = 'Not found'
+    UNKNOWN = 'Unknown'
 
-    id = columns.UUID(primary_key=True, default=uuid.uuid4())
-    url = columns.Text(required=True)
-    content_path = columns.Text(required=True)
-    sync_remote_deletes = columns.Boolean(required=True, default=True)
+class HttpSource(Base):
+    __tablename__ = 'http_source'
+
+    id = Column(Integer, primary_key=True)
+    url = Column(String(5000), nullable=False)
+    content_path = Column(String(5000), nullable=False)
+    sync_remote_deletes = Column(Boolean, default=True)
+
+class HttpSourceItem(Base):
+    __tablename__ = 'http_source_item'
+
+    id = Column(Integer, primary_key=True)
+    source_id = Column(Integer, ForeignKey('http_source.id'), nullable=False)
+    filename = Column(String(1000), nullable=False)
+    remote_status = Column(String(255), nullable=False)
