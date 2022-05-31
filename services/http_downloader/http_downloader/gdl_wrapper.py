@@ -15,6 +15,11 @@ _conf_template_path=os.path.join(cfg.config_path(), _CONF_TEMPLATE)
 _RUNTIME_PATH = cfg.runtime_path()
 _gallery_dl_conf_path = os.path.join(_RUNTIME_PATH, 'gallery-dl-config')
 
+
+class GDLCookies:
+    PINTEREST_SESSION = '_pinterest_sess'
+
+
 def download(source_id: int, url: str, dst_path: str) -> None:
     futils.assert_file_exists(_conf_template_path)
     futils.ensure_dir_existence(_gallery_dl_conf_path)
@@ -42,6 +47,7 @@ def _prepare_config_file(source_id: int):
     postprocessors = gl_config['extractor']['postprocessors']
     _set_on_file_downloaded_hook_call(source_id, postprocessors)
     _set_on_file_skipped_hook_call(source_id, postprocessors)
+    _set_cookies(gl_config['extractor'])
 
     source_config_path = os.path.join(
         _gallery_dl_conf_path,
@@ -81,3 +87,37 @@ def _set_on_file_downloaded_hook_call(
                 str(source_id),
                 '{_filename}'
             ]
+
+
+def _set_cookies(j_extractor: dict) -> None:
+    """Sets cookies values to given extractor config object. \
+        Cookies are read from 'gallery-dl.cookies.json' config file
+
+    Args:
+        j_extractor (dict): Extractor config object from gdl file
+    """
+    j_cookies = _load_cookies()
+
+    if GDLCookies.PINTEREST_SESSION in j_cookies and \
+        'pinterest' in j_extractor  and \
+        'cookies' in j_extractor['pinterest']:
+            pin_cookies = j_extractor['pinterest']['cookies']
+            pin_cookies[GDLCookies.PINTEREST_SESSION] = j_cookies[
+                GDLCookies.PINTEREST_SESSION
+            ]
+
+
+def _load_cookies() -> dict:
+    """Reads cookies json file and parse its content
+
+    Returns:
+        dict: Cookies file content loaded with 'json.loads'
+    """
+    cookies_filename = 'gallery-dl.cookies.json'
+    cookies_file_path = os.path.join(cfg.config_path(), cookies_filename)
+
+    if not os.path.isfile(cookies_file_path):
+        return {}
+
+    with open(cookies_file_path, 'r') as cookies_file:
+        return json.loads(cookies_file.read())

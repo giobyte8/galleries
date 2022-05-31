@@ -2,8 +2,9 @@
 .env
 
 data.dev/
-config/downloader.crontab
-config/gallery-dl.conf.json
+http_downloader_config/downloader.crontab
+http_downloader_config/gallery-dl.conf.json
+http_downloader_config/gallery-dl.cookies.json
 
 # draw.io diagrams backups
 docs/*.drawio.bkp
