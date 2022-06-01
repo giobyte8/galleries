@@ -15,15 +15,6 @@
             }
         ],
 
-        "500px": {
-            "gallery": {
-                "filename": "{id}_{name}.{extension}",
-                "directory": ["{category}", "{gallery[name]}"]
-            },
-            "image": {
-                "filename": "{id}_{name}.{extension}"
-            }
-        },
         "pinterest": {
             "videos": false,
             "cookies": {
