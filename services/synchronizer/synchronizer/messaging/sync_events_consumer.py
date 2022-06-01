@@ -5,7 +5,8 @@ from kombu.utils.compat import nested
 from synchronizer.messaging.resources import (
     FILE_DL_QUEUE,
     FILE_SK_QUEUE,
-    SRC_SYNCHRONIZED_QUEUE
+    SRC_SYNCHRONIZED_QUEUE,
+    rb_connection
 )
 from synchronizer.services import sync_service
 from synchronizer.sync_logging import logger
@@ -41,7 +42,7 @@ def on_source_synchronized(body, message):
 
 
 def start_consumer():
-    with Connection(userid='galleries', password='devpass') as conn:
+    with rb_connection() as conn:
         file_skipped_cmr = Consumer(
             conn,
             FILE_SK_QUEUE,

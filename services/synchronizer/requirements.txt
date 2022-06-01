@@ -1,5 +1,6 @@
 kombu==5.2.4
 PyMySQL==1.0.2
+PyMySQL[rsa]
 python-dotenv==0.20.0
 redis==4.3.1
 SQLAlchemy==1.4.36
