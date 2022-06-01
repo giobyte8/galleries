@@ -1,0 +1,7 @@
+*.pyc
+
+data.dev/
+db/
+docker.dev/
+docs/
+tests/
