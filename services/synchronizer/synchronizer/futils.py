@@ -42,5 +42,9 @@ def remove(path: str, validate_existence=False) -> bool:
     if validate_existence and not os.path.isfile(path):
         raise PathNotAFileError(path)
 
-    os.remove(path)
+    try:
+        os.remove(path)
+    except FileNotFoundError:
+        pass
+
     return not os.path.isfile(path)
