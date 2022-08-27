@@ -1,6 +1,6 @@
 from typing import List
 from sqlalchemy import delete, select, update
-from synchronizer.db.connection import make_session
+from synchronizer.db.connection import get_session
 from synchronizer.db.models import HttpSourceItem, SIRemoteStatus
 from synchronizer.sync_logging import logger
 
@@ -13,8 +13,7 @@ def find_by_src_and_status(
         .where(HttpSourceItem.source_id == source_id)\
         .where(HttpSourceItem.remote_status == status.value)
 
-    with make_session() as session:
-        return session.scalars(stmt).all()
+    return get_session().scalars(stmt).all()
 
 
 def upsert(source_id: int, filename: str) -> HttpSourceItem:
@@ -22,18 +21,18 @@ def upsert(source_id: int, filename: str) -> HttpSourceItem:
         .where(HttpSourceItem.source_id == source_id)\
         .where(HttpSourceItem.filename == filename)
 
-    with make_session() as session:
-        item = session.scalars(stmt).first()
+    session = get_session()
+    item = session.scalars(stmt).first()
 
-        if not item:
-            item = HttpSourceItem(
-                source_id=source_id,
-                filename=filename,
-                remote_status=SIRemoteStatus.FOUND.value
-            )
+    if not item:
+        item = HttpSourceItem(
+            source_id=source_id,
+            filename=filename,
+            remote_status=SIRemoteStatus.FOUND.value
+        )
 
-            session.add(item)
-            session.commit()
+        session.add(item)
+        session.commit()
 
 
 def update_remote_status(
@@ -46,9 +45,9 @@ def update_remote_status(
         .where(HttpSourceItem.filename == filename)\
         .values(remote_status=status.value)
 
-    with make_session() as session:
-        session.execute(stmt)
-        session.commit()
+    session = get_session()
+    session.execute(stmt)
+    session.commit()
 
 
 def update_status_by_src_and_status(
@@ -68,9 +67,10 @@ def update_status_by_src_and_status(
         .where(HttpSourceItem.source_id == source_id)\
         .where(HttpSourceItem.remote_status == from_status.value)\
         .values(remote_status=to_status.value)
-    with make_session() as session:
-        session.execute(stmt)
-        session.commit()
+
+    session = get_session()
+    session.execute(stmt)
+    session.commit()
 
 
 def delete_by_src_and_status(
@@ -81,6 +81,6 @@ def delete_by_src_and_status(
         .where(HttpSourceItem.source_id == source_id)\
         .where(HttpSourceItem.remote_status == status.value)
 
-    with make_session() as session:
-        session.execute(stmt)
-        session.commit()
+    session = get_session()
+    session.execute(stmt)
+    session.commit()
