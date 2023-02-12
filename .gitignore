@@ -7,6 +7,9 @@ config/synchronizer/src_sync.crontab
 config/http_downloader/gallery-dl.conf.json
 config/http_downloader/gallery-dl.cookies.json
 
+# VSCode
+.vscode
+
 # draw.io diagrams backups
 docs/*.drawio.bkp
 docs/*.drawio.dtmp
