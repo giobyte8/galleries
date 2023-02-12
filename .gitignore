@@ -13,3 +13,6 @@ docs/*.drawio.dtmp
 
 # Mat migrations manager
 db/migrations.yml
+
+# Obsidian vault for documentation
+docs/.obsidian
