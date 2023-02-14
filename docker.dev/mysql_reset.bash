@@ -5,11 +5,10 @@
 HERE="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 CURR_PATH="${pwd}"
 
+cd $HERE
+
 source .env
 MYSQL_HOST=host.docker.internal
-
-
-cd $HERE
 
 echo "Stopping database container"
 docker-compose stop mysql
