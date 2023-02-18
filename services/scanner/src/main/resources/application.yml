@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/${MYSQL_DATABASE:gl}
+    username:
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username:
+    password:
+
+logging:
+  level:
+    me.giobyte8.galleries.scanner: DEBUG
+
+galleries:
+  scanner:
+    amqp:
+      exchange_gl: GL_EXCHANGE
+      queue_scan_orders: GL_SCAN_ORDERS
+    content_dirs:
+      root_path: ./dev.data/galleries
