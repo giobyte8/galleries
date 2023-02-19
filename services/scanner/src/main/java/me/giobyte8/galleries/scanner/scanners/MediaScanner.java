@@ -1,8 +1,13 @@
 package me.giobyte8.galleries.scanner.scanners;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 
 public interface MediaScanner {
 
-    void scan(File path, boolean recursive);
+    void scan(
+            Path physicalPath,
+            boolean recursive,
+            OnFileFoundCB cb
+    ) throws IOException;
 }

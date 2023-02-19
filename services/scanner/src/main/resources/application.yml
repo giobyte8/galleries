@@ -24,3 +24,9 @@ galleries:
       queue_scan_orders: GL_SCAN_ORDERS
     content_dirs:
       root_path: ./dev.data/galleries
+    media_files_extensions:
+      - jpeg
+      - jpg
+      - png
+      - mp4
+      # TODO add support for raw formats
