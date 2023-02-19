@@ -7,7 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "content_dir")
@@ -32,13 +33,29 @@ public class ContentDir {
     private Date lastScanStart;
     private Date lastScanCompletion;
 
-    @ManyToMany
+    @ManyToMany(
+            fetch = FetchType.EAGER,
+            cascade = {
+                    CascadeType.PERSIST,
+                    CascadeType.MERGE
+            }
+    )
     @JoinTable(
             name = "dir_contains_mfile",
             joinColumns = @JoinColumn(name = "dir_hashed_path"),
             inverseJoinColumns = @JoinColumn(name = "file_hashed_path")
     )
-    private List<MediaFile> files;
+    private Set<MediaFile> files = new HashSet<>();
+
+    public void addFile(MediaFile mFile) {
+        this.files.add(mFile);
+        mFile.getMediaDirs().add(this);
+    }
+
+    public void removeFile(MediaFile mFile) {
+        this.files.remove(mFile);
+        mFile.getMediaDirs().remove(this);
+    }
 
 
     public String getHashedPath() {
@@ -87,5 +104,13 @@ public class ContentDir {
 
     public void setLastScanCompletion(Date lastScanCompletion) {
         this.lastScanCompletion = lastScanCompletion;
+    }
+
+    public Set<MediaFile> getFiles() {
+        return files;
+    }
+
+    public void setFiles(Set<MediaFile> files) {
+        this.files = files;
     }
 }

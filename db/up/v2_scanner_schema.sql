@@ -20,9 +20,10 @@ CREATE TABLE media_file(
 );
 
 CREATE TABLE dir_contains_mfile(
-    id VARCHAR(255) PRIMARY KEY,
     dir_hashed_path VARCHAR(64) NOT NULL,
     file_hashed_path VARCHAR(64) NOT NULL,
+
+    PRIMARY KEY (dir_hashed_path, file_hashed_path),
 
     CONSTRAINT fk_dir_hashed__path FOREIGN KEY (dir_hashed_path)
         REFERENCES content_dir(hashed_path),

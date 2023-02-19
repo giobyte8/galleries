@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "media_file")
@@ -28,7 +30,7 @@ public class MediaFile {
 
     @Enumerated(EnumType.STRING)
     @NotNull
-    private MediaFileStatus status;
+    private MediaFileStatus status = MediaFileStatus.THUMBNAILS_PENDING;
 
     private Date datetimeOriginal;
 
@@ -38,6 +40,9 @@ public class MediaFile {
 
     @Size(max = 255)
     private String camera;
+
+    @ManyToMany(mappedBy = "files")
+    private Set<ContentDir> mediaDirs = new HashSet<>();
 
 
     public void setHashedPath(String hashedPath) {
@@ -102,5 +107,13 @@ public class MediaFile {
 
     public void setCamera(String camera) {
         this.camera = camera;
+    }
+
+    public Set<ContentDir> getMediaDirs() {
+        return mediaDirs;
+    }
+
+    public void setMediaDirs(Set<ContentDir> owners) {
+        this.mediaDirs = owners;
     }
 }
