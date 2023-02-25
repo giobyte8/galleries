@@ -4,10 +4,12 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import me.giobyte8.galleries.scanner.dto.MFMetadata;
 
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -30,7 +32,7 @@ public class MediaFile {
 
     @Enumerated(EnumType.STRING)
     @NotNull
-    private MediaFileStatus status = MediaFileStatus.THUMBNAILS_PENDING;
+    private MediaFileStatus status = MediaFileStatus.READY;
 
     private Date datetimeOriginal;
 
@@ -43,6 +45,41 @@ public class MediaFile {
 
     @ManyToMany(mappedBy = "files")
     private Set<ContentDir> mediaDirs = new HashSet<>();
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj == null) {
+            return false;
+        }
+
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+
+        return ((MediaFile) obj).getHashedPath().equals(this.hashedPath);
+    }
+
+    @Override
+    public int hashCode() {
+        if (this.hashedPath == null) return super.hashCode();
+
+        return Objects.hashCode(this.hashedPath);
+    }
+
+    /**
+     * Updates this media file metadata
+     * @param meta New file's metadata
+     */
+    public void setMetadata(MFMetadata meta) {
+        this.setDatetimeOriginal(meta.getDatetimeOriginal());
+        this.setGpsLatitude(meta.getGpsLatitude());
+        this.setGpsLongitude(meta.getGpsLongitude());
+        // TODO Set camera model
+    }
 
 
     public void setHashedPath(String hashedPath) {

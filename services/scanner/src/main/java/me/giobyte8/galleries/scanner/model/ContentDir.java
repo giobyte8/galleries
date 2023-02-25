@@ -34,7 +34,7 @@ public class ContentDir {
     private Date lastScanCompletion;
 
     @ManyToMany(
-            fetch = FetchType.EAGER,
+            fetch = FetchType.LAZY,
             cascade = {
                     CascadeType.PERSIST,
                     CascadeType.MERGE

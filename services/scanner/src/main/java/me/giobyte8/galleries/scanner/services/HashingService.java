@@ -15,6 +15,10 @@ public class HashingService {
         return DigestUtils.sha256Hex(path);
     }
 
+    public String hashPath(Path path) {
+        return this.hashPath(path.toString());
+    }
+
     public String hashFile(Path fPath) throws IOException {
         InputStream is = Files.newInputStream(fPath);
         return DigestUtils.sha256Hex(is);
