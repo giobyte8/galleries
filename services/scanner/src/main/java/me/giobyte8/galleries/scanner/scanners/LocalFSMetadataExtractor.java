@@ -25,8 +25,8 @@ public class LocalFSMetadataExtractor implements MetadataExtractor {
     Logger log = LoggerFactory.getLogger(LocalFSMetadataExtractor.class);
 
     @Override
-    public MFMetadata extract(String absPath) throws IOException {
-        InputStream fIs = Files.newInputStream(Path.of(absPath));
+    public MFMetadata extract(Path absPath) throws IOException {
+        InputStream fIs = Files.newInputStream(absPath);
         try {
             Metadata metadata = ImageMetadataReader.readMetadata(fIs);
             MFMetadata mfMeta = new MFMetadata();

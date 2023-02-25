@@ -22,13 +22,11 @@ class LocalFSMetadataExtractorTests {
 
     @Test
     void extractInvalidFile() {
-        String mfAbsPath = Paths
-                .get(
-                        testContentsRoot.toAbsolutePath().toString(),
-                        "cameras",
-                        "invalidFile.jpg"
-                )
-                .toString();
+        Path mfAbsPath = Paths.get(
+                testContentsRoot.toAbsolutePath().toString(),
+                "cameras",
+                "invalidFile.jpg"
+        );
 
         assertThatThrownBy(() -> mExtractor.extract(mfAbsPath))
                 .isInstanceOf(IOException.class);
@@ -36,13 +34,11 @@ class LocalFSMetadataExtractorTests {
 
     @Test
     void fullMetadata() throws IOException {
-        String mfAbsPath = Paths
-                .get(
-                        testContentsRoot.toAbsolutePath().toString(),
-                        "cameras",
-                        "20211029_094356_2.jpg"
-                )
-                .toString();
+        Path mfAbsPath = Paths.get(
+                testContentsRoot.toAbsolutePath().toString(),
+                "cameras",
+                "20211029_094356_2.jpg"
+        );
 
         MFMetadata meta = mExtractor.extract(mfAbsPath);
         assertThat(meta).isNotNull();
