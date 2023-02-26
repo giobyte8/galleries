@@ -6,7 +6,7 @@ import java.nio.file.Path;
 public interface MediaScanner {
 
     void scan(
-            Path physicalPath,
+            Path absDirPath,
             boolean recursive,
             OnFileFoundCB cb
     ) throws IOException;
