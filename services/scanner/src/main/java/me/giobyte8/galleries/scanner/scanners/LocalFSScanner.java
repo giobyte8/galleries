@@ -30,57 +30,61 @@ public class LocalFSScanner implements MediaScanner {
 
     @Override
     public void scan(
-            Path physicalDir,
+            Path absDirPath,
             boolean recursive,
             OnFileFoundCB cb
     ) throws IOException {
-        log.info("Scanning for files at: {}", physicalDir);
-        if (!Files.isDirectory(physicalDir)) {
+        log.info("Scanning for files at: {}", absDirPath);
+        if (!Files.isDirectory(absDirPath)) {
             throw new IOException(
                     "Provided media dir is not a valid directory"
             );
         }
 
-        try (Stream<Path> fStream = Files.list(physicalDir)) {
+        try (Stream<Path> fStream = Files.list(absDirPath)) {
             fStream
                     // Filter nested directories
-                    .filter(fPath -> {
+                    .filter(absPath -> {
 
                         // Scan recursively is required
-                        if (Files.isDirectory(fPath) && recursive) {
+                        if (Files.isDirectory(absPath) && recursive) {
                             try {
-                                this.scan(fPath, true, cb);
+                                this.scan(absPath, true, cb);
                             } catch (IOException e) {
                                 log.error(
                                         "IOException while scanning nested dir: {} - {}",
-                                        fPath,
+                                        absPath,
                                         e.getMessage()
                                 );
                             }
                         }
 
-                        return !Files.isDirectory(fPath);
+                        return !Files.isDirectory(absPath);
                     })
 
                     // Filter only media files (By extension)
-                    .filter(fPath -> {
-                        String sPath = fPath.toString();
+                    .filter(absFPath -> {
+                        String sPath = absFPath.toString();
                         String ext = sPath
                                 .substring(sPath.lastIndexOf(".") + 1)
                                 .toLowerCase();
 
-                        return scannerProps.getMediaFilesExtensions().contains(ext);
+                        return scannerProps
+                                .getMediaFilesExtensions()
+                                .contains(ext);
                     })
 
                     // Get content hash and invoke callback
-                    .forEach(fPath -> {
+                    .forEach(absFPath -> {
+                        log.debug("File found during scan: {}", absFPath);
+
                         try {
-                            String fHash = hashingService.hashFile(fPath);
-                            cb.onFileFound(fPath, fHash);
+                            String fHash = hashingService.hashFile(absFPath);
+                            cb.onFileFound(absFPath, fHash);
                         } catch (IOException e) {
                             log.error(
                                     "IOException while hashing file: {} - {}",
-                                    fPath,
+                                    absFPath,
                                     e.getMessage()
                             );
                         }
