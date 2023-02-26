@@ -22,14 +22,40 @@ dependencies {
 	implementation 'mysql:mysql-connector-java:8.0.32'
 
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
-
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.amqp:spring-rabbit-test'
-	testImplementation 'com.h2database:h2'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+// Introducing test suites blog: https://blog.gradle.org/introducing-test-suites
+// Reference: https://docs.gradle.org/7.6.1/userguide/jvm_test_suite_plugin.html#sec:jvm_test_suite_usage
+testing {
+	suites {
+		configureEach {
+			useJUnitJupiter()
+			dependencies {
+				implementation 'org.springframework.boot:spring-boot-starter-test'
+			}
+		}
+
+		test(JvmTestSuite)
+
+		integrationTest(JvmTestSuite) {
+			dependencies {
+				implementation project()
+				implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+				implementation 'com.h2database:h2'
+			}
+
+			targets {
+				all {
+					testTask.configure {
+						shouldRunAfter(test)
+					}
+				}
+			}
+		}
+	}
 }
+
+//tasks.named('check') {
+//	dependsOn(testing.suites.integrationTest)
+//}

@@ -6,3 +6,10 @@ spring:
       hibernate:
         format_sql: true
     show-sql: true
+
+galleries:
+  scanner:
+    content_dirs:
+      root_path: src/test/resources/galleries
+    media-files-extensions:
+      - jpg
