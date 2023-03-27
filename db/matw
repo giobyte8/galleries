@@ -11,4 +11,4 @@
 #
 
 DOCKER_IMAGE_TAG=1.0.1
-docker run --rm -ti -v "$PWD":/mat giobyte8/mat:"$DOCKER_IMAGE_TAG" "$@"
+docker run --rm --network dockerdev_default -ti -v "$PWD":/mat giobyte8/mat:"$DOCKER_IMAGE_TAG" "$@"

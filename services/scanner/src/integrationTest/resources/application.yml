@@ -1,11 +1,25 @@
 spring:
+  # Test datasource connection params
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3307}/${MYSQL_DATABASE:gl-test}
+    username: galleries_scanner
+    password: devpass
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
     show-sql: true
+  test:
+    database:
+      # Disable automatic usage of H2 database
+      replace: none
+
+logging:
+  level:
+    me.giobyte8.galleries.scanner: DEBUG
 
 galleries:
   scanner:
