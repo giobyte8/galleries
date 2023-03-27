@@ -8,9 +8,7 @@ import me.giobyte8.galleries.scanner.dto.MFMetadata;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 @Entity
 @Table(name = "media_file")
@@ -28,10 +26,12 @@ public class MediaFile {
     /** File content's hash */
     @NotBlank
     @Size(min = 64, max = 64)
+    @Column(name = "`hash`")
     private String hash;
 
     @Enumerated(EnumType.STRING)
     @NotNull
+    @Column(name = "`status`")
     private MediaFileStatus status = MediaFileStatus.READY;
 
     private Date datetimeOriginal;
@@ -42,9 +42,6 @@ public class MediaFile {
 
     @Size(max = 255)
     private String camera;
-
-    @ManyToMany(mappedBy = "files")
-    private Set<ContentDir> mediaDirs = new HashSet<>();
 
     @Override
     public boolean equals(Object obj) {
@@ -144,13 +141,5 @@ public class MediaFile {
 
     public void setCamera(String camera) {
         this.camera = camera;
-    }
-
-    public Set<ContentDir> getMediaDirs() {
-        return mediaDirs;
-    }
-
-    public void setMediaDirs(Set<ContentDir> owners) {
-        this.mediaDirs = owners;
     }
 }
