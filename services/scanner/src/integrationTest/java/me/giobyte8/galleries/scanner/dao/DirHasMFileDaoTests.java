@@ -1,20 +1,20 @@
 package me.giobyte8.galleries.scanner.dao;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import me.giobyte8.galleries.scanner.model.*;
 import me.giobyte8.galleries.scanner.services.HashingService;
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
+import java.util.List;
+import java.util.stream.Stream;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DataJpaTest
-@Import(HashingService.class)
+@Import({ HashingService.class, ContDirDataSvc.class })
 class DirHasMFileDaoTests {
 
     @Autowired
@@ -26,21 +26,21 @@ class DirHasMFileDaoTests {
     @Autowired
     private ContentDirHasMFileDao hasMFileDao;
 
-    @PersistenceContext
-    private EntityManager entityMgr;
+    @Autowired
+    private ContDirDataSvc contDirDataSvc;
 
     @Autowired
     private HashingService hashingService;
 
-    private String testDirPath = "/pgalleries/portraits";
-    private String testFilePath1 = "/pgalleries/portraits/random.jpeg";
-    private String testFilePath2 = "/pgalleries/portraits/random2.jpeg";
+    private final String testDirPath = "/pgalleries/portraits";
+    private final String testFilePath1 = "/pgalleries/portraits/random.jpeg";
+    private final String testFilePath2 = "/pgalleries/portraits/random2.jpeg";
 
-
-    @Test
-    void injectedComponentsOk() {
-        assertNotNull(dirDao);
-        assertNotNull(hashingService);
+    @AfterEach
+    void cleanupDb() {
+        hasMFileDao.deleteAll();
+        mFileDao.deleteAll();
+        dirDao.deleteAll();
     }
 
     @Test
@@ -62,12 +62,10 @@ class DirHasMFileDaoTests {
         mFile2.setPath(testFilePath2);
         mFile2.setHash(hashedFPath2);
 
-        contentDir.addFile(mFile1);
-        contentDir.addFile(mFile2);
-        dirDao.saveAndFlush(contentDir);
+        contDirDataSvc.saveWithFiles(contentDir, mFile1, mFile2);
 
         // Count of join table should be equals 2
-        Assertions.assertThat(hasMFileDao.count()).isEqualTo(2);
+        assertThat(hasMFileDao.count()).isEqualTo(2);
 
         // Find association with file 1
         DirHasMFileId hasMFileId = new DirHasMFileId();
@@ -95,7 +93,7 @@ class DirHasMFileDaoTests {
     }
 
     @Test
-    void saveJoinTableQueryContentDir() {
+    void saveJoinTableQueryAssociatedFiles() {
         ContentDir contentDir = new ContentDir();
         String hashedDPath = hashingService.hashPath(testDirPath);
         contentDir.setHashedPath(hashedDPath);
@@ -108,9 +106,7 @@ class DirHasMFileDaoTests {
         mFile1.setHash(hashedFPath1);
 
         // Save content dir with one file only
-        contentDir.addFile(mFile1);
-        entityMgr.persist(contentDir);
-
+        contDirDataSvc.saveWithFiles(contentDir, mFile1);
 
         // Save media file and associate manually
         MediaFile mFile2 = new MediaFile();
@@ -118,21 +114,24 @@ class DirHasMFileDaoTests {
         mFile2.setHashedPath(hashedFPath2);
         mFile2.setPath(testFilePath2);
         mFile2.setHash(hashedFPath2);
-        mFileDao.saveAndFlush(mFile2);
+        mFileDao.save(mFile2);
 
         ContentDirHasMFile hasMFile2 = new ContentDirHasMFile();
         hasMFile2.setDirHashedPath(hashedDPath);
         hasMFile2.setFileHashedPath(hashedFPath2);
-        hasMFileDao.saveAndFlush(hasMFile2);
+        hasMFileDao.save(hasMFile2);
 
-        Assertions.assertThat(hasMFileDao.count()).isEqualTo(2);
-
+        assertThat(hasMFileDao.count()).isEqualTo(2);
 
         // Read content dir again and verify associations
-        entityMgr.refresh(contentDir);
-        assertThat(contentDir.getFiles()).hasSize(2);
-        assertThat(contentDir.getFiles()).contains(mFile1);
-        assertThat(contentDir.getFiles()).contains(mFile2);
+        try (Stream<MediaFile> mFilesStr = mFileDao
+                .findByDir(hashedDPath)) {
+            List<MediaFile> mFiles = mFilesStr.toList();
+
+            assertThat(mFiles).hasSize(2);
+            assertThat(mFiles).contains(mFile1);
+            assertThat(mFiles).contains(mFile2);
+        }
     }
 
     @Test
@@ -165,10 +164,7 @@ class DirHasMFileDaoTests {
         ContentDir dir = new ContentDir();
         dir.setHashedPath(hashedDPath);
         dir.setPath(dirPath);
-        dir.addFile(mFile1);
-        dir.addFile(mFile2);
-        dir.addFile(mFile3);
-        dirDao.save(dir);
+        contDirDataSvc.saveWithFiles(dir, mFile1, mFile2, mFile3);
 
         // Remove association with files 'IN_REVIEW'
         int deletedCount = hasMFileDao.deleteAllByDirHashedPathAndMFileStatus(
@@ -177,6 +173,6 @@ class DirHasMFileDaoTests {
         );
 
         assertThat(deletedCount).isEqualTo(2);
-        Assertions.assertThat(hasMFileDao.count()).isEqualTo(1);
+        assertThat(hasMFileDao.count()).isEqualTo(1);
     }
 }
