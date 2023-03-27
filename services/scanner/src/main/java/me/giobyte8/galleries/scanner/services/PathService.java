@@ -29,7 +29,7 @@ public class PathService {
      * @param absPath File or directory absolute path
      * @return Relative path to file
      */
-    public String toRelative(Path absPath) {
+    public Path toRelative(Path absPath) {
         String relFPath = absPath.toString().replace(
                 scannerProps.getContentDirs().getRootPath(),
                 ""
@@ -39,6 +39,6 @@ public class PathService {
             relFPath = relFPath.substring(1);
         }
 
-        return relFPath;
+        return Path.of(relFPath);
     }
 }
