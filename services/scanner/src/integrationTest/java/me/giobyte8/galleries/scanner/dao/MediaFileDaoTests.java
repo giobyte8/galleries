@@ -1,5 +1,7 @@
 package me.giobyte8.galleries.scanner.dao;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import me.giobyte8.galleries.scanner.model.ContentDir;
 import me.giobyte8.galleries.scanner.model.MediaFile;
 import me.giobyte8.galleries.scanner.model.MediaFileStatus;
@@ -17,22 +19,24 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(HashingService.class)
+@Import({ HashingService.class, ContDirDataSvc.class })
 class MediaFileDaoTests {
 
     @Autowired
     private MediaFileDao mFileDao;
 
     @Autowired
-    private ContentDirDao dirDao;
+    private ContDirDataSvc contDirDataSvc;
 
     @Autowired
     private HashingService hashingService;
 
-    private String testFilePath = "/pgalleries/portraits/random.jpeg";
+    @PersistenceContext
+    private EntityManager entityMgr;
 
     @Test
-    void basicCRUD() {
+    void saveMFile() {
+        String testFilePath = "/pgalleries/portraits/random.jpeg";
         String hashedFPath = hashingService.hashPath(testFilePath);
         MediaFile mFile = new MediaFile();
         mFile.setHashedPath(hashedFPath);
@@ -78,8 +82,8 @@ class MediaFileDaoTests {
         ContentDir dir = new ContentDir();
         dir.setHashedPath(hashedDPath);
         dir.setPath(dirPath);
-        dir.addFile(mFile1);
-        dirDao.save(dir);
+
+        contDirDataSvc.saveWithFiles(dir, mFile1);
 
         // Save 'In review' media files
         mFileDao.saveAll(Arrays.asList(mFile2, mFile3));
@@ -90,7 +94,7 @@ class MediaFileDaoTests {
         // Delete 'In review' and orphan files
         Assertions
                 .assertThat(mFileDao.deleteByStatusAndMediaDirsEmpty(
-                        MediaFileStatus.IN_REVIEW
+                        MediaFileStatus.IN_REVIEW.name()
                 ))
                 .isEqualTo(2);
 
@@ -133,8 +137,7 @@ class MediaFileDaoTests {
         ContentDir dir = new ContentDir();
         dir.setHashedPath(hashedDPath);
         dir.setPath(dirPath);
-        dir.addFile(mFile1);
-        dirDao.save(dir);
+        contDirDataSvc.saveWithFiles(dir, mFile1);
 
         // Save 'In review' media files
         mFileDao.saveAll(Arrays.asList(mFile2, mFile3));
@@ -142,7 +145,7 @@ class MediaFileDaoTests {
 
         // Run query for "orphan" and 'IN_REVIEW' files
         Stream<MediaFile> mFilesStream = mFileDao.findAllByStatusAndMediaDirsEmpty(
-                MediaFileStatus.IN_REVIEW
+                MediaFileStatus.IN_REVIEW.name()
         );
 
         // Assert query returned expected files
@@ -186,15 +189,62 @@ class MediaFileDaoTests {
         ContentDir dir = new ContentDir();
         dir.setHashedPath(hashedDPath);
         dir.setPath(dirPath);
-        dir.addFile(mFile1);
-        dir.addFile(mFile2);
-        dir.addFile(mFile3);
-        dirDao.save(dir);
+        contDirDataSvc.saveWithFiles(dir, mFile1, mFile2, mFile3);
 
-        Stream<MediaFile> mFiles = mFileDao.findAllByMediaDirsHashedPathAndStatus(
+        // Force test transaction commit to DB before next query
+        entityMgr.flush();
+
+        Stream<MediaFile> mFiles = mFileDao.findByDirAndMediaFileStatus(
                 dir.getHashedPath(),
-                MediaFileStatus.IN_REVIEW
+                MediaFileStatus.IN_REVIEW.name()
         );
         assertThat(mFiles.count()).isEqualTo(2);
+    }
+
+    @Test
+    void updateStatusByContentDir() {
+        String mfPath1 = "path1/";
+        String mfPath2 = "path2/";
+        String mfPath3 = "path3/";
+
+        String dirPath = "dir/path";
+        String hashedDPath = hashingService.hashPath(dirPath);
+
+        MediaFile mFile1 = new MediaFile();
+        mFile1.setHashedPath(hashingService.hashPath(mfPath1));
+        mFile1.setPath(mfPath1);
+        mFile1.setHash(hashingService.hashPath(mfPath1));
+
+        MediaFile mFile2 = new MediaFile();
+        mFile2.setHashedPath(hashingService.hashPath(mfPath2));
+        mFile2.setPath(mfPath2);
+        mFile2.setHash(hashingService.hashPath(mfPath2));
+        mFile2.setStatus(MediaFileStatus.IN_REVIEW);
+
+        MediaFile mFile3 = new MediaFile();
+        mFile3.setHashedPath(hashingService.hashPath(mfPath3));
+        mFile3.setPath(mfPath3);
+        mFile3.setHash(hashingService.hashPath(mfPath3));
+        mFile3.setStatus(MediaFileStatus.IN_REVIEW);
+
+        // Save media files and directory
+        ContentDir dir = new ContentDir();
+        dir.setHashedPath(hashedDPath);
+        dir.setPath(dirPath);
+        contDirDataSvc.saveWithFiles(dir, mFile1, mFile2, mFile3);
+
+        int updatedCount = mFileDao.updateStatusByMediaDir(
+                hashedDPath,
+                MediaFileStatus.READY
+        );
+        assertThat(updatedCount).isEqualTo(2);
+
+        Stream<MediaFile> mFilesReady = mFileDao.findByDirAndMediaFileStatus(
+                hashedDPath,
+                MediaFileStatus.READY.name()
+        );
+
+        assertThat(mFilesReady.count()).isEqualTo(3);
+        mFilesReady.close();
     }
 }
