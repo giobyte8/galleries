@@ -4,7 +4,6 @@ import me.giobyte8.galleries.scanner.model.ContentDir;
 import me.giobyte8.galleries.scanner.model.MediaFile;
 import me.giobyte8.galleries.scanner.services.HashingService;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -29,21 +28,11 @@ class ContDirDataSvcTests {
     private ContDirDataSvc contDirDataSvc;
 
     @Autowired
-    private ContentDirHasMFileDao hasMFileDao;
-
-    @Autowired
     private HashingService hashingService;
 
     private final String testDirPath = "/pgalleries/portraits";
     private final String testFilePath1 = "/pgalleries/portraits/random.jpeg";
     private final String testFilePath2 = "/pgalleries/portraits/random2.jpeg";
-
-    @AfterEach
-    void cleanupDb() {
-        hasMFileDao.deleteAll();
-        mFileDao.deleteAll();
-        dirDao.deleteAll();
-    }
 
     @Test
     void associateFiles() {

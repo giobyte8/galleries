@@ -24,4 +24,10 @@ public interface ContentDirHasMFileDao
             String dirHashedPath,
             MediaFileStatus mfStatus
     );
+
+    @Modifying
+    @Query("DELETE FROM ContentDirHasMFile hasMfile " +
+            "WHERE hasMfile.dirHashedPath = :dirHPath " +
+            "  AND hasMfile.fileHashedPath = :fileHPath")
+    int deleteByKeys(String dirHPath, String fileHPath);
 }
