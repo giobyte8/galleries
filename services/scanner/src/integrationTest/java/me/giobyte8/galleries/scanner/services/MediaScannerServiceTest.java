@@ -2,10 +2,12 @@ package me.giobyte8.galleries.scanner.services;
 
 import me.giobyte8.galleries.scanner.amqp.ScanRequestsListener;
 import me.giobyte8.galleries.scanner.dao.ContentDirDao;
+import me.giobyte8.galleries.scanner.dao.ContentDirHasMFileDao;
 import me.giobyte8.galleries.scanner.dao.MediaFileDao;
 import me.giobyte8.galleries.scanner.model.ContentDir;
 import me.giobyte8.galleries.scanner.model.MediaFile;
 import me.giobyte8.galleries.scanner.model.MediaFileStatus;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -13,18 +15,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.MockBeans;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
 
 @SpringBootTest
-@AutoConfigureTestDatabase
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 @MockBeans({ @MockBean(ScanRequestsListener.class) })
+@Transactional
 class MediaScannerServiceTest {
 
     @Autowired
@@ -39,29 +42,21 @@ class MediaScannerServiceTest {
     @Autowired
     private MediaFileDao mFileDao;
 
+    @Autowired
+    private ContentDirHasMFileDao hasMFileDao;
 
-    // - Write integration tests for each scenario:
-    //   - Add cameras/ca dir to db (Scan it)
-    //   - Add cameras/ (Non recursive) dir to db (Scan it)
-    //   - * 4 files should be found in total so far
-    //   - Make cameras/ recursive in db, run scan again
-    //   - * Number of files should be the same, but cameras/ should
-    //       now be associated to files in cameras/ca as well
-    //   - Reload/refresh dir files set
-    //
-    // - Scan cameras/ as recursive so that all from cameras/ca/ is included
-    // - Mark cameras/ as not recursive
-    // - Scan again
-    // - everything from cameras/ca/ should be removed and amqp events emitted
-    //   for each deleted file
-    //
-    // ^^^ This verifies that you can add inner folders individually, but also
-    //     group multiple folders by adding its parent folder, for flexibility
-    //     when every folder is treated as a gallery, without duplicating media file
-    //     records neither their thumbnails
+    @AfterEach
+    void afterEach() {
+        hasMFileDao.deleteAll();
+        mFileDao.deleteAll();
+        dirDao.deleteAll();
+
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+    }
 
     @Test
-    void scanSimpleDir() throws IOException {
+    void scanSimpleDir() {
         String dirPath = "cameras/ca";
         String hashedDPath = hashingService.hashPath(dirPath);
 
@@ -69,13 +64,22 @@ class MediaScannerServiceTest {
         contentDir.setHashedPath(hashedDPath);
         contentDir.setPath(dirPath);
         dirDao.save(contentDir);
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
 
-        scannerSvc.scan(contentDir);
+        scannerSvc.scan(hashedDPath);
+
+        TestTransaction.start();
         assertThat(mFileDao.count()).isEqualTo(2);
+        ContentDir cDirDb = dirDao
+                .findById(hashedDPath)
+                .orElseThrow();
+        assertThat(cDirDb.getLastScanStart()).isNotNull();
+        assertThat(cDirDb.getLastScanCompletion()).isNotNull();
     }
 
     @Test
-    void scanTwoNestedNonRecursiveDirs() throws IOException {
+    void scanTwoNestedNonRecursiveDirs() {
         String dir1Path = "cameras";
         String hashedDPath1 = hashingService.hashPath(dir1Path);
         ContentDir dir1 = new ContentDir();
@@ -90,55 +94,134 @@ class MediaScannerServiceTest {
         dir2.setPath(dir2Path);
         dirDao.save(dir2);
 
-        scannerSvc.scan(dir1);
-        scannerSvc.scan(dir2);
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+
+        scannerSvc.scan(hashedDPath1);
+        scannerSvc.scan(hashedDPath2);
+
+        // Verify all files were found and scanned
+        TestTransaction.start();
         assertThat(mFileDao.count()).isEqualTo(4);
+
+        // Dir 1 should have scan start and end dates
+        ContentDir cDirDb1 = dirDao
+                .findById(hashedDPath1)
+                .orElseThrow();
+        assertThat(cDirDb1.getLastScanStart()).isNotNull();
+        assertThat(cDirDb1.getLastScanCompletion()).isNotNull();
+
+        // Dir 2 should have scan start and end dates
+        ContentDir cDirDb2= dirDao
+                .findById(hashedDPath2)
+                .orElseThrow();
+        assertThat(cDirDb2.getLastScanStart()).isNotNull();
+        assertThat(cDirDb2.getLastScanCompletion()).isNotNull();
     }
 
+    /**
+     * Covered scenario:
+     * 1. Add 'cameras/' and 'cameras/ca' to DB. Scan each dir and verify
+     *    2 files found for each one.
+     * 2. Make 'cameras/' recursive and run scan again
+     * 3. Number of total files should be the same (4), but cameras/ should
+     *    now be associated to files in cameras/ca as well
+     *
+     * <br/><br/>
+     * This verifies that you can add inner folders individually, but also
+     * group multiple folders by adding its parent folder, for flexibility
+     * when every folder is treated as a gallery, without duplicating media file
+     * records neither their thumbnails
+     */
     @Test
-    @Transactional
-    void toggleParentDirRecursiveMode() throws IOException {
+    void makeParentDirRecursive() {
         String dir1Path = "cameras";
-        String hashedDPath1 = hashingService.hashPath(dir1Path);
-        ContentDir dir1 = new ContentDir();
-        dir1.setHashedPath(hashedDPath1);
-        dir1.setPath(dir1Path);
-        dirDao.save(dir1);
+        String hashedPathCameras = hashingService.hashPath(dir1Path);
+        ContentDir dirCameras = new ContentDir();
+        dirCameras.setHashedPath(hashedPathCameras);
+        dirCameras.setPath(dir1Path);
+        dirDao.save(dirCameras);
 
         String dir2Path = "cameras/ca";
-        String hashedDPath2 = hashingService.hashPath(dir2Path);
-        ContentDir dir2 = new ContentDir();
-        dir2.setHashedPath(hashedDPath2);
-        dir2.setPath(dir2Path);
-        dirDao.save(dir2);
+        String hashedPathCamerasCa = hashingService.hashPath(dir2Path);
+        ContentDir dirCamerasCa = new ContentDir();
+        dirCamerasCa.setHashedPath(hashedPathCamerasCa);
+        dirCamerasCa.setPath(dir2Path);
+        dirDao.save(dirCamerasCa);
 
-        scannerSvc.scan(dir1);
-        scannerSvc.scan(dir2);
+        // Scan both dirs
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+        scannerSvc.scan(hashedPathCameras);
+        scannerSvc.scan(hashedPathCamerasCa);
+
+        // Verify 2 files were found for each dir
+        TestTransaction.start();
         assertThat(mFileDao.count()).isEqualTo(4);
+        verifyReadyFilesCount(hashedPathCameras, 2);
+        verifyReadyFilesCount(hashedPathCamerasCa, 2);
 
-        try (Stream<MediaFile> dir1MFilesStr = mFileDao
-                .findAllByMediaDirsHashedPathAndStatus(
-                        hashedDPath1,
-                        MediaFileStatus.READY
-
-                )) {
-            assertThat(dir1MFilesStr.count()).isEqualTo(2);
-        }
 
         // Make 'cameras/' recursive
-        dir1.setRecursive(true);
-        dirDao.save(dir1);
+        dirCameras.setRecursive(true);
+        dirDao.save(dirCameras);
 
-        // Scan dir1 again
-        scannerSvc.scan(dir1);
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+        scannerSvc.scan(hashedPathCameras);
+
+
+        // Verify files count after recursive scan
+        TestTransaction.start();
         assertThat(mFileDao.count()).isEqualTo(4);
+        verifyReadyFilesCount(hashedPathCameras, 4);
+    }
 
-        try (Stream<MediaFile> dir1MFilesStr = mFileDao
-                .findAllByMediaDirsHashedPathAndStatus(
-                        hashedDPath1,
-                        MediaFileStatus.READY
+    /**
+     * 1. Add 'cameras/' dir as recursive to DB and initiate scan
+     * 2. Verify for files were found
+     * 3. Update 'cameras/' dir as non-recursive in DB and scan again
+     * 4. Verify only two media files were found
+     */
+    @Test
+    void makeParentDirNonRecursive() {
+        String dir1Path = "cameras";
+        String hashedPathCameras = hashingService.hashPath(dir1Path);
+        ContentDir dirCameras = new ContentDir();
+        dirCameras.setHashedPath(hashedPathCameras);
+        dirCameras.setRecursive(true);
+        dirCameras.setPath(dir1Path);
+
+        dirDao.save(dirCameras);
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+
+        scannerSvc.scan(hashedPathCameras);
+
+        // Verify recursive scan results
+        TestTransaction.start();
+        verifyReadyFilesCount(hashedPathCameras, 4);
+
+        // Disable recursion for 'cameras/'
+        dirCameras.setRecursive(false);
+        dirDao.save(dirCameras);
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+
+        // Scan and verify number of found files
+        scannerSvc.scan(hashedPathCameras);
+        TestTransaction.start();
+        verifyReadyFilesCount(hashedPathCameras, 2);
+    }
+
+    private void verifyReadyFilesCount(String hashedDPath, int expectedCount) {
+        try (Stream<MediaFile> mFilesStream = mFileDao
+                .findByDirAndMediaFileStatus(
+                        hashedDPath,
+                        MediaFileStatus.READY.name()
                 )) {
-            assertThat(dir1MFilesStr.count()).isEqualTo(4);
+
+            assertThat(mFilesStream.count()).isEqualTo(expectedCount);
         }
     }
 }

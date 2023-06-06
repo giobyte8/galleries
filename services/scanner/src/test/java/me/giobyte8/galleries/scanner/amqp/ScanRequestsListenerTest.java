@@ -13,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -146,7 +145,7 @@ class ScanRequestsListenerTest {
     }
 
     @Test
-    void onScanRequestValidOrder() throws IOException {
+    void onScanRequestValidOrder() {
         Path testContentsRoot = Paths.get(
                 "src/test/resources",
                 "galleries"
@@ -176,6 +175,6 @@ class ScanRequestsListenerTest {
                 .toAbsolute(anyString());
         Mockito
                 .verify(mScanner, times(1))
-                .scan(any(ContentDir.class));
+                .scan(any(String.class));
     }
 }
