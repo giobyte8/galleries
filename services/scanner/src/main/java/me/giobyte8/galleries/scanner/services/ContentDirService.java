@@ -10,13 +10,14 @@ import me.giobyte8.galleries.scanner.model.MediaFileStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
 @Service
 public class ContentDirService {
-    private static Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(ContentDirService.class);
 
     private final ContentDirDao dirDao;
@@ -37,43 +38,62 @@ public class ContentDirService {
 
     /**
      * Prepares directory and its contained files for scanning
-     * @param contentDir Content directory about to being scanned
+     * @param dirHashedPath Content directory about to being scanned
      */
-    public void preScanHook(ContentDir contentDir) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void preScanHook(String dirHashedPath) {
+        ContentDir contentDir = dirDao
+                .findById(dirHashedPath)
+                .orElseThrow();
         contentDir.setLastScanCompletion(null);
         contentDir.setLastScanStart(new Date());
         contentDir.setStatus(ContentDirStatus.SCAN_IN_PROGRESS);
-
-        contentDir
-                .getFiles()
-                .forEach(mFile -> mFile.setStatus(MediaFileStatus.IN_REVIEW));
-
         dirDao.save(contentDir);
+
+        int updatedMFilesCount = mFileDao.updateStatusByMediaDir(
+                contentDir.getHashedPath(),
+                MediaFileStatus.IN_REVIEW
+        );
+        log.info(
+                "{} Media files where updated to 'IN_REVIEW' for dir: {}",
+                updatedMFilesCount,
+                contentDir.getPath()
+        );
 
         // TODO: Send monitoring notification (?)
     }
 
-    @Transactional
-    public void postScanHook(ContentDir contentDir) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void postScanHook(String dirHashedPath) {
+        ContentDir contentDir = dirDao
+                .findById(dirHashedPath)
+                .orElseThrow();
         contentDir.setLastScanCompletion(new Date());
         contentDir.setStatus(ContentDirStatus.SCAN_COMPLETE);
+        dirDao.save(contentDir);
 
         // Remove association with all files that remain as 'IN_REVIEW'
-        hasMFileDao.deleteAllByDirHashedPathAndMFileStatus(
+        int deletedAssociationsCount = hasMFileDao.deleteAllByDirHashedPathAndMFileStatus(
                 contentDir.getHashedPath(),
                 MediaFileStatus.IN_REVIEW
+        );
+        log.debug(
+                "{} records removed from 'dir_contains_mfile' in preparation for " +
+                        "files deletion",
+                deletedAssociationsCount
         );
 
         // Publish amqp message for each missing media file
         mFileDao
-                .findAllByStatusAndMediaDirsEmpty(MediaFileStatus.IN_REVIEW)
+                .findAllByStatusAndMediaDirsEmpty(MediaFileStatus.IN_REVIEW.name())
                 .forEach(mFile ->
                         eventsProducer.onScannedFileNotFound(mFile.getPath())
                 );
 
         // Delete from db every file with no owners
-        int deletedCount = mFileDao
-                .deleteByStatusAndMediaDirsEmpty(MediaFileStatus.IN_REVIEW);
+        int deletedCount = mFileDao.deleteByStatusAndMediaDirsEmpty(
+                MediaFileStatus.IN_REVIEW.name()
+        );
         log.info(
                 "{} media files removed from DB since were not found during last scan of dir: {}",
                 deletedCount,

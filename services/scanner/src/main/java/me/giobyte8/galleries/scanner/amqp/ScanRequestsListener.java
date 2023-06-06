@@ -14,7 +14,6 @@ import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -88,10 +87,6 @@ public class ScanRequestsListener {
             return;
         }
 
-        try {
-            mScanner.scan(contentDir);
-        } catch (IOException e) {
-            log.error("Error while scanning directory: {} - {}", absDPath, e);
-        }
+        mScanner.scan(dirHPath);
     }
 }

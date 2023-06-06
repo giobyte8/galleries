@@ -1,3 +1,4 @@
+.DS_Store
 *.pyc
 venv
 .env
@@ -16,6 +17,7 @@ docs/*.drawio.dtmp
 
 # Mat migrations manager
 db/migrations.yml
+db/migrations-test.yml
 
 # Obsidian vault for documentation
 docs/.obsidian
