@@ -9,6 +9,10 @@ public class MFMetadata {
     private BigDecimal gpsLatitude;
     private BigDecimal gpsLongitude;
 
+    private String camMaker;
+
+    private String camModel;
+
     public Date getDatetimeOriginal() {
         return datetimeOriginal;
     }
@@ -31,5 +35,21 @@ public class MFMetadata {
 
     public void setGpsLongitude(BigDecimal gpsLongitude) {
         this.gpsLongitude = gpsLongitude;
+    }
+
+    public String getCamMaker() {
+        return camMaker;
+    }
+
+    public void setCamMaker(String camMaker) {
+        this.camMaker = camMaker;
+    }
+
+    public String getCamModel() {
+        return camModel;
+    }
+
+    public void setCamModel(String camModel) {
+        this.camModel = camModel;
     }
 }

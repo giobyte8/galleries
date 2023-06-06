@@ -3,6 +3,8 @@ package me.giobyte8.galleries.scanner.scanners;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
+import com.drew.metadata.StringValue;
+import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.GpsDirectory;
 import me.giobyte8.galleries.scanner.dto.MFMetadata;
@@ -18,7 +20,7 @@ import java.nio.file.Path;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.drew.metadata.exif.ExifDirectoryBase.TAG_DATETIME_ORIGINAL;
+import static com.drew.metadata.exif.ExifDirectoryBase.*;
 
 @Component
 public class LocalFSMetadataExtractor implements MetadataExtractor {
@@ -33,6 +35,8 @@ public class LocalFSMetadataExtractor implements MetadataExtractor {
 
             loadDatetimeOriginal(metadata, mfMeta);
             loadGpsCoordinates(metadata, mfMeta);
+            loadCameraMaker(metadata, mfMeta);
+            loadCameraModel(metadata, mfMeta);
 
             return mfMeta;
         } catch (ImageProcessingException e) {
@@ -74,6 +78,38 @@ public class LocalFSMetadataExtractor implements MetadataExtractor {
                     mfMeta.setGpsLongitude(BigDecimal.valueOf(lon));
 
                     gpsFound.set(true);
+                });
+    }
+
+    private void loadCameraMaker(Metadata meta, MFMetadata mfMeta) {
+        AtomicBoolean camMakerFound = new AtomicBoolean();
+
+        meta.getDirectoriesOfType(ExifIFD0Directory.class)
+                .stream()
+                .takeWhile(exifDir -> !camMakerFound.get())
+                .forEach(exifDir -> {
+                    if (exifDir.hasTagName(TAG_MAKE)) {
+                        StringValue camModel = exifDir.getStringValue(TAG_MAKE);
+                        mfMeta.setCamMaker(camModel.toString());
+
+                        camMakerFound.set(true);
+                    }
+                });
+    }
+
+    private void loadCameraModel(Metadata meta, MFMetadata mfMeta) {
+        AtomicBoolean camModelFound = new AtomicBoolean();
+
+        meta.getDirectoriesOfType(ExifIFD0Directory.class)
+                .stream()
+                .takeWhile(exifDir -> !camModelFound.get())
+                .forEach(exifDir -> {
+                    if (exifDir.hasTagName(TAG_MODEL)) {
+                        StringValue camModel = exifDir.getStringValue(TAG_MODEL);
+                        mfMeta.setCamModel(camModel.toString());
+
+                        camModelFound.set(true);
+                    }
                 });
     }
 }

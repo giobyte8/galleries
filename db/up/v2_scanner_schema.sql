@@ -16,7 +16,8 @@ CREATE TABLE media_file(
     datetime_original DATETIME,
     gps_latitude DECIMAL(10, 8),
     gps_longitude DECIMAL(11, 8),
-    camera VARCHAR(255)
+    cam_maker VARCHAR(255),
+    cam_model VARCHAR(255)
 );
 
 CREATE TABLE dir_contains_mfile(

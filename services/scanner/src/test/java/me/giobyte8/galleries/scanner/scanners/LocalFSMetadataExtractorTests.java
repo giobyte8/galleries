@@ -47,5 +47,7 @@ class LocalFSMetadataExtractorTests {
         assertThat(meta.getDatetimeOriginal()).isNotNull();
         assertThat(meta.getGpsLatitude()).isNotNull();
         assertThat(meta.getGpsLongitude()).isNotNull();
+        assertThat(meta.getCamMaker()).isNotNull();
+        assertThat(meta.getCamModel()).isNotNull();
     }
 }

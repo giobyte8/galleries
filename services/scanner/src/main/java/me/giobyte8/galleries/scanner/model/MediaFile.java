@@ -40,8 +40,13 @@ public class MediaFile {
 
     private BigDecimal gpsLongitude;
 
+    @Column(name = "cam_maker")
     @Size(max = 255)
-    private String camera;
+    private String camMaker;
+
+    @Column(name = "cam_model")
+    @Size(max = 255)
+    private String camModel;
 
     @Override
     public boolean equals(Object obj) {
@@ -75,7 +80,8 @@ public class MediaFile {
         this.setDatetimeOriginal(meta.getDatetimeOriginal());
         this.setGpsLatitude(meta.getGpsLatitude());
         this.setGpsLongitude(meta.getGpsLongitude());
-        // TODO Set camera model
+        this.setCamMaker(meta.getCamMaker());
+        this.setCamModel(meta.getCamModel());
     }
 
 
@@ -135,11 +141,19 @@ public class MediaFile {
         this.gpsLongitude = gpsLongitude;
     }
 
-    public String getCamera() {
-        return camera;
+    public String getCamMaker() {
+        return camMaker;
     }
 
-    public void setCamera(String camera) {
-        this.camera = camera;
+    public void setCamMaker(String camMaker) {
+        this.camMaker = camMaker;
+    }
+
+    public String getCamModel() {
+        return camModel;
+    }
+
+    public void setCamModel(String camModel) {
+        this.camModel = camModel;
     }
 }
