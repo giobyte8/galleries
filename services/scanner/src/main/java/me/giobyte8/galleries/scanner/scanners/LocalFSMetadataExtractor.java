@@ -2,6 +2,7 @@ package me.giobyte8.galleries.scanner.scanners;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
+import com.drew.lang.GeoLocation;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.StringValue;
 import com.drew.metadata.exif.ExifIFD0Directory;
@@ -71,13 +72,15 @@ public class LocalFSMetadataExtractor implements MetadataExtractor {
         meta.getDirectoriesOfType(GpsDirectory.class)
                 .stream()
                 .takeWhile(gpsDir -> !gpsFound.get())
-                .forEach(exifDir -> {
-                    double lat = exifDir.getGeoLocation().getLatitude();
-                    double lon = exifDir.getGeoLocation().getLongitude();
-                    mfMeta.setGpsLatitude(BigDecimal.valueOf(lat));
-                    mfMeta.setGpsLongitude(BigDecimal.valueOf(lon));
-
-                    gpsFound.set(true);
+                .forEach(gpsDir -> {
+                    GeoLocation geoLoc = gpsDir.getGeoLocation();
+                    if (geoLoc != null) {
+                        double lat = geoLoc.getLatitude();
+                        double lon = geoLoc.getLongitude();
+                        mfMeta.setGpsLatitude(BigDecimal.valueOf(lat));
+                        mfMeta.setGpsLongitude(BigDecimal.valueOf(lon));
+                        gpsFound.set(true);
+                    }
                 });
     }
 
@@ -90,9 +93,10 @@ public class LocalFSMetadataExtractor implements MetadataExtractor {
                 .forEach(exifDir -> {
                     if (exifDir.hasTagName(TAG_MAKE)) {
                         StringValue camModel = exifDir.getStringValue(TAG_MAKE);
-                        mfMeta.setCamMaker(camModel.toString());
-
-                        camMakerFound.set(true);
+                        if (camModel != null) {
+                            mfMeta.setCamMaker(camModel.toString());
+                            camMakerFound.set(true);
+                        }
                     }
                 });
     }
@@ -106,9 +110,10 @@ public class LocalFSMetadataExtractor implements MetadataExtractor {
                 .forEach(exifDir -> {
                     if (exifDir.hasTagName(TAG_MODEL)) {
                         StringValue camModel = exifDir.getStringValue(TAG_MODEL);
-                        mfMeta.setCamModel(camModel.toString());
-
-                        camModelFound.set(true);
+                        if (camModel != null) {
+                            mfMeta.setCamModel(camModel.toString());
+                            camModelFound.set(true);
+                        }
                     }
                 });
     }
