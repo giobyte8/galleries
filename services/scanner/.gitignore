@@ -37,3 +37,7 @@ out/
 .vscode/
 
 .tool-versions
+
+# Drawio temporary files
+.bkp
+.dtmp
