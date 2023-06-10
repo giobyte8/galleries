@@ -5,7 +5,7 @@ import me.giobyte8.galleries.scanner.dto.MFMetadata;
 import me.giobyte8.galleries.scanner.dto.UpsertDiscoveredFileResult;
 import me.giobyte8.galleries.scanner.model.MediaFile;
 import me.giobyte8.galleries.scanner.model.MediaFileStatus;
-import me.giobyte8.galleries.scanner.dto.FDiscoveryEvent;
+import me.giobyte8.galleries.scanner.dto.FDiscoveryEventType;
 import me.giobyte8.galleries.scanner.scanners.MetadataExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,8 +87,8 @@ public class MediaFileService {
             upsertResult = new UpsertDiscoveredFileResult(
                     mFile,
                     dbMFileOpt.isEmpty()
-                            ? FDiscoveryEvent.NEW_FILE_FOUND
-                            : FDiscoveryEvent.FILE_CHANGED
+                            ? FDiscoveryEventType.NEW_FILE_FOUND
+                            : FDiscoveryEventType.FILE_CHANGED
             );
         }
 
@@ -100,7 +100,7 @@ public class MediaFileService {
 
             upsertResult = new UpsertDiscoveredFileResult(
                     mFile,
-                    FDiscoveryEvent.EXISTENT_FILE_FOUND
+                    FDiscoveryEventType.EXISTENT_FILE_FOUND
             );
         }
 

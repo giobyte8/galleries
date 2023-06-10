@@ -4,6 +4,8 @@ import me.giobyte8.galleries.scanner.amqp.ScanEventsProducer;
 import me.giobyte8.galleries.scanner.dao.ContentDirDao;
 import me.giobyte8.galleries.scanner.dao.ContentDirHasMFileDao;
 import me.giobyte8.galleries.scanner.dao.MediaFileDao;
+import me.giobyte8.galleries.scanner.dto.FDiscoveryEventType;
+import me.giobyte8.galleries.scanner.dto.ScanEventType;
 import me.giobyte8.galleries.scanner.model.ContentDir;
 import me.giobyte8.galleries.scanner.model.ContentDirStatus;
 import me.giobyte8.galleries.scanner.model.MediaFileStatus;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class ContentDirService {
@@ -41,7 +44,7 @@ public class ContentDirService {
      * @param dirHashedPath Content directory about to being scanned
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void preScanHook(String dirHashedPath) {
+    public void preScanHook(UUID scanReqId, String dirHashedPath) {
         ContentDir contentDir = dirDao
                 .findById(dirHashedPath)
                 .orElseThrow();
@@ -60,11 +63,12 @@ public class ContentDirService {
                 contentDir.getPath()
         );
 
-        // TODO: Send monitoring notification (?)
+        // Send monitoring notification
+        eventsProducer.onScanEvent(scanReqId, ScanEventType.SCAN_START);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void postScanHook(String dirHashedPath) {
+    public void postScanHook(UUID scanReqId, String dirHashedPath) {
         ContentDir contentDir = dirDao
                 .findById(dirHashedPath)
                 .orElseThrow();
@@ -87,7 +91,12 @@ public class ContentDirService {
         mFileDao
                 .findAllByStatusAndMediaDirsEmpty(MediaFileStatus.IN_REVIEW.name())
                 .forEach(mFile ->
-                        eventsProducer.onScannedFileNotFound(mFile.getPath())
+                        eventsProducer.onFileDiscoveryEvent(
+                                scanReqId,
+                                FDiscoveryEventType.FILE_NOT_FOUND,
+                                mFile.getHashedPath(),
+                                mFile.getPath()
+                        )
                 );
 
         // Delete from db every file with no owners
@@ -100,6 +109,7 @@ public class ContentDirService {
                 contentDir.getPath()
         );
 
-        // TODO: Send monitoring notification (?)
+        // Send monitoring notification
+        eventsProducer.onScanEvent(scanReqId, ScanEventType.SCAN_END);
     }
 }

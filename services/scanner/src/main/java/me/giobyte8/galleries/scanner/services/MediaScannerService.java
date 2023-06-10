@@ -1,7 +1,9 @@
 package me.giobyte8.galleries.scanner.services;
 
+import me.giobyte8.galleries.scanner.amqp.ScanEventsProducer;
 import me.giobyte8.galleries.scanner.dao.ContDirDataSvc;
 import me.giobyte8.galleries.scanner.dao.ContentDirDao;
+import me.giobyte8.galleries.scanner.dto.FDiscoveryEventType;
 import me.giobyte8.galleries.scanner.dto.UpsertDiscoveredFileResult;
 import me.giobyte8.galleries.scanner.exceptions.ScannerException;
 import me.giobyte8.galleries.scanner.model.ContentDir;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Service
 public class MediaScannerService {
@@ -24,6 +27,7 @@ public class MediaScannerService {
     private final ContentDirService dirService;
     private final MediaFileService mFileService;
     private final PathService pathService;
+    private final ScanEventsProducer scanEventsProducer;
 
     public MediaScannerService(
             TransactionTemplate txTemplate,
@@ -32,7 +36,8 @@ public class MediaScannerService {
             ContDirDataSvc contDirDataSvc,
             ContentDirService dirService,
             MediaFileService mFileService,
-            PathService pathService) {
+            PathService pathService,
+            ScanEventsProducer scanEventsProducer) {
         this.txTemplate = txTemplate;
         this.mediaScanner = mediaScanner;
         this.dirDao = dirDao;
@@ -40,10 +45,11 @@ public class MediaScannerService {
         this.dirService = dirService;
         this.mFileService = mFileService;
         this.pathService = pathService;
+        this.scanEventsProducer = scanEventsProducer;
     }
 
-    public void scan(String dirHashedPath) {
-        dirService.preScanHook(dirHashedPath);
+    public void scan(UUID scanReqId, String dirHashedPath) {
+        dirService.preScanHook(scanReqId, dirHashedPath);
 
         // Execute scanning and individual files updates into its
         // own transaction
@@ -64,7 +70,15 @@ public class MediaScannerService {
                             // Upsert file association with content dir
                             contDirDataSvc.associateFiles(dir, upsertMFResult.mFile());
 
-                            // TODO Emit event
+                            // Emit file discovery event
+                            if (upsertMFResult.dEvent() != FDiscoveryEventType.EXISTENT_FILE_FOUND) {
+                                scanEventsProducer.onFileDiscoveryEvent(
+                                        scanReqId,
+                                        upsertMFResult.dEvent(),
+                                        upsertMFResult.mFile().getHashedPath(),
+                                        upsertMFResult.mFile().getPath()
+                                );
+                            }
                         }
                 );
             } catch (IOException e) {
@@ -78,6 +92,6 @@ public class MediaScannerService {
             }
         });
 
-        dirService.postScanHook(dirHashedPath);
+        dirService.postScanHook(scanReqId, dirHashedPath);
     }
 }

@@ -20,7 +20,7 @@ import java.util.Optional;
 
 @Service
 public class ScanRequestsListener {
-    private static Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(ScanRequestsListener.class);
 
     private final MediaScannerService mScanner;
@@ -87,6 +87,6 @@ public class ScanRequestsListener {
             return;
         }
 
-        mScanner.scan(dirHPath);
+        mScanner.scan(order.id(), dirHPath);
     }
 }

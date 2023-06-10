@@ -175,6 +175,6 @@ class ScanRequestsListenerTest {
                 .toAbsolute(anyString());
         Mockito
                 .verify(mScanner, times(1))
-                .scan(any(String.class));
+                .scan(any(UUID.class), any(String.class));
     }
 }

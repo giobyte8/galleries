@@ -26,6 +26,8 @@ galleries:
     amqp:
       exchange_gl: GL_EXCHANGE
       queue_scan_orders: GL_SCAN_ORDERS
+      queue_scan_hooks: GL_SCAN_HOOKS
+      queue_scan_discovered_files: GL_SCAN_DISCOVERED_FILES
     content_dirs:
       root_path: /replace/with/your/local/dev/galleries/path
     media_files_extensions:

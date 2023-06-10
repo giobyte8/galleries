@@ -1,6 +1,6 @@
 package me.giobyte8.galleries.scanner.dto;
 
-public enum FDiscoveryEvent {
+public enum FDiscoveryEventType {
 
     /** Previously scanned file was found, content's did not change */
     EXISTENT_FILE_FOUND,

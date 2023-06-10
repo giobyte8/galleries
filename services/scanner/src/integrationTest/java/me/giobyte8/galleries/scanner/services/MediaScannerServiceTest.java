@@ -1,5 +1,6 @@
 package me.giobyte8.galleries.scanner.services;
 
+import me.giobyte8.galleries.scanner.amqp.ScanEventsProducer;
 import me.giobyte8.galleries.scanner.amqp.ScanRequestsListener;
 import me.giobyte8.galleries.scanner.dao.ContentDirDao;
 import me.giobyte8.galleries.scanner.dao.ContentDirHasMFileDao;
@@ -18,6 +19,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +28,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFOR
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
-@MockBeans({ @MockBean(ScanRequestsListener.class) })
+@MockBeans({ @MockBean(ScanRequestsListener.class), @MockBean(ScanEventsProducer.class) })
 @Transactional
 class MediaScannerServiceTest {
 
@@ -67,7 +69,7 @@ class MediaScannerServiceTest {
         TestTransaction.flagForCommit();
         TestTransaction.end();
 
-        scannerSvc.scan(hashedDPath);
+        scannerSvc.scan(UUID.randomUUID(), hashedDPath);
 
         TestTransaction.start();
         assertThat(mFileDao.count()).isEqualTo(2);
@@ -97,8 +99,8 @@ class MediaScannerServiceTest {
         TestTransaction.flagForCommit();
         TestTransaction.end();
 
-        scannerSvc.scan(hashedDPath1);
-        scannerSvc.scan(hashedDPath2);
+        scannerSvc.scan(UUID.randomUUID(), hashedDPath1);
+        scannerSvc.scan(UUID.randomUUID(), hashedDPath2);
 
         // Verify all files were found and scanned
         TestTransaction.start();
@@ -152,8 +154,8 @@ class MediaScannerServiceTest {
         // Scan both dirs
         TestTransaction.flagForCommit();
         TestTransaction.end();
-        scannerSvc.scan(hashedPathCameras);
-        scannerSvc.scan(hashedPathCamerasCa);
+        scannerSvc.scan(UUID.randomUUID(), hashedPathCameras);
+        scannerSvc.scan(UUID.randomUUID(), hashedPathCamerasCa);
 
         // Verify 2 files were found for each dir
         TestTransaction.start();
@@ -168,7 +170,7 @@ class MediaScannerServiceTest {
 
         TestTransaction.flagForCommit();
         TestTransaction.end();
-        scannerSvc.scan(hashedPathCameras);
+        scannerSvc.scan(UUID.randomUUID(), hashedPathCameras);
 
 
         // Verify files count after recursive scan
@@ -196,7 +198,7 @@ class MediaScannerServiceTest {
         TestTransaction.flagForCommit();
         TestTransaction.end();
 
-        scannerSvc.scan(hashedPathCameras);
+        scannerSvc.scan(UUID.randomUUID(), hashedPathCameras);
 
         // Verify recursive scan results
         TestTransaction.start();
@@ -209,7 +211,7 @@ class MediaScannerServiceTest {
         TestTransaction.end();
 
         // Scan and verify number of found files
-        scannerSvc.scan(hashedPathCameras);
+        scannerSvc.scan(UUID.randomUUID(), hashedPathCameras);
         TestTransaction.start();
         verifyReadyFilesCount(hashedPathCameras, 2);
     }
