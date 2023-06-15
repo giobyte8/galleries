@@ -2,20 +2,20 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/${MYSQL_DATABASE:gl}
-    username:
-    password:
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
-    show-sql: false
+    show-sql: ${SCANNER_SPRING_JPA_SHOW_SQL:false}
   rabbitmq:
-    host: localhost
-    port: 5672
-    username:
-    password:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
 
 logging:
   level:
@@ -29,7 +29,7 @@ galleries:
       queue_scan_hooks: GL_SCAN_HOOKS
       queue_scan_discovered_files: GL_SCAN_DISCOVERED_FILES
     content_dirs:
-      root_path: /replace/with/your/local/dev/galleries/path
+      root_path: ${SCANNER_CONTENT_DIR:/replace/with/your/local/dev/galleries/path}
     media_files_extensions:
       - jpeg
       - jpg
