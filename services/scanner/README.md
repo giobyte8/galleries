@@ -1,6 +1,11 @@
 # Scanner
-
 Scans directories looking for media files
+
+- [How it works](#how-it-works)
+  - [How to trigger directory scan](#how-to-trigger-directory-scan)
+  - [Events emitted during scan](#events-emitted-during-scan-of-target-dir)
+- [Deployment](#deployment)
+- [Development](#development)
 
 ## How it works
 
@@ -15,7 +20,7 @@ Scans directories looking for media files
    complete (Files not found in dir anymore)
    1. Emit AMQP event for each file deleted from DB
 
-## How to trigger directory scan
+### How to trigger directory scan
 Scan requests are received through AMQP. Connection and queue name params
 are configured through application properties.
 
@@ -43,10 +48,10 @@ Message must be a JSON object with a structure like in following example:
   target dir from database.
 - `requestedAt` UTC time when this scan request was created by source system
 
-## Events emitted during scan of target dir
+### Events emitted during scan of target dir
 During scan process multiple AMQP messages are to notify about events
 
-### Scan request start and end time
+#### Scan request start and end time
 
 Event is posted to following queue:
 ```yml
@@ -79,7 +84,7 @@ Where:
 - `eventType`: Type of scan event
 - `time`: Timestamp when event occurred
 
-### Scanned file event
+#### Scanned file event
 During a directory scan several events are emitted:
 - `NEW_FILE_FOUND`: When a new file is found in directory
 - `FILE_CHANGED`: Content's of previously scanned file have changed
@@ -110,3 +115,14 @@ Where:
 - `filePath`: Relative path to target file
 
 ## Deployment
+The recommended way to deploy is by using the `docker-compose.yml` file
+provided as part of the whole project. Such file includes all the
+galleries microservices.
+
+Make sure to edit the global `.env` file to reference to your target env
+and start scanner using docker compose.
+
+See [galleries deployment guide]() for a full walkthrough
+
+## Development
+See [development section](./DEVELOPMENT.md)

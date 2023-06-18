@@ -4,7 +4,7 @@
 # the 'galleries' microservices
 #
 
-IMAGE_TAG=0.2
+IMAGE_TAG=1.0.2-local-testing
 HOST_CONTENT_DIR=/Users/giovanni.aguirre/src/python/galleries/data.dev/galleries
 
 docker run -ti                                               \
