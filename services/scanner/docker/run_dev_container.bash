@@ -4,10 +4,10 @@
 # the 'galleries' microservices
 #
 
-IMAGE_TAG=1.0.2-local-testing
+IMAGE_TAG=local-testing
 HOST_CONTENT_DIR=/Users/giovanni.aguirre/src/python/galleries/data.dev/galleries
 
-docker run -ti                                               \
+docker run -ti --rm                                          \
   --name scanner01                                           \
   --env-file ./scanner.env                                   \
   --volume "${HOST_CONTENT_DIR}":/opt/galleries/content_dir  \

@@ -1,5 +1,9 @@
 FROM amazoncorretto:17-alpine3.17 AS builder
 
+# Use non-root user for security
+RUN addgroup galleries; adduser --ingroup galleries --disabled-password scanner
+USER scanner
+
 # Copy source code into image
 WORKDIR /opt/galleries/scanner
 COPY gradle/         /opt/galleries/scanner/gradle/
@@ -14,7 +18,11 @@ RUN ./gradlew bootJar
 
 # Runtime only stage
 FROM amazoncorretto:17-alpine3.17 AS runtime
-WORKDIR /opt/galleries/scanner
 
+# Use non-root user for security
+RUN addgroup galleries; adduser --ingroup galleries --disabled-password scanner
+USER scanner
+
+WORKDIR /opt/galleries/scanner
 COPY --from=builder "/opt/galleries/scanner/build/libs/*.jar" /opt/galleries/scanner/scanner.jar
 ENTRYPOINT ["java", "-jar", "scanner.jar"]
