@@ -4,13 +4,13 @@
             {
                 "name": "exec",
                 "async": false,
-                "command": "reaplaced at runtime for every source",
+                "command": "Automatically repalaced at runtime for every source",
                 "event": "after"
             },
             {
                 "name": "exec",
                 "async": false,
-                "command": "reaplaced at runtime for every source",
+                "command": "Automatically repalaced at runtime for every source",
                 "event": "skip"
             }
         ],
