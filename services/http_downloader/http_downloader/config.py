@@ -20,6 +20,14 @@ def rabbitmq_pass():
     return os.getenv('RABBITMQ_PASS')
 
 
+def amqp_exchange():
+    return os.getenv('AMQP_EXCHANGE')
+
+
+def amqp_q_sync_http_src_orders():
+    return os.getenv('AMQP_Q_SYNC_HTTP_SRC_ORDERS')
+
+
 def config_path():
     return os.getenv('CONFIG_PATH')
 

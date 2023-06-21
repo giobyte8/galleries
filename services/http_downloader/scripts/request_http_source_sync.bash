@@ -13,7 +13,6 @@ cd $HERE
 source ../.env
 RABBITMQ_API_PORT=15672
 RABBITMQ_EXCHANGE=GL_EXCHANGE
-RABBITMQ_ROUTING_KEY=sync_http_source
 UUID=$(uuidgen)
 
 msg="{
@@ -25,7 +24,7 @@ j_msg=$(json_escape "$msg")
 
 amqp_msg="{
   \"properties\": {},
-  \"routing_key\": \"$RABBITMQ_ROUTING_KEY\",
+  \"routing_key\": \"$AMQP_Q_SYNC_HTTP_SRC_ORDERS\",
   \"payload\": $j_msg,
   \"payload_encoding\": \"string\"
 }"
@@ -36,6 +35,6 @@ curl -s \
   -u "$RABBITMQ_USER:$RABBITMQ_PASS"  \
   -X POST                                     \
   -d "$amqp_msg"                              \
-  http://localhost:$RABBITMQ_API_PORT/api/exchanges/%2F/amq.default/publish
+  http://localhost:$RABBITMQ_API_PORT/api/exchanges/%2F/$RABBITMQ_EXCHANGE/publish
 
 cd $CURR_PATH

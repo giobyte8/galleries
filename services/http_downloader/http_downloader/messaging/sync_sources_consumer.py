@@ -7,11 +7,14 @@ from pika.adapters.blocking_connection import BlockingChannel
 import http_downloader.config as cfg
 import http_downloader.gdl_wrapper as gdl
 from http_downloader.dl_logging import logger
+from http_downloader.messaging.conn_manager import (
+    init_amqp_resources,
+    rb_channel
+)
 from http_downloader.services.source_service import source_content_abs_path
 from http_downloader.messaging import producer
 
 
-_SYNC_HTTP_SOURCE_QUEUE = 'sync_http_source'
 _msg_processor_threads = []
 
 
@@ -57,7 +60,7 @@ def process_sync_src_msg(
     logger.debug(
         'Thread: %s - Queue: "%s" - Message received: %s',
         thread_id,
-        _SYNC_HTTP_SOURCE_QUEUE,
+        cfg.amqp_q_sync_http_src_orders(),
         body)
 
     # TODO Catch possible parsing errors
@@ -97,33 +100,31 @@ def on_sync_source_message(channel: BlockingChannel, basic_deliver, props, body)
 
 
 def start_consumer():
-    conn = pika.BlockingConnection(pika.ConnectionParameters(
-        host=cfg.rabbitmq_host(),
-        port=cfg.rabbitmq_port(),
-        credentials=pika.PlainCredentials(
-            cfg.rabbitmq_user(),
-            cfg.rabbitmq_pass()
-        ),
-        heartbeat=10
-    ))
+    init_amqp_resources()
 
-    channel = conn.channel()
+    with rb_channel() as channel:
 
-    # Fetch two messages at a time and don't receive more until
-    # previous messages are aknowledged
-    channel.basic_qos(prefetch_count=2)
+        # Fetch two messages at a time and don't receive more until
+        # previous messages are aknowledged
+        channel.basic_qos(prefetch_count=2)
 
-    channel.queue_declare(queue=_SYNC_HTTP_SOURCE_QUEUE)
-    channel.basic_consume(_SYNC_HTTP_SOURCE_QUEUE, on_sync_source_message)
+        channel.basic_consume(
+            cfg.amqp_q_sync_http_src_orders(),
+            on_sync_source_message
+        )
 
-    try:
-        logger.info('Starting consumer for queue: %s', _SYNC_HTTP_SOURCE_QUEUE)
-        channel.start_consuming()
-    except KeyboardInterrupt:
-        logger.info('Stopping consumer for queue: %s', _SYNC_HTTP_SOURCE_QUEUE)
-        channel.stop_consuming()
+        try:
+            logger.info(
+                'Starting consumer for queue: %s',
+                cfg.amqp_q_sync_http_src_orders()
+            )
+            channel.start_consuming()
+        except KeyboardInterrupt:
+            logger.info(
+                'Stopping consumer for queue: %s',
+                cfg.amqp_q_sync_http_src_orders()
+            )
+            channel.stop_consuming()
 
-    for t in _msg_processor_threads:
-        t.join()
-
-    conn.close()
+        for t in _msg_processor_threads:
+            t.join()
