@@ -5,7 +5,7 @@
 - [x] Make AMQP exchange configurable
 - [ ] Add delay between each downloaded file to avoid site overload
 - [ ] Automate docker image build and release
-- [ ] Complete README.md documentation
+- [x] Complete README.md documentation
 
 ## Local development
 
