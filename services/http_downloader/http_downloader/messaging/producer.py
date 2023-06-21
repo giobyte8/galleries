@@ -1,12 +1,8 @@
 import json
+import http_downloader.config as cfg
 
 from http_downloader.dl_logging import logger
 from http_downloader.messaging.conn_manager import rb_channel
-
-
-_FILE_DOWNLOADED_QUEUE = 'file_downloaded'
-_FILE_SKIPPED_QUEUE = 'file_skipped'
-_SOURCE_SYNCHRONIZED_QUEUE = 'source_synchronized'
 
 
 def send_file_downloaded(source_id: int, filename: str) -> None:
@@ -18,23 +14,22 @@ def send_file_downloaded(source_id: int, filename: str) -> None:
         filename (str): Downloaded file name
     """
     with rb_channel() as channel:
-        channel.queue_declare(_FILE_DOWNLOADED_QUEUE)
-
         msg = {
             'source_id': source_id,
             'filename': filename
         }
 
         channel.basic_publish(
-            exchange='',
-            routing_key=_FILE_DOWNLOADED_QUEUE,
+            exchange=cfg.amqp_exchange(),
+            routing_key=cfg.amqp_q_file_downloaded(),
             body=json.dumps(msg)
         )
 
         logger.info(
-            'Downloaded file message sent for: %s and source: %s',
+            '"FILE_DOWNLOADED" amqp msg sent for: %s and source: %s',
             filename,
-            source_id)
+            source_id
+        )
 
 
 def send_file_skipped(source_id: int, filename: str) -> None:
@@ -46,23 +41,22 @@ def send_file_skipped(source_id: int, filename: str) -> None:
         filename (str): Skipped file name
     """
     with rb_channel() as channel:
-        channel.queue_declare(_FILE_SKIPPED_QUEUE)
-
         msg = {
             'source_id': source_id,
             'filename': filename
         }
 
         channel.basic_publish(
-            exchange='',
-            routing_key=_FILE_SKIPPED_QUEUE,
+            exchange=cfg.amqp_exchange(),
+            routing_key=cfg.amqp_q_file_download_skipped(),
             body=json.dumps(msg)
         )
 
         logger.info(
-            'Skipped file message sent for: %s and source: %s',
+            '"FILE_DOWNLOAD_SKIPPED" amqp msg sent for: %s and source: %s',
             filename,
-            source_id)
+            source_id
+        )
 
 
 def send_source_synchronized(source_id: int) -> None:
@@ -73,16 +67,15 @@ def send_source_synchronized(source_id: int) -> None:
         source_id (int): Id of synchronized source
     """
     with rb_channel() as channel:
-        channel.queue_declare(_SOURCE_SYNCHRONIZED_QUEUE)
-
         msg = { 'source_id': source_id }
+
         channel.basic_publish(
-            exchange='',
-            routing_key=_SOURCE_SYNCHRONIZED_QUEUE,
+            exchange=cfg.amqp_exchange(),
+            routing_key=cfg.amqp_q_source_synchronized(),
             body=json.dumps(msg)
         )
 
         logger.info(
-            'Source synchronized message sent for source: %s',
+            '"SOURCE_SYNCHRONIZED" amqp msg sent for source: %s',
             source_id
         )

@@ -1,8 +1,8 @@
 # http_downloader development
 
 ## TODO
-- [ ] Make queue names configurable
-- [ ] Make AMQP exchange configurable
+- [x] Make queue names configurable
+- [x] Make AMQP exchange configurable
 - [ ] Add delay between each downloaded file to avoid site overload
 - [ ] Automate docker image build and release
 - [ ] Complete README.md documentation

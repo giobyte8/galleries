@@ -28,6 +28,18 @@ def amqp_q_sync_http_src_orders():
     return os.getenv('AMQP_Q_SYNC_HTTP_SRC_ORDERS')
 
 
+def amqp_q_file_downloaded():
+    return os.getenv('AMQP_Q_FILE_DOWNLOADED')
+
+
+def amqp_q_file_download_skipped():
+    return os.getenv('AMQP_Q_FILE_DOWNLOAD_SKIPPED')
+
+
+def amqp_q_source_synchronized():
+    return os.getenv('AMQP_Q_SOURCE_SYNCHRONIZED')
+
+
 def config_path():
     return os.getenv('CONFIG_PATH')
 

@@ -23,6 +23,7 @@ def rb_channel():
     except Exception as e:
         logger.error('RabbitMQ connection failed: %s', e)
 
+
 def init_amqp_resources():
     """Verifies that AMQP exchange, queues and bindings are declared in
     broker with appropiate attributes.
@@ -43,6 +44,27 @@ def init_amqp_resources():
                 queue=cfg.amqp_q_sync_http_src_orders(),
                 exchange=cfg.amqp_exchange(),
                 routing_key=cfg.amqp_q_sync_http_src_orders()
+            )
+
+            ch.queue_declare(cfg.amqp_q_file_downloaded())
+            ch.queue_bind(
+                queue=cfg.amqp_q_file_downloaded(),
+                exchange=cfg.amqp_exchange(),
+                routing_key=cfg.amqp_q_file_downloaded()
+            )
+
+            ch.queue_declare(cfg.amqp_q_file_download_skipped())
+            ch.queue_bind(
+                queue=cfg.amqp_q_file_download_skipped(),
+                exchange=cfg.amqp_exchange(),
+                routing_key=cfg.amqp_q_file_download_skipped()
+            )
+
+            ch.queue_declare(cfg.amqp_q_source_synchronized())
+            ch.queue_bind(
+                queue=cfg.amqp_q_source_synchronized(),
+                exchange=cfg.amqp_exchange(),
+                routing_key=cfg.amqp_q_source_synchronized()
             )
         except Exception as e:
             logger.error('RabbitMQ resources init failed: %s', e)
