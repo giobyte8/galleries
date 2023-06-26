@@ -4,13 +4,13 @@
             {
                 "name": "exec",
                 "async": false,
-                "command": "Automatically repalaced at runtime for every source",
+                "command": "Automatically replaced at runtime for every source",
                 "event": "after"
             },
             {
                 "name": "exec",
                 "async": false,
-                "command": "Automatically repalaced at runtime for every source",
+                "command": "Automatically replaced at runtime for every source",
                 "event": "skip"
             }
         ],
@@ -27,7 +27,7 @@
         "pinterest": {
             "videos": false,
             "cookies": {
-                "_pinterest_sess": "<replaced at runtime>"
+                "_pinterest_sess": "<Automatically replaced at runtime>"
             }
         }
     }

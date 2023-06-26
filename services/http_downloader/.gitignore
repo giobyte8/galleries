@@ -6,5 +6,5 @@ venv
 .vscode
 
 # Development configuration files
-config/gallery-dl.conf.json
 config/gallery-dl.cookies.json
+docker/http_downloader.docker.env
