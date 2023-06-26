@@ -1,56 +1,49 @@
 version: '3.8'
+name: galleries
 
 services:
-  sync_evt_processor:
-    image: giobyte8/gl-synchronizer:1.0.0
-    build:
-      context: ..
-      dockerfile: docker/synchronizer.dockerfile
-    container_name: gl_sync_evt_processor
-    user: $UID:$GID
-    volumes:
-      - "$SOURCES_CONTENT_ROOT:/media/galleries"
-      - "$RUNTIME_PATH:/media/runtime"
-    env_file:
-      - .env
-    environment:
-        # TODO: Replace by SOURCES_CONTENT_ROOT
-      - "CONTENT_ROOT=/media/galleries"
-      - "RUNTIME_PATH=/media/runtime"
-    command: ["python", "/opt/synchronizer/synchronizer/sync_events_processor.py"]
+  # sync_evt_processor:
+  #   image: giobyte8/gl-synchronizer:1.0.0
+  #   build:
+  #     context: ..
+  #     dockerfile: docker/synchronizer.dockerfile
+  #   container_name: gl_sync_evt_processor
+  #   user: $UID:$GID
+  #   volumes:
+  #     - "$SOURCES_CONTENT_ROOT:/media/galleries"
+  #     - "$RUNTIME_PATH:/media/runtime"
+  #   env_file:
+  #     - .env
+  #   environment:
+  #       # TODO: Replace by SOURCES_CONTENT_ROOT
+  #     - "CONTENT_ROOT=/media/galleries"
+  #     - "RUNTIME_PATH=/media/runtime"
+  #   command: ["python", "/opt/synchronizer/synchronizer/sync_events_processor.py"]
 
-  synchronizer:
-    image: giobyte8/gl-synchronizer:1.0.0
-    build:
-      context: ..
-      dockerfile: docker/synchronizer.dockerfile
-    container_name: gl_synchronizer
-    user: $UID:$GID
-    volumes:
-      - "$SOURCES_CONTENT_ROOT:/media/galleries"
-      - "$RUNTIME_PATH:/media/runtime"
-      - "$SYNCHRONIZER_CONFIG:/media/config"
-    env_file:
-      - .env
-    environment:
-      - "CONTENT_ROOT=/media/galleries"
-      - "RUNTIME_PATH=/media/runtime"
-    command: ["supercronic", "/media/config/src_sync.crontab"]
+  # synchronizer:
+  #   image: giobyte8/gl-synchronizer:1.0.0
+  #   build:
+  #     context: ..
+  #     dockerfile: docker/synchronizer.dockerfile
+  #   container_name: gl_synchronizer
+  #   user: $UID:$GID
+  #   volumes:
+  #     - "$SOURCES_CONTENT_ROOT:/media/galleries"
+  #     - "$RUNTIME_PATH:/media/runtime"
+  #     - "$SYNCHRONIZER_CONFIG:/media/config"
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - "CONTENT_ROOT=/media/galleries"
+  #     - "RUNTIME_PATH=/media/runtime"
+  #   command: ["supercronic", "/media/config/src_sync.crontab"]
 
   http_downloader:
-    image: giobyte8/gl-http-downloader:1.0.0
-    build:
-      context: ..
-      dockerfile: docker/http_downloader.dockerfile
-    container_name: gl_http_downloader
+    image: giobyte8/gl-http_downloader:1.0.0
+    container_name: gl-downloader
     user: $UID:$GID
     volumes:
-      - "$SOURCES_CONTENT_ROOT:/media/galleries"
-      - "$RUNTIME_PATH:/media/runtime"
-      - "$HTTP_DOWNLOADER_CONFIG:/media/config"
+      - "$HOST_CONTENT_DIR:/opt/galleries/content_dir"
+      - "$HOST_RUNTIME_DIR:/opt/galleries/runtime_dir"
     env_file:
-      - .env
-    environment:
-      - "CONTENT_ROOT=/media/galleries"
-      - "CONFIG_PATH=/media/config"
-      - "RUNTIME_PATH=/media/runtime"
+      - http_downloader.docker.env

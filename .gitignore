@@ -21,3 +21,6 @@ db/migrations-test.yml
 
 # Obsidian vault for documentation
 docs/.obsidian
+
+# Docker deployment files
+docker/http_downloader.docker.env
