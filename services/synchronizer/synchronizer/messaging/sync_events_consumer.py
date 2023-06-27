@@ -1,5 +1,5 @@
 import json
-from kombu import Connection, Consumer, Exchange, eventloop
+from kombu import Consumer, eventloop
 from kombu.utils.compat import nested
 
 from synchronizer.db.connection import close_session

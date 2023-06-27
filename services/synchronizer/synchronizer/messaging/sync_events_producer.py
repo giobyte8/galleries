@@ -9,7 +9,7 @@ from synchronizer.messaging.resources import (
 
 
 def send_sync_http_source_msgs(sources: List[HttpSource]) -> None:
-    """Publishes messages to request synchronization of each given queue
+    """Publishes messages to request synchronization of each given source
 
     Args:
         sources (List[HttpSource]): Queues to synchronize, a message \

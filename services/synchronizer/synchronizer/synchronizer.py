@@ -1,3 +1,8 @@
+#!/bin/python
+#
+# Starts consumers for receiving and processing synchronization
+# events sent from downloader module
+
 import os
 import sys
 
@@ -9,12 +14,8 @@ if not __package__ and not hasattr(sys, "frozen"):
     )
     sys.path.insert(0, os.path.realpath(synchronizer_root))
 
-import synchronizer.services.http_source_service as http_src_svc
-from synchronizer.sync_logging import logger
+from synchronizer.messaging.sync_events_consumer import start_consumer
 
 
-if __name__ == "__main__":
-    logger.info('Starting sync of http sources')
-    http_src_svc.sync_http_sources()
-
-
+if __name__ == '__main__':
+    start_consumer()
