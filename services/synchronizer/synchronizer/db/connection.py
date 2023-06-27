@@ -17,6 +17,8 @@ _db_session: Session = None
 
 
 def get_session() -> Session:
+    global _db_session
+
     if not _db_session:
         logger.info('Creating sqlalchemy session')
         _db_session = Session(engine)
