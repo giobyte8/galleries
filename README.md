@@ -42,6 +42,7 @@ fetching the compose file and the environment template
 ```shell
 mkdir galleries && cd galleries
 
+wget https://github.com/giobyte8/galleries/raw/main/docker/.gitignore
 wget https://github.com/giobyte8/galleries/raw/main/docker/docker-compose.yml
 wget -O .env https://github.com/giobyte8/galleries/raw/main/docker/compose.template.env
 

@@ -1,0 +1,6 @@
+# Env files
+.env
+http_downloader.docker.env
+
+# Per service config files
+gallery-dl.cookies.json
