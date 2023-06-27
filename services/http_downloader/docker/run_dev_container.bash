@@ -9,10 +9,12 @@ IMAGE_TAG=local-testing
 
 HOST_CONTENT_DIR=/Users/giovanni.aguirre/src/python/galleries/data.dev/galleries
 HOST_RUNTIME_DIR=/Users/giovanni.aguirre/src/python/galleries/services/http_downloader/data.dev/runtime
+HOST_CONFIG_DIR=/Users/giovanni.aguirre/src/python/galleries/services/http_downloader/config
 
 docker run -ti --rm                                          \
   --name http_downloader                                     \
   --env-file ./http_downloader.docker.env                     \
   --volume "${HOST_CONTENT_DIR}":/opt/galleries/content_dir  \
   --volume "${HOST_RUNTIME_DIR}":/opt/galleries/runtime_dir  \
+  --volume "${HOST_CONFIG_DIR}":/opt/galleries/config         \
   giobyte8/"${IMAGE_NAME}":"${IMAGE_TAG}"

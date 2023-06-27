@@ -6,7 +6,6 @@ FROM python:3.8.17-alpine3.18
 
 # Copy project files into image
 WORKDIR /opt/galleries/http_downloader
-COPY config/            /opt/galleries/http_downloader/config
 COPY http_downloader/  /opt/galleries/http_downloader/http_downloader
 COPY requirements.txt  /opt/galleries/http_downloader/requirements.txt
 
