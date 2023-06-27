@@ -39,11 +39,12 @@ services:
   #   command: ["supercronic", "/media/config/src_sync.crontab"]
 
   http_downloader:
-    image: giobyte8/gl-http_downloader:1.0.0
+    image: giobyte8/gl-http_downloader:1.2.0
     container_name: gl-downloader
     user: $UID:$GID
     volumes:
-      - "$HOST_CONTENT_DIR:/opt/galleries/content_dir"
-      - "$HOST_RUNTIME_DIR:/opt/galleries/runtime_dir"
+      - "$CONTENT_DIR:/opt/galleries/content_dir"
+      - "$RUNTIME_DIR:/opt/galleries/runtime_dir"
+      - "$HTTP_DOWNLOADER_CONFIG:/opt/galleries/config"
     env_file:
       - http_downloader.docker.env
