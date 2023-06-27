@@ -1,11 +1,19 @@
 # Galleries
+Manage and expose image, video and text galleries by fetching items from
+multiple local and remote sources.
 
-Manage and expose image, video and text galleries combining elements from
-several local and internet sources.
+- [Use cases](#some-use-cases)
+- [Supported media sources](#supported-media-sources)
+- [Deployment](#deployment)
+  - [Prerequisites](#prerequisites)
+    - Database setup
+    - Redis setup
+    - RabbitMQ setup
+  - [Http Downloader](#http-downloader)
 
 ## Some use cases
 
-- Combine a collection from unsplash.com and a pinterest board into a single
+- Combine a collection from unsplash.com and a pinterest.com board into a single
   gallery and expose their contents through a single API
 - Expose a list of custom quotes (text fragments) through a single API
 - Expose your pictures from local folders through galleries API
@@ -21,35 +29,107 @@ several local and internet sources.
 ## Disclaimer
 
 Please be aware that content on remotes sites such as pinterest, unsplash or
-500px may be subject to copyrights, use content from those sources
+500px may be subject to copyright, use content from those sources
 appropriately
 
-## Deployment through docker
+## Deployment
+Galleries is composed of multiple, independent microservices. Each one is
+deployed independently.
 
-**Requirements:** You should have access to running instances of: MySQL,
-Redis and RabbitMQ. If you don't have preexisting instances you could
-create them based on contents from `docker.dev` directory
+All of the microservices can be started through docker compose. Start by
+fetching the compose file and the environment template
 
-### 1. Clone repo and navigate to root
-### 2. Setup http downloader
+```shell
+mkdir galleries && cd galleries
 
-#### Copy cookies template file:
+wget https://github.com/giobyte8/galleries/raw/main/docker/docker-compose.yml
+wget -O .env https://github.com/giobyte8/galleries/raw/main/docker/compose.template.env
 
-````bash
-cd config/http_downloader
-cp gallery-dl.cookies.template.json gallery-dl.cookies.json
-````
-
-Add your own cookie values to `gallery-dl.cookies.json` file. Remove those that
-you don't intend to use.
-
-**Optional:** customize `gallery-dl.conf.json` to your needs
-
-```bash
-cp config/gallery-dl.conf.template.json config/gallery-dl.conf.json
-vim config/gallery-dl.conf.json
+# TODO Add .gitignore file to downloaded files list
 ```
 
+### Common infrastructure
+You'll need access to running instances of:
+- MySQL
+- Redis
+- RabbitMQ
+
+If you don't have preexisting instances you can create them based on contents
+from `docker.dev/` directory.
+
+### Http Downloader
+
+1. [Optional] Update `docker-compose.yml` to put services into appropiate network
+   ```yml
+   // Other configs...
+
+   services:
+     http_downloader:
+       networks:
+         - hservices
+   // Other configs...
+
+   networks:
+     hservices:
+       external: true
+   ```
+
+2. Prepare `gallery-dl` config template and cookies file
+   ```shell
+   mkdir -p config/http_downloader && cd config/http_downloader
+
+   wget https://github.com/giobyte8/galleries/raw/main/services/http_downloader/config/gallery-dl.conf.template.json
+   wget https://github.com/giobyte8/galleries/raw/main/services/http_downloader/config/gallery-dl.cookies.template.json
+   ```
+
+   Some sites needs authentication in order to download content, if that's the
+   case edit your own `gallery-dl.cookies.json` file and add your own cookie values.
+   Remove those that you don't intend to use.
+   ```shell
+   cp gallery-dl.cookies.template.json gallery-dl.cookies.json
+   vim gallery-dl.cookies.json
+   ```
+
+   You can edit `gallery-dl.conf.template.json` file directly to add custom options.
+   Check [gallery-dl repo](https://github.com/mikf/gallery-dl#configuration)
+   for complete documentation of allowed options.
+   ```shell
+   vim gallery-dl.conf.template.json
+   ```
+
+3. Make sure to enter values for below env variables into `.env` file
+   ```shell
+   # Path in host file system where galleries content will be stored
+   CONTENT_DIR=
+
+   # Path in host file system where to store runtime files (logs, temp files, etc)
+   RUNTIME_DIR=
+
+   # Path in host file system where config files are stored for http_downloader
+   HTTP_DOWNLOADER_CONFIG=
+   ```
+
+4. Setup http downloader specific env
+   ```shell
+   wget -O http_downloader.docker.env https://github.com/giobyte8/galleries/raw/main/services/http_downloader/docker/http_downloader.docker.template.env
+   vim http_downloader.docker.env
+
+   # Enter right values for rabbitmq connection and other settings
+   ```
+
+5. Start http_downloader service
+   ```shell
+   docker compose up -d http_downloader
+
+   # Monitor running container:
+   docker logs -f gl-downloader
+
+   # Or watch application logs directly in provided runtime path
+   tail -f logs/http_downloader.log
+   ```
+
+
+# Legacy Docs
 
 ### 3. Setup synchronizer
 
@@ -70,18 +150,5 @@ will be used by the synchronizer to scan sources for new content changes.
 2. Edit `migrations.yml` and add your datasource config (MySQL)
 3. Make sure entered database was previously created
 4. Apply the migrations: `./matw migrate`
-
-
-### 5. Setup your runtime environment
-
-1. From project root: `cd docker && cp env.template .env`
-2. Edit `.env` and add the appropriate values for your own environment
-
-6. Setup containers env
-    1. `cd docker && cp env.template .env`
-    2. Edit `.env` and adjust to your own environment
-
-
-### 7. Start services: `cd docker && docker-compose up -d`
 
 > Note: You may want to insert some sources into `http_source` table
