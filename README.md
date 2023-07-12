@@ -58,24 +58,34 @@ You'll need access to running instances of:
 If you don't have preexisting instances you can create them based on contents
 from `docker.dev/` directory.
 
-### Http Downloader
+### Common config
 
-1. [Optional] Update `docker-compose.yml` to put services into appropiate network
+1. Make sure to enter values for below env variables into `.env` file
+   ```shell
+   # Path in host file system where galleries content will be stored
+   CONTENT_DIR=
+
+   # Path in host file system where to store runtime files (logs, temp files, etc)
+   RUNTIME_DIR=
+   ```
+
+2. **Optional:** Update `docker-compose.yml` to put services into appropiate network
    ```yml
-   // Other configs...
-
+   // ...other configs
    services:
-     http_downloader:
+     <http_downloader|synchronizer|scanner>:
        networks:
          - hservices
-   // Other configs...
+   // ...
 
    networks:
      hservices:
        external: true
    ```
 
-2. Prepare `gallery-dl` config template and cookies file
+### Http Downloader
+
+1. Prepare `gallery-dl` config template and cookies file
    ```shell
    mkdir -p config/http_downloader && cd config/http_downloader
 
@@ -98,19 +108,14 @@ from `docker.dev/` directory.
    vim gallery-dl.conf.template.json
    ```
 
-3. Make sure to enter values for below env variables into `.env` file
+2. Make sure to enter values for below env variables into `.env` file
    ```shell
-   # Path in host file system where galleries content will be stored
-   CONTENT_DIR=
-
-   # Path in host file system where to store runtime files (logs, temp files, etc)
-   RUNTIME_DIR=
 
    # Path in host file system where config files are stored for http_downloader
    HTTP_DOWNLOADER_CONFIG=
    ```
 
-4. Setup http downloader specific env
+3. Setup http downloader specific env
    ```shell
    wget -O http_downloader.docker.env https://github.com/giobyte8/galleries/raw/main/services/http_downloader/docker/http_downloader.docker.template.env
    vim http_downloader.docker.env
@@ -118,7 +123,7 @@ from `docker.dev/` directory.
    # Enter right values for rabbitmq connection and other settings
    ```
 
-5. Start http_downloader service
+4. Start http_downloader service
    ```shell
    docker compose up -d http_downloader
 
@@ -129,21 +134,47 @@ from `docker.dev/` directory.
    tail -f logs/http_downloader.log
    ```
 
+### Synchronizer
+
+1. Prepare config files
+   ```shell
+   mkdir -p config/synchronizer && cd config/synchronizer
+   wget https://github.com/giobyte8/galleries/raw/main/services/synchronizer/config/sync_scheduler.template.crontab
+   ```
+
+   Edit crontab file to match your desired synchronization time
+   ```shell
+   cp sync_scheduler.template.crontab sync_scheduler.crontab
+   vim sync_scheduler.crontab
+   ```
+
+2. Make sure to enter values for below env variables into `.env` file
+   ```shell
+
+   # Path in host file system where config flles are stored for synchronizer
+   SYNCHRONIZER_CONFIG=
+   ```
+
+3. Setup `synchronizer` specific env variables
+   ```shell
+   wget -O synchronizer.docker.env https://github.com/giobyte8/galleries/raw/main/services/synchronizer/docker/synchronizer.docker.template.env
+   vim synchronizer.docker.env
+
+   # Enter right values for rabbitmq, database and other settings
+   ```
+
+4. Start `synchronizer` services
+   ```shell
+   docker compose up -d synchronizer sync-sch
+   docker logs -f gl-sync             # Monitor synchronizer logs
+   tail -f logs/synchronizer.log      # ...Or watch app logs directly from runtime path
+
+   docker logs -f gl-sync-sch         # Monitor sync scheduler logs
+   tail -f logs/sync-sch.log          # ...or watch app logs directly from runtime path
+   ```
+
 
 # Legacy Docs
-
-### 3. Setup synchronizer
-
-#### Configure scanner run schedule
-
-```bash
-cd config/synchronizer
-cp src_sync.template.crontab src_sync.crontab
-```
-
-Edit `src_sync.crontab`file to match your desired schedule. This config
-will be used by the synchronizer to scan sources for new content changes.
-
 
 ### 4. Setup your databse
 
