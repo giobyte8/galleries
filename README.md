@@ -5,11 +5,13 @@ multiple local and remote sources.
 - [Use cases](#some-use-cases)
 - [Supported media sources](#supported-media-sources)
 - [Deployment](#deployment)
-  - [Prerequisites](#prerequisites)
+    - [Required infrastructure](#required-infrastructure)
+    - [Global config](#global-config)
     - Database setup
     - Redis setup
     - RabbitMQ setup
   - [Http Downloader](#http-downloader)
+  - [Synchronizer](#synchronizer)
 
 ## Some use cases
 
@@ -45,11 +47,9 @@ mkdir galleries && cd galleries
 wget https://github.com/giobyte8/galleries/raw/main/docker/.gitignore
 wget https://github.com/giobyte8/galleries/raw/main/docker/docker-compose.yml
 wget -O .env https://github.com/giobyte8/galleries/raw/main/docker/compose.template.env
-
-# TODO Add .gitignore file to downloaded files list
 ```
 
-### Common infrastructure
+### Required Infrastructure
 You'll need access to running instances of:
 - MySQL
 - Redis
@@ -58,7 +58,7 @@ You'll need access to running instances of:
 If you don't have preexisting instances you can create them based on contents
 from `docker.dev/` directory.
 
-### Common config
+### Global config
 
 1. Make sure to enter values for below env variables into `.env` file
    ```shell
