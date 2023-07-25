@@ -1,9 +1,0 @@
-datasource:
-  host:
-  username:
-  password:
-  database:
-
-migrations_path:
-  up: up/
-  down: down/
