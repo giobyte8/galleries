@@ -8,6 +8,7 @@ from http_downloader.dl_logging import logger
 @contextlib.contextmanager
 def rb_channel():
     try:
+        logger.debug('Connecting to AMQP broker')
         conn = pika.BlockingConnection(pika.ConnectionParameters(
             host=cfg.rabbitmq_host(),
             port=cfg.rabbitmq_port(),

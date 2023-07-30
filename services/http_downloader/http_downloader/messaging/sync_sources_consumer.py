@@ -1,8 +1,12 @@
 import functools
 import json
-import pika
 import threading
 from pika.adapters.blocking_connection import BlockingChannel
+from pika.exceptions import (
+    ConnectionClosedByBroker,
+    AMQPChannelError,
+    AMQPConnectionError
+)
 
 import http_downloader.config as cfg
 import http_downloader.gdl_wrapper as gdl
@@ -103,28 +107,34 @@ def start_consumer():
     init_amqp_resources()
 
     with rb_channel() as channel:
-
-        # Fetch two messages at a time and don't receive more until
-        # previous messages are aknowledged
-        channel.basic_qos(prefetch_count=2)
-
-        channel.basic_consume(
-            cfg.amqp_q_sync_http_src_orders(),
-            on_sync_source_message
-        )
-
         try:
-            logger.info(
-                'Starting consumer for queue: %s',
-                cfg.amqp_q_sync_http_src_orders()
-            )
-            channel.start_consuming()
-        except KeyboardInterrupt:
-            logger.info(
-                'Stopping consumer for queue: %s',
-                cfg.amqp_q_sync_http_src_orders()
-            )
-            channel.stop_consuming()
+            # Fetch two messages at a time and don't receive more until
+            # previous messages are aknowledged
+            channel.basic_qos(prefetch_count=2)
 
-        for t in _msg_processor_threads:
-            t.join()
+            channel.basic_consume(
+                cfg.amqp_q_sync_http_src_orders(),
+                on_sync_source_message
+            )
+
+            try:
+                logger.info(
+                    'Starting consumer for queue: %s',
+                    cfg.amqp_q_sync_http_src_orders()
+                )
+                channel.start_consuming()
+            except KeyboardInterrupt:
+                logger.info(
+                    'Stopping consumer for queue: %s',
+                    cfg.amqp_q_sync_http_src_orders()
+                )
+                channel.stop_consuming()
+
+            for t in _msg_processor_threads:
+                t.join()
+        except ConnectionClosedByBroker as err:
+            logger.error('ConnectionClosedByBroker: %s', err)
+        except AMQPChannelError as err:
+            logger.error('AMQPChannelError: %s', err)
+        except AMQPConnectionError as err:
+            logger.error('AMQPConnectionError: %s', err)
