@@ -108,9 +108,9 @@ def start_consumer():
 
     with rb_channel() as channel:
         try:
-            # Fetch two messages at a time and don't receive more until
-            # previous messages are aknowledged
-            channel.basic_qos(prefetch_count=2)
+            # Fetch 'n' messages at a time and don't receive more until
+            # previous messages are acknowledged
+            channel.basic_qos(prefetch_count=1)
 
             channel.basic_consume(
                 cfg.amqp_q_sync_http_src_orders(),

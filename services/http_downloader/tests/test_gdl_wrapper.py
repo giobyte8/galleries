@@ -1,8 +1,8 @@
+import json
 import pytest
 import tempfile
 
-from http_downloader import gdl_wrapper
-from http_downloader.gdl_wrapper import GDLCookies
+from http_downloader.gdl_wrapper import GDLConfigFileBuilder
 
 
 @pytest.fixture
@@ -10,33 +10,41 @@ def tmp_dir():
     return tempfile.TemporaryDirectory()
 
 
-def test_load_cookies():
-    j_cookies = gdl_wrapper._load_cookies()
-    assert len(j_cookies) > 0
-    assert GDLCookies.PINTEREST_SESSION in j_cookies
+class TestGDLConfigFileBuilder:
+    def test_on_file_skipped_hook(self):
+        src_id = 76543
+        cfg_file_path = GDLConfigFileBuilder()\
+            .on_file_skipped_hook(src_id)\
+            .build()
 
+        with open(cfg_file_path, 'r') as cfg_file:
+           j_config = json.loads(cfg_file.read())
+        pps = j_config['extractor']['postprocessors']
 
-def test_set_cookies():
-    """Integration test for cookies setup
-    """
+        skip_pp = None
+        for pp in pps:
+            if pp['event'] == 'skip':
+                skip_pp = pp
+        assert skip_pp is not None
 
-    # Test extractor config
-    j_extractor = {
-        'pinterest': {
-            'cookies': {}
-        }
-    }
+        # Assert third argument for command is source id
+        assert skip_pp['command'][2] == str(src_id)
 
-    # Use temporary dir for saving config
-    gdl_wrapper._set_cookies(j_extractor)
-    j_pin_cookies = j_extractor['pinterest']['cookies']
+    def test_on_file_downloaded_hook(self):
+        src_id = 123
+        cfg_file_path = GDLConfigFileBuilder()\
+            .on_file_downloaded_hook(src_id)\
+            .build()
 
-    # Use _load_cookies to read it
-    j_cookies = gdl_wrapper._load_cookies()
+        with open(cfg_file_path, 'r') as cfg_file:
+           j_config = json.loads(cfg_file.read())
+        pps = j_config['extractor']['postprocessors']
 
-    assert GDLCookies.PINTEREST_SESSION in j_pin_cookies
+        after_pp = None
+        for pp in pps:
+            if pp['event'] == 'after':
+                after_pp = pp
+        assert after_pp is not None
 
-    expected_pin_sess = j_cookies[GDLCookies.PINTEREST_SESSION]
-    actual_pin_ses = j_pin_cookies[GDLCookies.PINTEREST_SESSION]
-    assert actual_pin_ses == expected_pin_sess
-
+        # Assert third argument for command is source id
+        assert after_pp['command'][2] == str(src_id)

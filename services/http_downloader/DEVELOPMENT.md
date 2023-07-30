@@ -46,12 +46,14 @@
    pip install -r requirements-dev.txt
    ```
 2. Prepare config files
-   Some sites need authentication using cookies to allow downloads (Optional)
    ```shell
    cd config
-   cp gallery-dl.cookies.template.json gallery-dl.cookies.json
-   vim gallery-dl.cookies.json
-   # Add your own cookie values for each site
+   cp gallery-dl.conf.template.json gallery-dl.conf.json
+
+   # Optional: Some sites need authentication using cookies to allow downloads,
+   # if you plan to fetch private content from such sites, add your own cookie
+   # values to corresponding extractor config
+   vim gallery-dl.conf.json
    ```
 
    Finally prepare runtime folder for logs and temporary files during content

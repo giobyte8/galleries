@@ -27,7 +27,13 @@
         "pinterest": {
             "videos": false,
             "cookies": {
-                "_pinterest_sess": "<Automatically replaced at runtime>"
+                "_pinterest_sess": "<Replace with your own value>"
+            }
+        },
+
+        "instagram": {
+            "cookies": {
+                "sessionid": "<Replace with your own value>"
             }
         }
     }

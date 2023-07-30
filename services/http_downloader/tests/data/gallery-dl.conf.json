@@ -27,7 +27,7 @@
         "pinterest": {
             "videos": false,
             "cookies": {
-                "_pinterest_sess": "<replaced at runtime>"
+                "_pinterest_sess": "fake_test_cookie_value"
             }
         }
     }
