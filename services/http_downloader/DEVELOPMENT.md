@@ -167,9 +167,9 @@ You may want to build and test docker image before push it to docker registry.
    cd docker
    ./build_push_image.bash local-testing
    ```
-3. Use provided script: docker/run_dev_container.bash. You might need to edit
-   the script to update values of IMAGE_TAG, HOST_CONTENT_DIR and
-   HOST_RUNTIME_DIR variables before execute.
+3. Use provided script: `docker/run_dev_container.bash`. You might need to edit
+   the script to update values of `IMAGE_TAG`, `HOST_CONTENT_DIR` and
+   `HOST_RUNTIME_DIR` variables before execute.
 4. Once the container is up and running you can use the script at
    `scripts/request_http_source_sync.bash` to trigger source sync
 
