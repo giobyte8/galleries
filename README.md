@@ -85,28 +85,22 @@ from `docker.dev/` directory.
 
 ### Http Downloader
 
-1. Prepare `gallery-dl` config template and cookies file
+1. Prepare `gallery-dl` config template
    ```shell
    mkdir -p config/http_downloader && cd config/http_downloader
 
    wget https://github.com/giobyte8/galleries/raw/main/services/http_downloader/config/gallery-dl.conf.template.json
-   wget https://github.com/giobyte8/galleries/raw/main/services/http_downloader/config/gallery-dl.cookies.template.json
+   cp gallery-dl.conf.template.json gallery-dl.conf.json
+
+   # Optional: Some sites need authentication using cookies to allow downloads,
+   # if you plan to fetch private content from such sites, add your own cookie
+   # values to corresponding extractor config
+   vim gallery-dl.conf.json
    ```
 
-   Some sites needs authentication in order to download content, if that's the
-   case edit your own `gallery-dl.cookies.json` file and add your own cookie values.
-   Remove those that you don't intend to use.
-   ```shell
-   cp gallery-dl.cookies.template.json gallery-dl.cookies.json
-   vim gallery-dl.cookies.json
-   ```
-
-   You can edit `gallery-dl.conf.template.json` file directly to add custom options.
+   You can edit `gallery-dl.conf.json` file to add custom configs.
    Check [gallery-dl repo](https://github.com/mikf/gallery-dl#configuration)
    for complete documentation of allowed options.
-   ```shell
-   vim gallery-dl.conf.template.json
-   ```
 
 2. Make sure to enter values for below env variables into `.env` file
    ```shell
