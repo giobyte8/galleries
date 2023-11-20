@@ -1,7 +1,10 @@
+import logging
 import os
 from synchronizer import futils
 from synchronizer.services import http_source_service as h_src_svc
-from synchronizer.sync_logging import logger
+
+
+logger = logging.getLogger(__name__)
 
 
 def abs_path(source_id: int, filename: str) -> str:

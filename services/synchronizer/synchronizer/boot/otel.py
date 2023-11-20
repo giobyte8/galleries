@@ -1,6 +1,6 @@
 
 
-def setup_tracer_provider():
+def __setup_tracer_provider():
     # All config is done by 'opentelemetry-instrument' wrapper command
     # through env variables and arguments
     pass
@@ -16,5 +16,10 @@ def setup_tracer_provider():
     # trace.set_tracer_provider(provider)
 
 
-def setup_meter_provider():
+def __setup_meter_provider():
     pass
+
+
+def init():
+    __setup_tracer_provider()
+    __setup_meter_provider()

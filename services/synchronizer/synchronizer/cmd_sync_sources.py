@@ -3,6 +3,7 @@
 # Triggers sync for all 'http_source' items found in database
 #
 
+import logging
 import os
 import sys
 
@@ -15,7 +16,9 @@ if not __package__ and not hasattr(sys, "frozen"):
     sys.path.insert(0, os.path.realpath(synchronizer_root))
 
 import synchronizer.services.http_source_service as http_src_svc
-from synchronizer.sync_logging import logger
+
+
+logger = logging.getLogger(__name__)
 
 
 if __name__ == "__main__":

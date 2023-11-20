@@ -1,12 +1,13 @@
+import logging
 from opentelemetry import trace
 from typing import List
 from sqlalchemy import delete, select, update
 from synchronizer import config as cfg
 from synchronizer.db.connection import get_session
 from synchronizer.db.models import HttpSourceItem, SIRemoteStatus
-from synchronizer.sync_logging import logger
 
 
+logger = logging.getLogger(__name__)
 tracer = trace.get_tracer(cfg.otel_svc_name())
 
 

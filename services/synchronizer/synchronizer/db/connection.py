@@ -1,8 +1,11 @@
+import logging
+import synchronizer.config as cfg
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from synchronizer.sync_logging import logger
 
-import synchronizer.config as cfg
+
+logger = logging.getLogger(__name__)
+
 
 _db_url = 'mysql+pymysql://{user}:{password}@{host}:{port}/{database}'.format(
     user=cfg.mysql_user(),
@@ -21,8 +24,16 @@ def get_session() -> Session:
 
     if not _db_session:
         logger.info('Creating sqlalchemy session')
-        _db_session = Session(engine)
+        _db_session = Session(
+            engine,
+            expire_on_commit=False # https://stackoverflow.com/a/14899438/3211029
+        )
 
+    # TODO Verify that connection stills open
+    # From logs:
+    #   ConnectionResetError: [Errno 104] Connection reset by peer
+    #   sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2006, "MySQL server has gone away (ConnectionResetError(104, 'Connection reset by peer'))")
+    #   Background on this error at: https://sqlalche.me/e/14/e3q8
     return _db_session
 
 

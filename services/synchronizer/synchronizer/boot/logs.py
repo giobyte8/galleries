@@ -11,7 +11,7 @@ _FORMATTER = logging.Formatter(
 )
 
 
-def parse_log_level(level: str):
+def __parse_log_level(level: str):
     """Parses a given string value into a valid python
     log level number. Defaults to 'INFO'
 
@@ -39,10 +39,10 @@ def parse_log_level(level: str):
     return logging.getLevelName(level)
 
 
-def init_logging():
-    def_level = parse_log_level(cfg.log_level())
-    con_level = parse_log_level(cfg.log_level_console())
-    file_level = parse_log_level(cfg.log_level_file())
+def init():
+    def_level = __parse_log_level(cfg.log_level())
+    con_level = __parse_log_level(cfg.log_level_console())
+    file_level = __parse_log_level(cfg.log_level_file())
 
     logger = logging.getLogger(_LOGGER_NAME)
     logger.setLevel(def_level)

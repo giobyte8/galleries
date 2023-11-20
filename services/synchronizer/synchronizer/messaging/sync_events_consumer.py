@@ -1,4 +1,5 @@
 import json
+import logging
 from kombu import Consumer, eventloop
 from kombu.utils.compat import nested
 
@@ -10,7 +11,9 @@ from synchronizer.messaging.resources import (
     rb_connection
 )
 from synchronizer.services import sync_service
-from synchronizer.sync_logging import logger
+
+
+logger = logging.getLogger(__name__)
 
 
 def on_file_skipped(body, message):
