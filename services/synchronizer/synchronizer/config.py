@@ -83,6 +83,18 @@ def runtime_path():
 def logs_path():
     return os.path.join(runtime_path(), 'logs')
 
-
 def log_level():
-    return os.getenv('LOG_LEVEL', 'error')
+    return os.getenv('LOG_LEVEL', 'INFO')
+
+def log_level_console():
+    return os.getenv('LOG_LEVEL_CONSOLE', log_level())
+
+def log_level_file():
+    return os.getenv('LOG_LEVEL_FILE', log_level())
+
+
+def otel_collector_endpoint():
+    return os.getenv('OTEL_COLLECTOR_ENDPOINT')
+
+def otel_svc_name():
+    return os.getenv('OTEL_SERVICE_NAME')

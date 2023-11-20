@@ -1,11 +1,16 @@
 import os
 import synchronizer.config as cfg
+from opentelemetry import trace
 from synchronizer.db import http_source_dao
 from synchronizer.db.models import SIRemoteStatus
 from synchronizer.messaging import sync_events_producer
 from synchronizer.services import cache_service
 
 
+tracer = trace.get_tracer_provider().get_tracer(cfg.otel_svc_name())
+
+
+@tracer.start_as_current_span('sync_http_sources')
 def sync_http_sources() -> None:
     """Starts sync process for all http sources
     """
