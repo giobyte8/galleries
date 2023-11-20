@@ -84,7 +84,7 @@ def update_status_by_source_ids(
     status: SIRemoteStatus
 ) -> None:
     stmt = update(HttpSourceItem)\
-        .where(HttpSourceItem.source_id in source_ids)\
+        .where(HttpSourceItem.source_id.in_(source_ids))\
         .values(remote_status=status.value)
 
     session = get_session()
