@@ -1,8 +1,13 @@
+from opentelemetry import trace
 from typing import List
 from sqlalchemy import delete, select, update
+from synchronizer import config as cfg
 from synchronizer.db.connection import get_session
 from synchronizer.db.models import HttpSourceItem, SIRemoteStatus
 from synchronizer.sync_logging import logger
+
+
+tracer = trace.get_tracer(cfg.otel_svc_name())
 
 
 def find_by_src_and_status(
@@ -67,6 +72,20 @@ def update_status_by_src_and_status(
         .where(HttpSourceItem.source_id == source_id)\
         .where(HttpSourceItem.remote_status == from_status.value)\
         .values(remote_status=to_status.value)
+
+    session = get_session()
+    session.execute(stmt)
+    session.commit()
+
+
+@tracer.start_as_current_span("http_source_item_dao.update_status_by_source_ids")
+def update_status_by_source_ids(
+    source_ids: List[int],
+    status: SIRemoteStatus
+) -> None:
+    stmt = update(HttpSourceItem)\
+        .where(HttpSourceItem.source_id in source_ids)\
+        .values(remote_status=status.value)
 
     session = get_session()
     session.execute(stmt)
