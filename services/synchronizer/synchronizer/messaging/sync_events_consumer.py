@@ -3,7 +3,7 @@ import logging
 from kombu import Consumer, eventloop
 from kombu.utils.compat import nested
 
-from synchronizer.db.connection import close_session
+from synchronizer.db.connection import cleanup
 from synchronizer.messaging.resources import (
     FILE_DL_QUEUE,
     FILE_SK_QUEUE,
@@ -73,5 +73,5 @@ def start_consumer():
                 for _ in eventloop(conn):
                     pass
             except KeyboardInterrupt:
-                close_session()
+                cleanup()
                 logger.info('Stopping sync events consumption')

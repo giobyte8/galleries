@@ -3,7 +3,12 @@ from opentelemetry import trace
 from typing import List
 from sqlalchemy import delete, select, update
 from synchronizer import config as cfg
-from synchronizer.db.connection import get_session
+from synchronizer.db.connection import (
+    db_add,
+    db_exec,
+    find_all,
+    find_first,
+)
 from synchronizer.db.models import HttpSourceItem, SIRemoteStatus
 
 
@@ -18,17 +23,15 @@ def find_by_src_and_status(
     stmt = select(HttpSourceItem)\
         .where(HttpSourceItem.source_id == source_id)\
         .where(HttpSourceItem.remote_status == status.value)
-
-    return get_session().scalars(stmt).all()
+    return find_all(stmt)
 
 
 def upsert(source_id: int, filename: str) -> HttpSourceItem:
     stmt = select(HttpSourceItem)\
         .where(HttpSourceItem.source_id == source_id)\
-        .where(HttpSourceItem.filename == filename)
-
-    session = get_session()
-    item = session.scalars(stmt).first()
+        .where(HttpSourceItem.filename == filename)\
+        .limit(1)
+    item = find_first(stmt)
 
     if not item:
         item = HttpSourceItem(
@@ -36,9 +39,7 @@ def upsert(source_id: int, filename: str) -> HttpSourceItem:
             filename=filename,
             remote_status=SIRemoteStatus.FOUND.value
         )
-
-        session.add(item)
-        session.commit()
+        db_add(item)
 
 
 def update_remote_status(
@@ -50,10 +51,7 @@ def update_remote_status(
         .where(HttpSourceItem.source_id == source_id)\
         .where(HttpSourceItem.filename == filename)\
         .values(remote_status=status.value)
-
-    session = get_session()
-    session.execute(stmt)
-    session.commit()
+    db_exec(stmt)
 
 
 def update_status_by_src_and_status(
@@ -73,10 +71,7 @@ def update_status_by_src_and_status(
         .where(HttpSourceItem.source_id == source_id)\
         .where(HttpSourceItem.remote_status == from_status.value)\
         .values(remote_status=to_status.value)
-
-    session = get_session()
-    session.execute(stmt)
-    session.commit()
+    db_exec(stmt)
 
 
 @tracer.start_as_current_span("http_source_item_dao.update_status_by_source_ids")
@@ -87,10 +82,7 @@ def update_status_by_source_ids(
     stmt = update(HttpSourceItem)\
         .where(HttpSourceItem.source_id.in_(source_ids))\
         .values(remote_status=status.value)
-
-    session = get_session()
-    session.execute(stmt)
-    session.commit()
+    db_exec(stmt)
 
 
 def delete_by_src_and_status(
@@ -100,7 +92,4 @@ def delete_by_src_and_status(
     stmt = delete(HttpSourceItem)\
         .where(HttpSourceItem.source_id == source_id)\
         .where(HttpSourceItem.remote_status == status.value)
-
-    session = get_session()
-    session.execute(stmt)
-    session.commit()
+    db_exec(stmt)
