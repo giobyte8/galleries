@@ -32,3 +32,8 @@ galleries:
       root_path: src/test/resources/galleries
     media-files-extensions:
       - jpg
+
+neo4j:
+  uri: neo4j://localhost:7687
+  username: neo4j
+  password: neo4j_devpass
