@@ -22,7 +22,8 @@ public class Image {
     private String cameraMaker;
     private String cameraModel;
 
-    private ImageStatus status;
+    @Builder.Default
+    private ImageStatus status = ImageStatus.AVAILABLE;
 
     public void setMetadata(MFMetadata meta) {
         gpsLatitude = meta.getGpsLatitude();
