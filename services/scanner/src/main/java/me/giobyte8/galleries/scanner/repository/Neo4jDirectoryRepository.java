@@ -1,15 +1,16 @@
 package me.giobyte8.galleries.scanner.repository;
 
+import lombok.extern.slf4j.Slf4j;
 import me.giobyte8.galleries.scanner.model.Directory;
-import me.giobyte8.galleries.scanner.model.Image;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
 import org.springframework.stereotype.Service;
 
-import java.util.Set;
+import java.util.Map;
 
 @Service
+@Slf4j
 public class Neo4jDirectoryRepository implements DirectoryRepository {
 
     private final Driver driver;
@@ -79,19 +80,35 @@ public class Neo4jDirectoryRepository implements DirectoryRepository {
     }
 
     @Override
-    public void save(Directory directory, Set<Image> images) {
-        // TODO Put both operations in single transaction
-        this.save(directory);
-        this.addImages(directory.getPath(), images);
-    }
+    public void save(Directory parent, Directory directory) {
+        try (Session session = driver.session()) {
+            String mergeDir = """
+                    MATCH (parent:Directory { path: $parentPath })
+                    MERGE (parent)-[:CONTAINS]->(d:Directory { path: $path })
+                    ON CREATE
+                      SET
+                        d.recursive = $recursive,
+                        d.status = $status
+                    ON MATCH
+                      SET
+                        d.recursive = $recursive,
+                        d.status = $status
+                    RETURN d;""";
 
-    @Override
-    public void addImage(String dirPath, Image image) {
+            Map<String, Object> params = rowMapper.asMap(directory);
+            params.put("parentPath", parent.getPath());
 
-    }
+            session.executeWrite(ctx -> {
+                var res = ctx.run(mergeDir, params);
+                if (!res.hasNext()) {
+                    log.warn(
+                            "Directory wasn't saved. Verify parent dir exist: {}",
+                            parent.getPath()
+                    );
+                }
 
-    @Override
-    public void addImages(String dirPath, Set<Image> images) {
-
+                return res;
+            });
+        }
     }
 }

@@ -25,6 +25,25 @@ public class Neo4jDirectoryRepositoryTests {
     }
 
     @Test
+    void saveWithParent() {
+        Directory parent = Directory.builder()
+                .path("test")
+                .build();
+        dirRepository.save(parent);
+
+        Directory portraits = Directory.builder()
+                .path("test/portraits")
+                .build();
+
+        // Save child and associate to parent
+        dirRepository.save(parent, portraits);
+
+        // Verify child dir was saved
+        Directory dbPortraitsDir = dirRepository.findBy(portraits.getPath());
+        assert dbPortraitsDir.equals(portraits);
+    }
+
+    @Test
     void update() {
         final String path = "test/portraits";
         Directory dir = Directory.builder()
