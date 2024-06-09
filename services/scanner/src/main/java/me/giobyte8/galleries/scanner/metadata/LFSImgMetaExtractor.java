@@ -1,4 +1,4 @@
-package me.giobyte8.galleries.scanner.scanners;
+package me.giobyte8.galleries.scanner.metadata;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
@@ -8,9 +8,8 @@ import com.drew.metadata.StringValue;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.GpsDirectory;
+import lombok.extern.slf4j.Slf4j;
 import me.giobyte8.galleries.scanner.dto.MFMetadata;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -24,8 +23,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.drew.metadata.exif.ExifDirectoryBase.*;
 
 @Component
-public class LocalFSMetadataExtractor implements MetadataExtractor {
-    Logger log = LoggerFactory.getLogger(LocalFSMetadataExtractor.class);
+@Slf4j
+public class LFSImgMetaExtractor implements ImgMetaExtractor {
 
     @Override
     public MFMetadata extract(Path absPath) throws IOException {

@@ -1,6 +1,7 @@
 package me.giobyte8.galleries.scanner.scanners;
 
 import me.giobyte8.galleries.scanner.dto.MFMetadata;
+import me.giobyte8.galleries.scanner.metadata.LFSImgMetaExtractor;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -10,10 +11,10 @@ import java.nio.file.Paths;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class LocalFSMetadataExtractorTests {
+class LFSImgMetaExtractorTests {
 
-    private final LocalFSMetadataExtractor mExtractor =
-            new LocalFSMetadataExtractor();
+    private final LFSImgMetaExtractor mExtractor =
+            new LFSImgMetaExtractor();
 
     private final Path testContentsRoot = Paths.get(
             "src/test/resources",
