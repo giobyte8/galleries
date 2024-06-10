@@ -9,12 +9,12 @@ import org.springframework.stereotype.Service;
 import java.util.Objects;
 
 @Service
-public class LFSScanEventsObserver implements ScanEventsObserver {
+public class LFSScanMediaObserver implements ScanMediaObserver {
 
     private final DirectoryRepository dirRepository;
     private final ImageRepository imgRepository;
 
-    public LFSScanEventsObserver(
+    public LFSScanMediaObserver(
             DirectoryRepository dirRepository,
             ImageRepository imgRepository
     ) {

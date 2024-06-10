@@ -3,7 +3,7 @@ package me.giobyte8.galleries.scanner.scanners;
 import me.giobyte8.galleries.scanner.model.Directory;
 import me.giobyte8.galleries.scanner.model.Image;
 
-public interface ScanEventsObserver {
+public interface ScanMediaObserver {
 
     void onDirectoryFound(Directory parent, Directory directory);
 

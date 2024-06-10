@@ -6,7 +6,7 @@ import me.giobyte8.galleries.scanner.dto.UpsertDiscoveredFileResult;
 import me.giobyte8.galleries.scanner.model.MediaFile;
 import me.giobyte8.galleries.scanner.model.MediaFileStatus;
 import me.giobyte8.galleries.scanner.dto.FDiscoveryEventType;
-import me.giobyte8.galleries.scanner.scanners.MetadataExtractor;
+import me.giobyte8.galleries.scanner.metadata.ImgMetaExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -19,13 +19,13 @@ import java.util.Optional;
 public class MediaFileService {
     private final Logger log = LoggerFactory.getLogger(MediaFileService.class);
 
-    private final MetadataExtractor metaExtractor;
+    private final ImgMetaExtractor metaExtractor;
     private final HashingService hashingService;
     private final PathService pathService;
     private final MediaFileDao mFileDao;
 
     public MediaFileService(
-            MetadataExtractor metaExtractor,
+            ImgMetaExtractor metaExtractor,
             HashingService hashingService,
             PathService pathService,
             MediaFileDao mFileDao) {

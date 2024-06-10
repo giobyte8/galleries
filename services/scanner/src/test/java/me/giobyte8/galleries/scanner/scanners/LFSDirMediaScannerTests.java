@@ -39,7 +39,7 @@ public class LFSDirMediaScannerTests {
     private ImgMetaExtractor imgMetaExtractor;
 
     @Mock
-    private ScanEventsObserver scanEventsObserver;
+    private ScanMediaObserver scanMediaObserver;
 
     @Mock
     private DirectoryRepository dirRepository;
@@ -102,7 +102,7 @@ public class LFSDirMediaScannerTests {
         dirMediaScanner.scan(camerasDir);
 
         // Verify two files were found during scan
-        verify(scanEventsObserver, times(2))
+        verify(scanMediaObserver, times(2))
                 .onImageFound(any(), any());
     }
 
@@ -142,7 +142,7 @@ public class LFSDirMediaScannerTests {
         dirMediaScanner.scan(camerasDir);
 
         // Verify files were found during scan
-        verify(scanEventsObserver, times(4))
+        verify(scanMediaObserver, times(4))
                 .onImageFound(any(), any());
     }
 }

@@ -26,7 +26,7 @@ public class LFSDirMediaScanner implements DirMediaScanner {
     private final PathService pathSvc;
     private final HashingService hashingSvc;
     private final ImgMetaExtractor imgMetaExtractor;
-    private final ScanEventsObserver scanEventsObserver;
+    private final ScanMediaObserver scanMediaObserver;
 
     private final DirectoryRepository dirRepository;
 
@@ -35,14 +35,14 @@ public class LFSDirMediaScanner implements DirMediaScanner {
             PathService pathSvc,
             HashingService hashingSvc,
             ImgMetaExtractor imgMetaExtractor,
-            ScanEventsObserver scanEventsObserver,
+            ScanMediaObserver scanMediaObserver,
             DirectoryRepository dirRepository
     ) {
         this.scannerProps = scannerProps;
         this.pathSvc = pathSvc;
         this.hashingSvc = hashingSvc;
         this.imgMetaExtractor = imgMetaExtractor;
-        this.scanEventsObserver = scanEventsObserver;
+        this.scanMediaObserver = scanMediaObserver;
         this.dirRepository = dirRepository;
     }
 
@@ -94,6 +94,9 @@ public class LFSDirMediaScanner implements DirMediaScanner {
         }
 
         // TODO Remove all images in 'dir' and in 'VERIFYING' status
+
+        directory.setStatus(DirStatus.SCAN_COMPLETE);
+        dirRepository.save(directory);
         scanNext(dirs);
     }
 
@@ -108,7 +111,7 @@ public class LFSDirMediaScanner implements DirMediaScanner {
                     .recursive(parent.isRecursive())
                     .status(DirStatus.SCAN_PENDING)
                     .build();
-            scanEventsObserver.onDirectoryFound(parent, childDir);
+            scanMediaObserver.onDirectoryFound(parent, childDir);
 
             // Enqueue for scanning
             dirsToScan.offer(childDir);
@@ -124,7 +127,7 @@ public class LFSDirMediaScanner implements DirMediaScanner {
                     .build();
 
             img.setMetadata(imgMetaExtractor.extract(absPath));
-            scanEventsObserver.onImageFound(parent, img);
+            scanMediaObserver.onImageFound(parent, img);
         } catch (IOException e) {
             log.error("Error while hashing content: {}", absPath, e);
         }
