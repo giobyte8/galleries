@@ -9,6 +9,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 @SpringBootTest
 public class Neo4jImageRepositoryTests {
 
@@ -43,5 +45,12 @@ public class Neo4jImageRepositoryTests {
         assert dbImg != null;
 
         // Assert image was added to parent dir
+    }
+
+    @Test
+    void findNonExistent() {
+        String path = "test/not/found";
+        Image img = imgRepository.findBy(path);
+        assertNull(img);
     }
 }
