@@ -1,7 +1,6 @@
-package me.giobyte8.galleries.scanner.scanners;
+package me.giobyte8.galleries.scanner.metadata;
 
 import me.giobyte8.galleries.scanner.dto.MFMetadata;
-import me.giobyte8.galleries.scanner.metadata.LFSImgMetaExtractor;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;

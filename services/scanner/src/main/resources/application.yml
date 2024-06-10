@@ -34,7 +34,7 @@ galleries:
       - jpeg
       - jpg
       - png
-      - mp4
+      # - mp4
       # TODO add support for raw formats
 
 neo4j:

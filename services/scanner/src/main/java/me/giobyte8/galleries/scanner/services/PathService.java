@@ -15,6 +15,16 @@ public class PathService {
         this.scannerProps = scannerProps;
     }
 
+    /**
+     * Takes a relative path and prepends the content's root
+     * to form an absolute path.
+     * <br/>
+     * Content's root path is taken from application properties
+     * 'galleries.scanner.content_dirs.root_path'
+     *
+     * @param relPath Relative path to file/dir
+     * @return Absolute path to file or directory
+     */
     public Path toAbsolute(String relPath) {
         return Path.of(
                 this.scannerProps.getContentDirs().getRootPath(),
@@ -25,6 +35,9 @@ public class PathService {
     /**
      * Takes an absolute file/dir path and removes the content's root
      * part from it.
+     * <br/>
+     * Content's root path is taken from application properties
+     * 'galleries.scanner.content_dirs.root_path'
      *
      * @param absPath File or directory absolute path
      * @return Relative path to file

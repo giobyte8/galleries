@@ -79,7 +79,7 @@ public class LocalFSScanner implements MediaScanner {
                         log.debug("File found during scan: {}", absFPath);
 
                         try {
-                            String fHash = hashingService.hashFile(absFPath);
+                            String fHash = hashingService.hashContent(absFPath);
                             cb.onFileFound(absFPath, fHash);
                         } catch (IOException e) {
                             log.error(
