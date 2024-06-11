@@ -107,7 +107,7 @@ public class Neo4jDirectoryRepository implements DirectoryRepository {
                     );
                 }
 
-                return res;
+                return res.single();
             });
         }
     }

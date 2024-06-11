@@ -9,6 +9,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -100,7 +101,48 @@ public class Neo4jImageRepository implements ImageRepository {
                     );
                 }
 
-                return res;
+                return res.single();
+            });
+        }
+    }
+
+    @Override
+    public long update(Directory parent, ImageStatus status) {
+        try (Session session = driver.session()) {
+            String updateStatusQry = """
+                    MATCH (d:Directory { path: $dirPath })-[:CONTAINS]->(i:Image)
+                    WHERE i.status <> $status
+                    SET i.status = $status
+                    RETURN count(i) as updatedCount;""";
+
+            Map<String, Object> params = new HashMap<>(2);
+            params.put("dirPath", parent.getPath());
+            params.put("status", status.toString());
+
+            return session.executeWrite(ctx -> {
+                var res = ctx.run(updateStatusQry, params);
+                return res.single().get("updatedCount").asLong();
+            });
+        }
+    }
+
+    @Override
+    public long delete(Directory parent, ImageStatus status) {
+        try (Session session = driver.session()) {
+            String deleteQry = """
+                    MATCH (d:Directory { path: $dirPath })
+                        -[:CONTAINS]
+                        ->(i:Image { status: $status })
+                    DETACH DELETE i
+                    RETURN count(i) as deletedCount;""";
+
+            Map<String, Object> params = new HashMap<>(2);
+            params.put("dirPath", parent.getPath());
+            params.put("status", status.toString());
+
+            return session.executeWrite(ctx -> {
+                var res = ctx.run(deleteQry, params);
+                return res.single().get("deletedCount").asLong();
             });
         }
     }

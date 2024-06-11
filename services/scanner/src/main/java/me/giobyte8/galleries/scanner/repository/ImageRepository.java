@@ -27,4 +27,24 @@ public interface ImageRepository {
      * @param image Image being saved/updated
      */
     void save(Directory parent, Image image);
+
+    /**
+     * Sets given status to all images that are direct children
+     * of a directory.
+     *
+     * @param parent Directory containing images to update
+     * @param status Status to assign to images
+     * @return Number of updated images
+     */
+    long update(Directory parent, ImageStatus status);
+
+    /**
+     * Removes all images that are direct children of a directory
+     * and that have a specific status.
+     *
+     * @param parent Directory containing images to remove
+     * @param status Status of images to be removed
+     * @return Number of removed images
+     */
+    long delete(Directory parent, ImageStatus status);
 }
