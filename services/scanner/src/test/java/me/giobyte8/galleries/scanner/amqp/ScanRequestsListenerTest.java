@@ -1,10 +1,10 @@
 package me.giobyte8.galleries.scanner.amqp;
 
-import me.giobyte8.galleries.scanner.dao.ContentDirDao;
 import me.giobyte8.galleries.scanner.dto.ScanRequest;
-import me.giobyte8.galleries.scanner.model.ContentDir;
-import me.giobyte8.galleries.scanner.model.ContentDirStatus;
-import me.giobyte8.galleries.scanner.services.PathService;
+import me.giobyte8.galleries.scanner.model.DirStatus;
+import me.giobyte8.galleries.scanner.model.Directory;
+import me.giobyte8.galleries.scanner.repository.DirectoryRepository;
+import me.giobyte8.galleries.scanner.scanners.DirMediaScanner;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,168 +12,89 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Duration;
-import java.util.Date;
-import java.util.Optional;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ScanRequestsListenerTest {
 
     @Mock
-    private MediaScannerService mScanner;
+    private DirMediaScanner mScanner;
 
     @Mock
-    private PathService pathService;
-
-    @Mock
-    private ContentDirDao dirDao;
-
+    private DirectoryRepository dirRepository;
 
     @InjectMocks
     private ScanRequestsListener scanReqListener;
 
     @Test
     void scanNonExistentDir() {
-        String dirHPath = "fakeHashedPath";
+        String dirPath = "/non/existent/path";
 
-        ScanRequest order = new ScanRequest(
+        ScanRequest scanReq = new ScanRequest(
                 UUID.randomUUID(),
-                dirHPath,
-                new Date()
+                dirPath,
+                LocalDateTime.now()
         );
 
         Mockito
-                .when(dirDao.findById(dirHPath))
-                .thenReturn(Optional.empty());
+                .when(dirRepository.findBy(scanReq.dirPath()))
+                .thenReturn(null);
 
-        scanReqListener.onScanRequest(order);
+        scanReqListener.onScanRequest(scanReq);
 
-        // Scan should be cancelled and mocks never invoked
-        verifyNoMoreInteractions(mScanner, pathService);
+        // Scan should be cancelled and mock never invoked
+        verify(mScanner, never()).scan(any(), any());
     }
 
     @Test
     void scanWrongStatusContentDir() {
-        String dirHPath = "fakeHashedPath";
+        String dirPath = "test/dir";
 
         ScanRequest order = new ScanRequest(
                 UUID.randomUUID(),
-                dirHPath,
-                new Date()
+                dirPath,
+                LocalDateTime.now()
         );
 
-        ContentDir dir = new ContentDir();
-        dir.setHashedPath(dirHPath);
-        dir.setPath("/fake/test/path");
-        dir.setStatus(ContentDirStatus.SCAN_IN_PROGRESS);
+        Directory dir = Directory.builder()
+                .path(dirPath)
+                .status(DirStatus.SCAN_IN_PROGRESS)
+                .build();
 
         Mockito
-                .when(dirDao.findById(dirHPath))
-                .thenReturn(Optional.of(dir));
+                .when(dirRepository.findBy(dirPath))
+                .thenReturn(dir);
 
         scanReqListener.onScanRequest(order);
 
         // Scan should be cancelled and mocks never invoked
-        verifyNoMoreInteractions(mScanner, pathService);
+        verify(mScanner, never()).scan(any(), any());
     }
 
     @Test
-    void dirScannedAfterScanRequestTime() {
-        String dirHPath = "fakeHashedPath";
-        Date scanReqDate = new Date();
+    void onScanRequest() {
+        String dirPath = "test/dir";
+        Directory dir = Directory.builder()
+                .path(dirPath)
+                .build();
 
-        ScanRequest order = new ScanRequest(
-                UUID.randomUUID(),
-                dirHPath,
-                scanReqDate
-        );
-
-        ContentDir dir = new ContentDir();
-        dir.setHashedPath(dirHPath);
-        dir.setPath("/fake/test/path");
-        dir.setStatus(ContentDirStatus.SCAN_COMPLETE);
-        dir.setLastScanStart(
-                Date.from(scanReqDate.toInstant().plus(Duration.ofHours(1)))
-        );
-
-        Mockito
-                .when(dirDao.findById(dirHPath))
-                .thenReturn(Optional.of(dir));
-
-        scanReqListener.onScanRequest(order);
-
-        // Scan should be cancelled and mocks never invoked
-        verifyNoMoreInteractions(mScanner, pathService);
-    }
-
-    @Test
-    void scanUnavailableDirectory() {
-        String dirHPath = "fakeHashedPath";
-        Date scanReqDate = new Date();
-
-        ScanRequest order = new ScanRequest(
-                UUID.randomUUID(),
-                dirHPath,
-                scanReqDate
-        );
-
-        ContentDir dir = new ContentDir();
-        dir.setHashedPath(dirHPath);
-        dir.setPath("/fake/test/path");
-        dir.setStatus(ContentDirStatus.SCAN_COMPLETE);
-
-        Mockito
-                .when(dirDao.findById(dirHPath))
-                .thenReturn(Optional.of(dir));
-        Mockito
-                .when(pathService.toAbsolute(anyString()))
-                        .thenReturn(Path.of("/invalid/abs/path"));
-
-        scanReqListener.onScanRequest(order);
-
-        // Scan should be cancelled and mocks never invoked
-        verifyNoMoreInteractions(pathService, mScanner);
-    }
-
-    @Test
-    void onScanRequestValidOrder() {
-        Path testContentsRoot = Paths.get(
-                "src/test/resources",
-                "galleries"
-        );
-
-        String dirHPath = "invalid/path";
         ScanRequest scanRequest = new ScanRequest(
                 UUID.randomUUID(),
-                dirHPath,
-                new Date()
+                dirPath,
+                LocalDateTime.now()
         );
 
-        ContentDir dir = new ContentDir();
-        dir.setPath("/random/path");
-
         Mockito
-                .when(dirDao.findById(dirHPath))
-                .thenReturn(Optional.of(dir));
-        Mockito
-                .when(pathService.toAbsolute(anyString()))
-                .thenReturn(testContentsRoot);
+                .when(dirRepository.findBy(dirPath))
+                .thenReturn(dir);
 
         scanReqListener.onScanRequest(scanRequest);
 
-        Mockito
-                .verify(pathService, times(1))
-                .toAbsolute(anyString());
-        Mockito
-                .verify(mScanner, times(1))
-                .scan(any(UUID.class), any(String.class));
+        verify(mScanner, times(1))
+                .scan(scanRequest, dir);
     }
 }

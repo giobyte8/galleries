@@ -17,6 +17,12 @@ public class Neo4jDirectoryRepositoryTests extends Neo4jEphemeralTest {
     private Neo4jDirectoryRepository dirRepository;
 
     @Test
+    void findNonExistent() {
+        Directory dir = dirRepository.findBy("non/existent/dir");
+        assertNull(dir);
+    }
+
+    @Test
     void saveAndFind() {
         final String path = "test/portraits";
         Directory dir = Directory.builder()

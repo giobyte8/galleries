@@ -1,11 +1,9 @@
 package me.giobyte8.galleries.scanner.scanners;
 
 import me.giobyte8.galleries.scanner.config.properties.ScannerProps;
-import me.giobyte8.galleries.scanner.dto.MFMetadata;
 import me.giobyte8.galleries.scanner.dto.ScanRequest;
 import me.giobyte8.galleries.scanner.metadata.ImgMetaExtractor;
 import me.giobyte8.galleries.scanner.model.Directory;
-import me.giobyte8.galleries.scanner.repository.DirectoryRepository;
 import me.giobyte8.galleries.scanner.services.HashingService;
 import me.giobyte8.galleries.scanner.services.PathService;
 import org.junit.jupiter.api.Test;
@@ -14,11 +12,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.mockito.Mockito.*;
 
@@ -40,13 +40,10 @@ public class LFSDirMediaScannerTests {
     @Mock
     private ScanMediaObserver scanMediaObserver;
 
-    @Mock
-    private DirectoryRepository dirRepository;
-
     @InjectMocks
     private LFSDirMediaScanner dirMediaScanner;
 
-    private final Path testContentsRoot = Paths.get(
+    private final Path contentRoot = Paths.get(
             "src/test/resources",
             "galleries"
     );
@@ -57,105 +54,36 @@ public class LFSDirMediaScannerTests {
 
     @Test
     void scanInvalidDir() {
-        Path invalidDirPath = Path
-                .of(testContentsRoot.toString(), "invalid")
+        Path absPath = Path
+                .of(contentRoot.toString(), "invalid")
                 .toAbsolutePath();
 
         Directory invalidDir = Directory.builder()
-                .path(invalidDirPath.toString())
+                .path(absPath.toString())
                 .build();
 
         when(pathSvc.toAbsolute(invalidDir.getPath()))
-                .thenReturn(invalidDirPath);
+                .thenReturn(absPath);
 
-        ScanRequest scanRequest = new ScanRequest(
+        ScanRequest scanReq = new ScanRequest(
                 UUID.randomUUID(),
                 invalidDir.getPath(),
                 LocalDateTime.now()
         );
-        dirMediaScanner.scan(scanRequest, invalidDir);
+        dirMediaScanner.scan(scanReq, invalidDir);
 
-        // Invalid dir path should cause scan process to finish
-        // without updates to database
-        verify(dirRepository, never()).save(invalidDir);
-    }
+        verify(scanMediaObserver, times(1))
+                .onScanStarted(scanReq);
 
-    @Test
-    void scanNonRecursive() throws IOException {
-        Path camerasPath = Path
-                .of(testContentsRoot.toString(), "cameras")
-                .toAbsolutePath();
-        Directory camerasDir = Directory.builder()
-                .path(camerasPath.toString())
-                .recursive(false)
-                .build();
+        verify(scanMediaObserver, times(1))
+                .prepareForScanning(invalidDir);
 
-        when(pathSvc.toAbsolute(camerasDir.getPath()))
-                .thenReturn(camerasPath);
-        when(scannerProps.getMediaFilesExtensions())
-                .thenReturn(mediaExtensions);
+        verify(scanMediaObserver, times(1))
+                .onScanFailed(any(), any());
 
-        when(pathSvc.toRelative(any()))
-                .thenReturn(camerasPath);
+        verify(scanMediaObserver, times(1))
+                .onScanCompleted(scanReq);
 
-        MFMetadata meta = new MFMetadata();
-        meta.setDatetimeOriginal(new Date());
-        when(imgMetaExtractor.extract(any()))
-                .thenReturn(meta);
-
-        ScanRequest scanRequest = new ScanRequest(
-                UUID.randomUUID(),
-                camerasDir.getPath(),
-                LocalDateTime.now()
-        );
-        dirMediaScanner.scan(scanRequest, camerasDir);
-
-        // Verify two files were found during scan
-        verify(scanMediaObserver, times(2))
-                .onImageFound(any(), any());
-    }
-
-    @Test
-    void scanRecursive() throws IOException {
-        Path camerasPath = Path
-                .of(testContentsRoot.toString(), "cameras")
-                .toAbsolutePath();
-        Path caPath = Path.of(camerasPath.toString(), "ca");
-
-        Directory camerasDir = Directory.builder()
-                .path(camerasPath.toString())
-                .recursive(true)
-                .build();
-
-        // Prepare path service invocations for 'cameras' dir
-        when(pathSvc.toAbsolute(camerasDir.getPath())).thenReturn(camerasPath);
-
-        when(scannerProps.getMediaFilesExtensions())
-                .thenReturn(mediaExtensions);
-
-        // Will be invoked once for each found image
-        when(pathSvc.toRelative(any()))
-                .thenReturn(camerasPath);
-
-        // Prepare path service invocations for 'ca' dir
-        when(pathSvc.toRelative(caPath)).thenReturn(caPath);
-        when(pathSvc.toAbsolute(caPath.toString())).thenReturn(caPath);
-
-        // Meta extractor will be invoked for every found image
-        MFMetadata meta = new MFMetadata();
-        meta.setDatetimeOriginal(new Date());
-        when(imgMetaExtractor.extract(any()))
-                .thenReturn(meta);
-
-        ScanRequest scanRequest = new ScanRequest(
-                UUID.randomUUID(),
-                camerasDir.getPath(),
-                LocalDateTime.now()
-        );
-        dirMediaScanner.scan(scanRequest, camerasDir);
-
-        // Verify files were found during scan
-        verify(scanMediaObserver, times(4))
-                .onImageFound(any(), any());
+        verifyNoMoreInteractions(scanMediaObserver);
     }
 }
