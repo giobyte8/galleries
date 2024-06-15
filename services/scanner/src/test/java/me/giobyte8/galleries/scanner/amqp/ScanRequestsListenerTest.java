@@ -1,10 +1,9 @@
 package me.giobyte8.galleries.scanner.amqp;
 
 import me.giobyte8.galleries.scanner.dao.ContentDirDao;
-import me.giobyte8.galleries.scanner.dto.ScanOrder;
+import me.giobyte8.galleries.scanner.dto.ScanRequest;
 import me.giobyte8.galleries.scanner.model.ContentDir;
 import me.giobyte8.galleries.scanner.model.ContentDirStatus;
-import me.giobyte8.galleries.scanner.services.MediaScannerService;
 import me.giobyte8.galleries.scanner.services.PathService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +44,7 @@ class ScanRequestsListenerTest {
     void scanNonExistentDir() {
         String dirHPath = "fakeHashedPath";
 
-        ScanOrder order = new ScanOrder(
+        ScanRequest order = new ScanRequest(
                 UUID.randomUUID(),
                 dirHPath,
                 new Date()
@@ -65,7 +64,7 @@ class ScanRequestsListenerTest {
     void scanWrongStatusContentDir() {
         String dirHPath = "fakeHashedPath";
 
-        ScanOrder order = new ScanOrder(
+        ScanRequest order = new ScanRequest(
                 UUID.randomUUID(),
                 dirHPath,
                 new Date()
@@ -91,7 +90,7 @@ class ScanRequestsListenerTest {
         String dirHPath = "fakeHashedPath";
         Date scanReqDate = new Date();
 
-        ScanOrder order = new ScanOrder(
+        ScanRequest order = new ScanRequest(
                 UUID.randomUUID(),
                 dirHPath,
                 scanReqDate
@@ -120,7 +119,7 @@ class ScanRequestsListenerTest {
         String dirHPath = "fakeHashedPath";
         Date scanReqDate = new Date();
 
-        ScanOrder order = new ScanOrder(
+        ScanRequest order = new ScanRequest(
                 UUID.randomUUID(),
                 dirHPath,
                 scanReqDate
@@ -152,7 +151,7 @@ class ScanRequestsListenerTest {
         );
 
         String dirHPath = "invalid/path";
-        ScanOrder scanOrder = new ScanOrder(
+        ScanRequest scanRequest = new ScanRequest(
                 UUID.randomUUID(),
                 dirHPath,
                 new Date()
@@ -168,7 +167,7 @@ class ScanRequestsListenerTest {
                 .when(pathService.toAbsolute(anyString()))
                 .thenReturn(testContentsRoot);
 
-        scanReqListener.onScanRequest(scanOrder);
+        scanReqListener.onScanRequest(scanRequest);
 
         Mockito
                 .verify(pathService, times(1))

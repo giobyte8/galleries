@@ -1,92 +1,60 @@
 package me.giobyte8.galleries.scanner.amqp;
 
-import me.giobyte8.galleries.scanner.dao.ContentDirDao;
-import me.giobyte8.galleries.scanner.dto.ScanOrder;
-import me.giobyte8.galleries.scanner.model.ContentDir;
-import me.giobyte8.galleries.scanner.model.ContentDirStatus;
-import me.giobyte8.galleries.scanner.services.MediaScannerService;
-import me.giobyte8.galleries.scanner.services.PathService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import me.giobyte8.galleries.scanner.dto.ScanRequest;
+import me.giobyte8.galleries.scanner.model.DirStatus;
+import me.giobyte8.galleries.scanner.model.Directory;
+import me.giobyte8.galleries.scanner.repository.DirectoryRepository;
+import me.giobyte8.galleries.scanner.scanners.DirMediaScanner;
 import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Optional;
 
 @Service
+@Slf4j
 public class ScanRequestsListener {
-    private static final Logger log = LoggerFactory
-            .getLogger(ScanRequestsListener.class);
 
-    private final MediaScannerService mScanner;
-    private final PathService pathService;
-    private final ContentDirDao dirDao;
+    private final DirMediaScanner mScanner;
+    private final DirectoryRepository dirRepository;
 
     public ScanRequestsListener(
-            MediaScannerService mScanner,
-            PathService pathService,
-            ContentDirDao dirDao) {
+            DirMediaScanner mScanner,
+            DirectoryRepository dirRepository
+    ) {
         this.mScanner = mScanner;
-        this.pathService = pathService;
-        this.dirDao = dirDao;
+        this.dirRepository = dirRepository;
     }
 
-
     @RabbitListener(bindings = @QueueBinding(
-            value = @Queue(value = "${galleries.scanner.amqp.queue_scan_orders}"),
+            value = @Queue(value = "${galleries.scanner.amqp.queue_scan_requests}"),
             exchange = @Exchange(value = "${galleries.scanner.amqp.exchange_gl}"),
-            key = "${galleries.scanner.amqp.queue_scan_orders}"
+            key = "${galleries.scanner.amqp.queue_scan_requests}"
     ))
-    public void onScanRequest(ScanOrder order) {
-        log.info("AMQP Scan request received: {}", order);
-        String dirHPath = order.dirHPath();
+    public void onScanRequest(ScanRequest request) {
+        log.info("AMQP Scan request received: {}", request);
 
-        // Validate directory path hash
-        Optional<ContentDir> dirOpt = dirDao.findById(dirHPath);
-        if (dirOpt.isEmpty()) {
+        // Verify directory exist
+        Directory directory = dirRepository.findBy(request.dirPath());
+        if (directory == null) {
             log.error(
-                    "Provided directory hash not found in DB: {}",
-                    dirHPath
+                    "Provided directory wasn't not found in DB: {}",
+                    request.dirPath()
             );
             return;
         }
-
-        ContentDir contentDir = dirOpt.get();
 
         // Validate directory status is ok
-        if (contentDir.getStatus() == ContentDirStatus.SCAN_IN_PROGRESS) {
+        if (directory.getStatus() == DirStatus.SCAN_IN_PROGRESS) {
             log.error(
                     "Another scan is already in progress for: {}",
-                    contentDir.getPath()
+                    directory.getPath()
             );
             return;
         }
 
-        // Validate lastScanDate is not greater than scanRequest date
-        if (contentDir.getLastScanStart() != null &&
-                contentDir.getLastScanStart().after(order.requestedAt())) {
-            log.info(
-                    "Another scan was started after ScanOrder request time. " +
-                            "Scan request time: {}. " +
-                            "Last scan start time: {}",
-                    order.requestedAt(),
-                    contentDir.getLastScanStart()
-            );
-            return;
-        }
-
-        // Verify directory path is accessible
-        Path absDPath = pathService.toAbsolute(contentDir.getPath());
-        if (!Files.isDirectory(absDPath)) {
-            log.error("Directory path is not a valid dir: {}", absDPath);
-            return;
-        }
-
-        mScanner.scan(order.id(), dirHPath);
+        mScanner.scan(request, directory);
     }
 }

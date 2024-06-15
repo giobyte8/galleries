@@ -1,18 +1,14 @@
 package me.giobyte8.galleries.scanner.amqp;
 
-import me.giobyte8.galleries.scanner.dto.FDiscoveryEventType;
-import me.giobyte8.galleries.scanner.dto.FileDiscoveryEvent;
-import me.giobyte8.galleries.scanner.dto.ScanEvent;
-import me.giobyte8.galleries.scanner.dto.ScanEventType;
+import me.giobyte8.galleries.scanner.dto.*;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Calendar;
-import java.util.UUID;
+import java.time.LocalDateTime;
 
 @Service
-public class ScanEventsProducer {
+public class AMQPScanEvents implements ScanEvents {
 
     @Value("${galleries.scanner.amqp.queue_scan_hooks}")
     private String qScanHooks;
@@ -22,30 +18,28 @@ public class ScanEventsProducer {
 
     private final AmqpTemplate rbTemplate;
 
-    public ScanEventsProducer(AmqpTemplate rbTemplate) {
+    public AMQPScanEvents(AmqpTemplate rbTemplate) {
         this.rbTemplate = rbTemplate;
     }
 
-    public void onScanEvent(UUID scanReqId, ScanEventType eventType) {
+    public void onScanProcessEvent(ScanRequest scanReq, ScanEventType eventType) {
         ScanEvent evt = new ScanEvent(
-                scanReqId,
+                scanReq.id(),
                 eventType,
-                Calendar.getInstance()
+                LocalDateTime.now()
         );
 
         rbTemplate.convertAndSend(qScanHooks, evt);
     }
 
     public void onFileDiscoveryEvent(
-            UUID scanReqId,
+            ScanRequest scanReq,
             FDiscoveryEventType eventType,
-            String fHashedPath,
             String filePath
     ) {
         FileDiscoveryEvent evt = new FileDiscoveryEvent(
-                scanReqId,
+                scanReq.id(),
                 eventType,
-                fHashedPath,
                 filePath
         );
 

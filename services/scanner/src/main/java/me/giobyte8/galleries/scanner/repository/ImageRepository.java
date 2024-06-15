@@ -4,6 +4,7 @@ import me.giobyte8.galleries.scanner.model.Directory;
 import me.giobyte8.galleries.scanner.model.ImageStatus;
 import me.giobyte8.galleries.scanner.model.Image;
 
+import java.util.Set;
 import java.util.stream.Stream;
 
 public interface ImageRepository {
@@ -47,4 +48,24 @@ public interface ImageRepository {
      * @return Number of removed images
      */
     long delete(Directory parent, ImageStatus status);
+
+    /**
+     * Removes all images that are direct children of a directory
+     * and that have a specific status.
+     *
+     * @param parent Directory containing images to remove
+     * @param status Status of images to be removed
+     * @return Paths of removed images
+     */
+    Set<String> deleteAndGetPaths(Directory parent, ImageStatus status);
+
+    /**
+     * Removes all images that are descendant of a directory, it means,
+     * it will descend into each subdirectory and remove its images too,
+     * not just direct children
+     *
+     * @param parent Directory containing images to remove
+     * @return Paths of all removed images
+     */
+    Set<String> multilevelDeleteAndGetPaths(Directory parent);
 }

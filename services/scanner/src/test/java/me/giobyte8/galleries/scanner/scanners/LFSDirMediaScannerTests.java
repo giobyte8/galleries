@@ -2,6 +2,7 @@ package me.giobyte8.galleries.scanner.scanners;
 
 import me.giobyte8.galleries.scanner.config.properties.ScannerProps;
 import me.giobyte8.galleries.scanner.dto.MFMetadata;
+import me.giobyte8.galleries.scanner.dto.ScanRequest;
 import me.giobyte8.galleries.scanner.metadata.ImgMetaExtractor;
 import me.giobyte8.galleries.scanner.model.Directory;
 import me.giobyte8.galleries.scanner.repository.DirectoryRepository;
@@ -16,10 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.util.*;
 
 import static org.mockito.Mockito.*;
 
@@ -69,7 +68,12 @@ public class LFSDirMediaScannerTests {
         when(pathSvc.toAbsolute(invalidDir.getPath()))
                 .thenReturn(invalidDirPath);
 
-        dirMediaScanner.scan(invalidDir);
+        ScanRequest scanRequest = new ScanRequest(
+                UUID.randomUUID(),
+                invalidDir.getPath(),
+                LocalDateTime.now()
+        );
+        dirMediaScanner.scan(scanRequest, invalidDir);
 
         // Invalid dir path should cause scan process to finish
         // without updates to database
@@ -99,7 +103,12 @@ public class LFSDirMediaScannerTests {
         when(imgMetaExtractor.extract(any()))
                 .thenReturn(meta);
 
-        dirMediaScanner.scan(camerasDir);
+        ScanRequest scanRequest = new ScanRequest(
+                UUID.randomUUID(),
+                camerasDir.getPath(),
+                LocalDateTime.now()
+        );
+        dirMediaScanner.scan(scanRequest, camerasDir);
 
         // Verify two files were found during scan
         verify(scanMediaObserver, times(2))
@@ -138,8 +147,12 @@ public class LFSDirMediaScannerTests {
         when(imgMetaExtractor.extract(any()))
                 .thenReturn(meta);
 
-
-        dirMediaScanner.scan(camerasDir);
+        ScanRequest scanRequest = new ScanRequest(
+                UUID.randomUUID(),
+                camerasDir.getPath(),
+                LocalDateTime.now()
+        );
+        dirMediaScanner.scan(scanRequest, camerasDir);
 
         // Verify files were found during scan
         verify(scanMediaObserver, times(4))

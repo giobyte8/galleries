@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -145,5 +147,55 @@ public class Neo4jImageRepository implements ImageRepository {
                 return res.single().get("deletedCount").asLong();
             });
         }
+    }
+
+    @Override
+    public Set<String> deleteAndGetPaths(Directory parent, ImageStatus status) {
+        String deleteQry = """
+                MATCH (d:Directory { path: $dirPath })
+                    -[:CONTAINS]
+                    ->(i:Image { status: $status })
+                WITH i, i.path AS imgPath
+                DETACH DELETE i
+                RETURN imgPath""";
+
+        Map<String, Object> params = new HashMap<>(2);
+        params.put("dirPath", parent.getPath());
+        params.put("status", status.toString());
+
+        var res = driver.executableQuery(deleteQry)
+                .withParameters(params)
+                .execute();
+
+        return res.records()
+                .stream()
+                .map(record -> record.get("imgPath").asString())
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<String> multilevelDeleteAndGetPaths(Directory parent) {
+
+        // Currently restricting max depth to 5000 hops just as a safeguard
+        // for performance. Real limit should be evaluated once in prod
+        String deleteQry = """
+                MATCH (d:Directory { path: $dirPath })
+                    -[:CONTAINS*..5000]
+                    ->(i:Image)
+                WITH i, i.path as imgPath
+                DETACH DELETE i
+                RETURN imgPath""";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("dirPath", parent.getPath());
+
+        var res = driver.executableQuery(deleteQry)
+                .withParameters(params)
+                .execute();
+
+        return res.records()
+                .stream()
+                .map(record -> record.get("imgPath").asString())
+                .collect(Collectors.toSet());
     }
 }

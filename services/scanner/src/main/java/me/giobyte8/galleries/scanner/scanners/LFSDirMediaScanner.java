@@ -2,11 +2,11 @@ package me.giobyte8.galleries.scanner.scanners;
 
 import lombok.extern.slf4j.Slf4j;
 import me.giobyte8.galleries.scanner.config.properties.ScannerProps;
+import me.giobyte8.galleries.scanner.dto.ScanRequest;
 import me.giobyte8.galleries.scanner.metadata.ImgMetaExtractor;
 import me.giobyte8.galleries.scanner.model.DirStatus;
 import me.giobyte8.galleries.scanner.model.Directory;
 import me.giobyte8.galleries.scanner.model.Image;
-import me.giobyte8.galleries.scanner.repository.DirectoryRepository;
 import me.giobyte8.galleries.scanner.services.HashingService;
 import me.giobyte8.galleries.scanner.services.PathService;
 import org.springframework.stereotype.Service;
@@ -28,84 +28,69 @@ public class LFSDirMediaScanner implements DirMediaScanner {
     private final ImgMetaExtractor imgMetaExtractor;
     private final ScanMediaObserver scanMediaObserver;
 
-    private final DirectoryRepository dirRepository;
-
     public LFSDirMediaScanner(
             ScannerProps scannerProps,
             PathService pathSvc,
             HashingService hashingSvc,
             ImgMetaExtractor imgMetaExtractor,
-            ScanMediaObserver scanMediaObserver,
-            DirectoryRepository dirRepository
+            ScanMediaObserver scanMediaObserver
     ) {
         this.scannerProps = scannerProps;
         this.pathSvc = pathSvc;
         this.hashingSvc = hashingSvc;
         this.imgMetaExtractor = imgMetaExtractor;
         this.scanMediaObserver = scanMediaObserver;
-        this.dirRepository = dirRepository;
     }
 
     @Override
-    public void scan(Directory dir) {
+    public void scan(ScanRequest scanReq, Directory dir) {
+        scanMediaObserver.onScanStarted(scanReq);
         Queue<Directory> dirs = new ArrayDeque<>();
         dirs.offer(dir);
 
-        scanNext(dirs);
+        scanNext(scanReq, dirs);
+        scanMediaObserver.onScanCompleted(scanReq);
     }
 
-    private void scanNext(Queue<Directory> dirs) {
+    private void scanNext(ScanRequest scanReq, Queue<Directory> dirs) {
         if (dirs.isEmpty()) return;
 
         Directory directory = dirs.poll();
-        log.debug("Scanning directory: {}", directory.getPath());
+        scanMediaObserver.prepareForScanning(directory);
 
-        // TODO Set all images in 'dir' to 'VERIFYING' status
-
-        // Verify directory path is readable
         Path dirAbsPath = pathSvc.toAbsolute(directory.getPath());
-        if (!Files.isDirectory(dirAbsPath)) {
-            log.error("Given path is not a directory: {}", dirAbsPath);
-            scanNext(dirs);
-            return;
-        }
-
-        directory.setStatus(DirStatus.SCAN_IN_PROGRESS);
-        dirRepository.save(directory);
-
         try (Stream<Path> fStream = Files.list(dirAbsPath)) {
             fStream
 
                     // Handle nested found directories
                     .filter(absPath -> {
                         if (Files.isDirectory(absPath)) {
-                            handleFoundDir(dirs, directory, absPath);
+                            onDirectoryFound(dirs, directory, absPath);
                         }
 
                         return !Files.isDirectory(absPath);
                     })
 
                     // Handle found files
-                    .filter(this::hasValidExtension)
-                    .forEach(absPath -> handleFoundImage(directory, absPath));
-
+                    .filter(this::hasMediaExtension)
+                    .forEach(absPath -> onImageFound(scanReq, directory, absPath));
         } catch (IOException e) {
-            log.error("Error while scanning directory: {}", dirAbsPath, e);
+            scanMediaObserver.onScanFailed(directory, e);
+            return;
         }
 
-        // TODO Remove all images in 'dir' and in 'VERIFYING' status
-
-        directory.setStatus(DirStatus.SCAN_COMPLETE);
-        dirRepository.save(directory);
-        scanNext(dirs);
+        scanMediaObserver.onScanCompleted(scanReq, directory);
+        scanNext(scanReq, dirs);
     }
 
-    private void handleFoundDir(
+    private void onDirectoryFound(
             Queue<Directory> dirsToScan,
             Directory parent,
             Path childDirAbsPath
     ) {
-        if (Files.isDirectory(childDirAbsPath) && parent.isRecursive()) {
+
+        // Only process nested dir if parent dir is 'recursive'
+        if (parent.isRecursive()) {
             Directory childDir = Directory.builder()
                     .path(pathSvc.toRelative(childDirAbsPath).toString())
                     .recursive(parent.isRecursive())
@@ -118,7 +103,7 @@ public class LFSDirMediaScanner implements DirMediaScanner {
         }
     }
 
-    private void handleFoundImage(Directory parent, Path absPath) {
+    private void onImageFound(ScanRequest scanReq, Directory parent, Path absPath) {
         try {
             String contentHash = hashingSvc.hashContent(absPath);
             Image img = Image.builder()
@@ -127,13 +112,13 @@ public class LFSDirMediaScanner implements DirMediaScanner {
                     .build();
 
             img.setMetadata(imgMetaExtractor.extract(absPath));
-            scanMediaObserver.onImageFound(parent, img);
+            scanMediaObserver.onImageFound(scanReq, parent, img);
         } catch (IOException e) {
             log.error("Error while hashing content: {}", absPath, e);
         }
     }
 
-    private boolean hasValidExtension(Path absPath) {
+    private boolean hasMediaExtension(Path absPath) {
         String sPath = absPath.toString();
         String ext = sPath
                 .substring(sPath.lastIndexOf(".") + 1)
