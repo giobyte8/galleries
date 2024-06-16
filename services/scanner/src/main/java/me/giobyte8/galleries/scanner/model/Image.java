@@ -7,6 +7,7 @@ import me.giobyte8.galleries.scanner.dto.MFMetadata;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Objects;
 
 @Data
 @Builder
@@ -30,9 +31,12 @@ public class Image {
         gpsLongitude = meta.getGpsLongitude();
         cameraMaker = meta.getCamMaker();
         cameraModel = meta.getCamModel();
-        datetimeOriginal = LocalDateTime.ofInstant(
-                meta.getDatetimeOriginal().toInstant(),
-                ZoneId.systemDefault()
-        );
+
+        if (Objects.nonNull(meta.getDatetimeOriginal())) {
+            datetimeOriginal = LocalDateTime.ofInstant(
+                    meta.getDatetimeOriginal().toInstant(),
+                    ZoneId.systemDefault()
+            );
+        }
     }
 }
