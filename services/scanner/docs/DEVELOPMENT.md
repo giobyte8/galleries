@@ -14,23 +14,47 @@
 Scanner is written in java and uses gradle as build system. Clone the project and
 import it into your IDE.
 
+You'll need java >= 17
+
 ## Testing
 Unit tests and integration tests are configured to run as individual suites into
 `build.gradle` file.
 
 ### Integration tests
-Some tests need a real database instance to upsert some records as part
-of their flow. You can use a predefined service named `testdb` from
-`galleries/docker.dev/docker-compose.yml` file:
+
+Some integration tests need a real database to truthfully simulate production scenarios. The connection params are defined in `src/integrationTest/resources/application.yaml`.
+
+By default configuration points to provided database for integration tests, which is defined as `test_neo4j` service in `galleries/docker.dev/docker-compose.yml` file.
+
+> NOTE: The integration tests suite will remove all data from database after each test run, hence, make sure to use a dedicated database for testing purposes.
+
+**Start provided neo4j database for tests**
 
 ```shell
-docker-compose up -d testdb
+docker compose up -d testn4j
 ```
 
-Once test db is up and running, double check test config values at
-`src/integrationTest/resources/application.yml` before running tests.
+> - Integration tests database doesn't require authentication
+> - Port mapping was changed from default to prevent conflicts with other possible instances
+
+You can now navigate to http://localhost:7074 and connect to your test database
+
+- Note that in connection params the port of target DB should be `7087` as defined in `docker-compose.yaml` file
+- Authentication method should be `No authentication` or `None`
+
+**Run integration tests**
+
+Open `build.gradle` file in IntelliJ and execute `testing.suites.integrationTest` entry.
+Or you can execute each test class/method directly.
+
+Alternatively form terminal run
+
+```shell
+> TODO: Enter command to run integration tests
+```
 
 ## Building for production
+
 Update `version` field in `build.gradle` file and run gradle build:
 
 ```shell

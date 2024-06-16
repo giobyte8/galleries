@@ -1,3 +1,7 @@
+spring:
+  rabbitmq:
+    username: dev
+    password: devpass
 
 logging:
   level:
@@ -16,6 +20,12 @@ galleries:
       - jpg
 
 neo4j:
-  uri: neo4j://localhost:7687
-  username: neo4j
-  password: neo4j_devpass
+
+  # Port has been updated from default to integration tests instance's
+  uri: neo4j://localhost:7087
+
+  # Dedicated neo4j instance for integration tests doesn't require auth
+  # We just enter dummy values to prevent client code to fail during
+  # auth token generation
+  username: none
+  password: none

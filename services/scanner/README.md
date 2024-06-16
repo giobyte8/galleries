@@ -128,4 +128,4 @@ and start scanner using docker compose.
 See [galleries deployment guide]() for a full walkthrough
 
 ## Development
-See [development section](./DEVELOPMENT.md)
+See [development section](docs/DEVELOPMENT.md)
