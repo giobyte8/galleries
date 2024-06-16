@@ -1,5 +1,7 @@
 package me.giobyte8.galleries.scanner.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import me.giobyte8.galleries.scanner.config.properties.Neo4jProps;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
@@ -61,8 +63,16 @@ public class ScannerConfig {
     }
 
     @Bean
-    public Jackson2JsonMessageConverter jsonMsgConverter() {
-        return new Jackson2JsonMessageConverter();
+    public ObjectMapper objectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
+        return objectMapper;
+    }
+
+    @Bean
+    public Jackson2JsonMessageConverter jsonMsgConverter(ObjectMapper objectMapper) {
+        return new Jackson2JsonMessageConverter(objectMapper);
     }
 
     @Bean
