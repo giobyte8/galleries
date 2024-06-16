@@ -28,6 +28,18 @@ services:
       - MYSQL_PASSWORD=${TEST_MYSQL_PASSWORD}
       - MYSQL_DATABASE=${TEST_MYSQL_DATABASE}
 
+  # Since this container is for tests only:
+  #  - Storage will be ephemeral (No mounted volumes)
+  #  - Authentication has been disabled
+  testn4j:
+    image: neo4j:5.20-community-bullseye
+    container_name: testn4j
+    ports:
+      - 7074:7474
+      - 7087:7687
+    environment:
+      - NEO4J_AUTH=none
+
   redis:
     image: redis:6.2.6-alpine
     container_name: gredis
