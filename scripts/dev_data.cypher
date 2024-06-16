@@ -72,3 +72,52 @@ MERGE (couples)-[:CONTAINS]->(c8)
 
 MERGE (c9:Image { path: 'pinterest_484488872427166629.png', status: 'AVAILABLE' })
 MERGE (couples)-[:CONTAINS]->(c9)
+
+
+//
+// Graph with multi level relationships between dirs
+//
+//                              ┌------root------┐
+//            ┌---------------dir1---┐          ┌-dir2-┐
+//        ┌-dir3-------┐           img4      img5    dir4------┐
+//    ┌-dir5--┐     ┌-dir6-┐                                ┌-dir7--┐
+//  img6     img7  img8   img9                            img10
+
+CREATE (root:Directory { path: 'root/' })
+CREATE (dir1:Directory { path: 'dir1/' })
+CREATE (dir2:Directory { path: 'dir2/' })
+CREATE (dir3:Directory { path: 'dir3/' })
+CREATE (dir4:Directory { path: 'dir4/' })
+CREATE (dir5:Directory { path: 'dir5/' })
+CREATE (dir6:Directory { path: 'dir6/' })
+CREATE (dir7:Directory { path: 'dir7/' })
+
+CREATE (img4:Image { path: 'img4/' })
+CREATE (img5:Image { path: 'img5/' })
+CREATE (img6:Image { path: 'img6/' })
+CREATE (img7:Image { path: 'img7/' })
+CREATE (img8:Image { path: 'img8/' })
+CREATE (img9:Image { path: 'img9/' })
+CREATE (img10:Image { path: 'img10/' })
+
+MERGE (root)-[:CONTAINS]->(dir1)
+MERGE (root)-[:CONTAINS]->(dir2)
+
+MERGE (dir1)-[:CONTAINS]->(dir3)
+MERGE (dir1)-[:CONTAINS]->(img4)
+
+MERGE (dir2)-[:CONTAINS]->(img5)
+MERGE (dir2)-[:CONTAINS]->(dir4)
+
+MERGE (dir3)-[:CONTAINS]->(dir5)
+MERGE (dir3)-[:CONTAINS]->(dir6)
+
+MERGE (dir4)-[:CONTAINS]->(dir7)
+
+MERGE (dir5)-[:CONTAINS]->(img6)
+MERGE (dir5)-[:CONTAINS]->(img7)
+
+MERGE (dir6)-[:CONTAINS]->(img8)
+MERGE (dir6)-[:CONTAINS]->(img9)
+
+MERGE (dir7)-[:CONTAINS]->(img10);

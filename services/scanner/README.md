@@ -17,9 +17,9 @@ Scans directories looking for media files
 2. Mark all previously found files in target directory as in `VERIFYING` status
 3. Scan for files in target dir
    1. Upsert every found file into database along with its metadata
-   2. Emit AMQP event for each found file
-4. Remove all files that remain in `VERIFYING` status once scan is
-   complete (Files not found in dir anymore)
+   2. Emit AMQP event for each found/updated file
+4. Remove from database all files (and dirs) that remain in `VERIFYING` status once scan is
+   complete (Files not found in disk anymore)
    1. Emit AMQP event for each file deleted from DB
 
 ### How to trigger directory scan
