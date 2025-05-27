@@ -14,7 +14,28 @@
 Scanner is written in java and uses gradle as build system. Clone the project and
 import it into your IDE.
 
-You'll need java >= 17
+### Requirements
+
+- JDK >= 17
+- Running instances of
+  - RabbitMQ
+  - Neo4j
+- A library of pictures to test scanner capabilities
+  - You can start with: `src/test/resources/galleries`
+
+### Setup application properties
+
+Some spring properties you might want to override on your IDE
+
+```yaml
+spring.rabbitmq.password: <value>
+neo4j.password: <value>
+
+# Point it to you dev galleries root
+galleries.scanner.content_dirs.root_path: ~/src/galleries/services/scanner/src/test/resources/galleries/cameras
+```
+
+
 
 ## Testing
 Unit tests and integration tests are configured to run as individual suites into
