@@ -1,4 +1,4 @@
-module galleries/thumbnailer
+module github.com/giobyte8/galleries/thumbnailer
 
 go 1.20
 
