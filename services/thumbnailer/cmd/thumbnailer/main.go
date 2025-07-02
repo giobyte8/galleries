@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 
 	"github.com/giobyte8/galleries/thumbnailer/internal/consumer"
@@ -61,7 +63,67 @@ func prepareAMQPConsumer() (consumer.MessageConsumer, error) {
 	amqpCfg.Exchange = os.Getenv("AMQP_EXCHANGE_GALLERIES")
 	amqpCfg.QueueName = os.Getenv("AMQP_QUEUE_DISCOVERED_FILES")
 
-	return consumer.NewAMQPConsumer(amqpCfg, services.NewThumbnailsService())
+	return consumer.NewAMQPConsumer(amqpCfg, prepareThumbsService())
+}
+
+func prepareThumbsService() services.ThumbnailsService {
+	thumbsConfig := services.ThumbnailsConfig{
+		DirOriginalsRoot:  os.Getenv("DIR_ORIGINALS_ROOT"),
+		DirThumbnailsRoot: os.Getenv("DIR_THUMBNAILS_ROOT"),
+	}
+
+	if thumbsConfig.DirOriginalsRoot == "" || thumbsConfig.DirThumbnailsRoot == "" {
+		slog.Error(
+			"Missing required environment variables for thumbnails service",
+			"DIR_ORIGINALS_ROOT", thumbsConfig.DirOriginalsRoot,
+			"DIR_THUMBNAILS_ROOT", thumbsConfig.DirThumbnailsRoot,
+		)
+		os.Exit(1)
+	}
+
+	widthsStr := os.Getenv("THUMBNAIL_WIDTHS_PX")
+
+	// Default widths if not provided
+	if widthsStr == "" {
+		slog.Warn(
+			"THUMBNAIL_WIDTHS_PX is not set. Using defaults.",
+			"default",
+			"256,512,1024",
+		)
+		widthsStr = "256,512,1024"
+	}
+
+	// Parse widths
+	widthStrs := strings.Split(widthsStr, ",")
+	for _, ws := range widthStrs {
+
+		// Trim spaces in case of "256, 512"
+		width, err := strconv.Atoi(strings.TrimSpace(ws))
+		if err != nil {
+			slog.Error(
+				"Invalid thumbnail width in THUMBNAIL_WIDTHS_PX",
+				"width",
+				ws,
+				"error",
+				err,
+			)
+			os.Exit(1)
+		}
+
+		if width <= 0 {
+			slog.Error(
+				"Thumbnail width must be a positive integer", "width", width,
+			)
+			os.Exit(1)
+		}
+
+		thumbsConfig.ThumbnailWidths = append(
+			thumbsConfig.ThumbnailWidths,
+			width,
+		)
+	}
+
+	return services.NewLilliputThumbsSvc(thumbsConfig)
 }
 
 func main() {
