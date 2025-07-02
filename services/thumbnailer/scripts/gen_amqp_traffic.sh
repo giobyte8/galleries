@@ -54,6 +54,12 @@ for file in "$ORIGINALS"/*; do
 
     # Add missing line break for readability
     echo
+
+    # If got param '--single', break after the first file
+    if [[ "$1" == "--single" ]]; then
+        echo "Single mode enabled, stopping after the first file."
+        break
+    fi
 done
 
 cd "$CALLER_PATH"
