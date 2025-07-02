@@ -5,6 +5,9 @@ Copy the `template.env` file to `.env` and open it for editing:
 ```bash
 cp template.env .env && vim .env
 # Enter appropriate values for environment variables.
+
+# Install Go dependencies
+go mod tidy
 ```
 
 ## Running the Project
