@@ -2,16 +2,23 @@
 # Fetch some test images to use during development
 # Usage: ./fetch_images.sh
 
-# ref: https://stackoverflow.com/a/4774063/3211029
 SCRIPT_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 CALLER_DIR="$(pwd)"
 cd "$SCRIPT_DIR"
 
-DOWNLOAD_DST=$(realpath "../runtime/originals")
-echo "Downloading images to: $DOWNLOAD_DST"
+# Load .env file if it exists
+if [ -f "../.env" ]; then
+    source ../.env
+fi
+
+DOWNLOAD_DST=$(realpath "$DIR_ORIGINALS_ROOT")
+if [ ! -d "$DOWNLOAD_DST" ]; then
+    echo "Directory does not exist: $DOWNLOAD_DST"
+    exit 1
+fi
 
 # Clean up destination directory
-rm "$DOWNLOAD_DST/*"
+rm "$DOWNLOAD_DST"/*
 
 galleries=(
     "https://500px.com/p/kid_of_ozz/galleries/places"
@@ -20,6 +27,7 @@ galleries=(
 )
 
 # Download each gallery
+echo "Downloading images into: $DOWNLOAD_DST"
 for gallery in "${galleries[@]}"; do
     echo
     echo "Downloading gallery: $gallery"

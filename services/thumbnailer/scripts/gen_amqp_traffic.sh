@@ -11,15 +11,15 @@ SCRIPT_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 CALLER_DIR="$(pwd)"
 cd "$SCRIPT_DIR"
 
-ORIGINALS=$(realpath "../runtime/originals")
-if [ ! -d "$ORIGINALS" ]; then
-    echo "Directory $ORIGINALS does not exist. Please run fetch_images.sh first."
-    exit 1
-fi
-
 # Load .env file if it exists
 if [ -f "../.env" ]; then
     source ../.env
+fi
+
+ORIGINALS=$(realpath "$DIR_ORIGINALS_ROOT")
+if [ ! -d "$ORIGINALS" ]; then
+    echo "Directory $ORIGINALS does not exist. Please run fetch_images.sh first."
+    exit 1
 fi
 
 RABBITMQ_API_PORT=${RABBITMQ_API_PORT:-15672}
