@@ -2,9 +2,12 @@ package consumer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 
+	"github.com/giobyte8/galleries/thumbnailer/internal/models"
+	"github.com/giobyte8/galleries/thumbnailer/internal/services"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -16,13 +19,18 @@ type AMQPConfig struct {
 }
 
 type AMQPConsumer struct {
-	conn    *amqp.Connection
-	channel *amqp.Channel
-	config  AMQPConfig
+	conn         *amqp.Connection
+	channel      *amqp.Channel
+	config       AMQPConfig
+	thumbnailSvc services.ThumbnailsService
 }
 
 // Creates a new AMQPConsumer instance ready to connect to broker
-func NewAMQPConsumer(config AMQPConfig) (*AMQPConsumer, error) {
+func NewAMQPConsumer(
+	config AMQPConfig,
+	thumbnailSvc services.ThumbnailsService,
+) (*AMQPConsumer, error) {
+
 	if config.AMQPUri == "" {
 		return nil, fmt.Errorf("AMQP URI cannot be empty in config")
 	}
@@ -34,7 +42,8 @@ func NewAMQPConsumer(config AMQPConfig) (*AMQPConsumer, error) {
 	}
 
 	return &AMQPConsumer{
-		config: config,
+		config:       config,
+		thumbnailSvc: thumbnailSvc,
 	}, nil
 }
 
@@ -147,9 +156,41 @@ func (c *AMQPConsumer) consume(ctx context.Context) {
 				return
 			}
 
-			slog.Info("AMQP - Received message", "message", string(msg.Body))
-			// Process the message here
-			// ...
+			// slog.Debug("AMQP - Received message", "message", string(msg.Body))
+			var fileEvt models.FileDiscoveryEvent
+			err := json.Unmarshal(msg.Body, &fileEvt)
+			if err != nil {
+				slog.Error(
+					"AMQP - Failed to unmarshal message",
+					"error",
+					err,
+					"message",
+					string(msg.Body),
+				)
+
+				if nackErr := msg.Nack(false, false); nackErr != nil {
+					slog.Error("AMQP - Failed to nack message", "error", nackErr)
+				}
+				continue
+			}
+
+			err = c.thumbnailSvc.ProcessEvent(ctx, fileEvt)
+			if err != nil {
+				slog.Error(
+					"AMQP - Failed to process file discovery event",
+					"error",
+					err,
+					"eventType",
+					fileEvt.EventType,
+					"filePath",
+					fileEvt.FilePath,
+				)
+
+				if nackErr := msg.Nack(false, false); nackErr != nil {
+					slog.Error("AMQP - Failed to nack message", "error", nackErr)
+				}
+				continue
+			}
 
 			// Acknowledge the message
 			if err := msg.Ack(false); err != nil {

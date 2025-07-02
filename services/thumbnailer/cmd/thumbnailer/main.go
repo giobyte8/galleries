@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/giobyte8/galleries/thumbnailer/internal/consumer"
+	"github.com/giobyte8/galleries/thumbnailer/internal/services"
 	"github.com/joho/godotenv"
 )
 
@@ -60,7 +61,7 @@ func prepareAMQPConsumer() (consumer.MessageConsumer, error) {
 	amqpCfg.Exchange = os.Getenv("AMQP_EXCHANGE_GALLERIES")
 	amqpCfg.QueueName = os.Getenv("AMQP_QUEUE_DISCOVERED_FILES")
 
-	return consumer.NewAMQPConsumer(amqpCfg)
+	return consumer.NewAMQPConsumer(amqpCfg, services.NewThumbnailsService())
 }
 
 func main() {
