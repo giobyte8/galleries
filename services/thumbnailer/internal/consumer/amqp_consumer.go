@@ -22,13 +22,13 @@ type AMQPConsumer struct {
 	conn         *amqp.Connection
 	channel      *amqp.Channel
 	config       AMQPConfig
-	thumbnailSvc services.ThumbnailsService
+	thumbnailSvc *services.ThumbnailsService
 }
 
 // Creates a new AMQPConsumer instance ready to connect to broker
 func NewAMQPConsumer(
 	config AMQPConfig,
-	thumbnailSvc services.ThumbnailsService,
+	thumbnailSvc *services.ThumbnailsService,
 ) (*AMQPConsumer, error) {
 
 	if config.AMQPUri == "" {
@@ -174,6 +174,7 @@ func (c *AMQPConsumer) consume(ctx context.Context) {
 				continue
 			}
 
+			// TODO Verify event type (?)
 			err = c.thumbnailSvc.ProcessEvent(ctx, fileEvt)
 			if err != nil {
 				slog.Error(

@@ -12,6 +12,7 @@ import (
 
 	"github.com/giobyte8/galleries/thumbnailer/internal/consumer"
 	"github.com/giobyte8/galleries/thumbnailer/internal/services"
+	"github.com/giobyte8/galleries/thumbnailer/internal/thumbs_gen"
 	"github.com/joho/godotenv"
 )
 
@@ -66,7 +67,7 @@ func prepareAMQPConsumer() (consumer.MessageConsumer, error) {
 	return consumer.NewAMQPConsumer(amqpCfg, prepareThumbsService())
 }
 
-func prepareThumbsService() services.ThumbnailsService {
+func prepareThumbsService() *services.ThumbnailsService {
 	thumbsConfig := services.ThumbnailsConfig{
 		DirOriginalsRoot:  os.Getenv("DIR_ORIGINALS_ROOT"),
 		DirThumbnailsRoot: os.Getenv("DIR_THUMBNAILS_ROOT"),
@@ -123,7 +124,8 @@ func prepareThumbsService() services.ThumbnailsService {
 		)
 	}
 
-	return services.NewLilliputThumbsSvc(thumbsConfig)
+	thumbsGenerator := thumbsgen.NewLilliputThumbsGenerator()
+	return services.NewThumbnailsService(thumbsConfig, thumbsGenerator)
 }
 
 func main() {
