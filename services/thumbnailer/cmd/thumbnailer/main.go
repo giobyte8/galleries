@@ -12,7 +12,7 @@ import (
 
 	"github.com/giobyte8/galleries/thumbnailer/internal/consumer"
 	"github.com/giobyte8/galleries/thumbnailer/internal/services"
-	"github.com/giobyte8/galleries/thumbnailer/internal/thumbs_gen"
+	thumbsgen "github.com/giobyte8/galleries/thumbnailer/internal/thumbs_gen"
 	"github.com/joho/godotenv"
 )
 
@@ -36,6 +36,11 @@ func setupLogging() {
 }
 
 func loadEnv() {
+	if _, err := os.Stat(".env"); os.IsNotExist(err) {
+		slog.Warn("No .env file found, using environment variables directly.")
+		return
+	}
+
 	err := godotenv.Load(".env")
 	if err != nil {
 		slog.Error("Error loading .env file", "error", err)

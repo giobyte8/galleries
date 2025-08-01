@@ -2,7 +2,13 @@ package thumbsgen
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/discord/lilliput"
 )
 
 type LilliputThumbsGenerator struct{}
@@ -17,49 +23,165 @@ func (g *LilliputThumbsGenerator) Generate(
 ) error {
 	slog.Debug(
 		"LilliputThumbsGen: Generating thumbnail",
-		"thumbFileAbsPath",
+		"origFile",
 		meta.OrigFileAbsPath,
 	)
 
-	// inputBuf, err := os.ReadFile(meta.OrigFileAbsPath)
-	// if err != nil {
-	// 	return fmt.Errorf(
-	// 		"failed to read original file %s: %w",
-	// 		meta.OrigFileAbsPath,
-	// 		err,
-	// 	)
-	// }
+	// Load original file into memory
+	inputBuf, err := g.readFile(meta.OrigFileAbsPath)
+	if err != nil {
+		return err
+	}
 
-	// // Create lilliput decoder
-	// decoder, err := lilliput.NewDecoder(inputBuf)
-	// if err != nil {
-	// 	return fmt.Errorf(
-	// 		"failed to create lilliput decoder for %s: %w",
-	// 		meta.OrigFileAbsPath,
-	// 		err,
-	// 	)
-	// }
-	// defer decoder.Close()
+	// Using lilliput, Decode original image to retrieve its dimensions
+	decoder, err := g.decode(meta.OrigFileAbsPath, inputBuf)
+	if err != nil {
+		return err
+	}
+	defer decoder.Close()
 
-	// // Get original image dimensions
-	// imgHeader, err := decoder.Header()
-	// if err != nil {
-	// 	return fmt.Errorf(
-	// 		"failed to get image header for %s: %w",
-	// 		meta.OrigFileAbsPath,
-	// 		err,
-	// 	)
-	// }
-	// origWidth := imgHeader.Width()
-	// origHeight := imgHeader.Height()
-	// if origWidth == 0 || origHeight == 0 {
-	// 	return fmt.Errorf(
-	// 		"invalid original image dimensions: width=%d, height=%d",
-	// 		origWidth,
-	// 		origHeight,
-	// 	)
-	// }
+	// Get original image dimensions
+	origWidth, origHeight, err := g.getOrigDimensions(
+		meta.OrigFileAbsPath,
+		decoder,
+	)
+	if err != nil {
+		return err
+	}
 
-	// Implementation for generating thumbnails using Lilliput
+	// Get ready to resize image
+	// using origWidth * origWidth as max resize buffer size
+	ops := lilliput.NewImageOps(int(float64(origWidth) * 1.5))
+	defer ops.Close()
+
+	// Create a 50MB buffer to store resized image(s)
+
+	resizeBuffer := make([]byte, 1000*1024*1024)
+
+	// All thumb files will share the same base name
+	fileBaseName := filepath.Base(meta.OrigFileAbsPath)
+	fileBaseNameNoExt := strings.TrimSuffix(
+		fileBaseName,
+		filepath.Ext(fileBaseName),
+	)
+
+	// Iterate meta.TargetWidths and generate thumbnails
+	for _, tgtWidth := range meta.ThumbWidths {
+		select {
+		case <-ctx.Done():
+			slog.Warn(
+				"LilliputThumbsGen: Context cancelled during thumbs generation",
+			)
+			return ctx.Err()
+		default:
+			// Continue processing
+		}
+
+		// TODO: Find a way to reuse decoder for multiple widths
+		decoder, err := g.decode(meta.OrigFileAbsPath, inputBuf)
+		if err != nil {
+			return err
+		}
+		defer decoder.Close()
+
+		tgtHeight := (origHeight * tgtWidth) / origWidth
+		opts := &lilliput.ImageOptions{
+			FileType:             ThumbsExtension,
+			Width:                tgtWidth,
+			Height:               tgtHeight,
+			ResizeMethod:         lilliput.ImageOpsFit,
+			NormalizeOrientation: true,
+			EncodeOptions: map[int]int{
+				lilliput.JpegQuality: ThumbsQuality,
+			},
+		}
+
+		// Create thumbnail
+		//resizedImgBuf := make([]byte, 500*1024*1024) // It can be reusable (see docs)
+		resizedImgBuf, err := ops.Transform(decoder, opts, resizeBuffer)
+		if err != nil {
+			return fmt.Errorf(
+				"failed to create thumbnail for %s: %w",
+				meta.OrigFileAbsPath,
+				err,
+			)
+		}
+
+		// Compute thumb file name and path
+		thumbFileName := fmt.Sprintf(
+			"%s_%dpx%s",
+			fileBaseNameNoExt,
+			tgtWidth,
+			ThumbsExtension,
+		)
+		thumbFileAbsPath := filepath.Join(meta.ThumbFileAbsDir, thumbFileName)
+
+		// Save thumbnail to file
+		if err := os.WriteFile(thumbFileAbsPath, resizedImgBuf, 0644); err != nil {
+			return fmt.Errorf(
+				"failed to write thumbnail file %s: %w",
+				thumbFileAbsPath,
+				err,
+			)
+		}
+	}
+
 	return nil
+}
+
+func (g *LilliputThumbsGenerator) readFile(
+	fileAbsPath string,
+) ([]byte, error) {
+	inputBuf, err := os.ReadFile(fileAbsPath)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to read original file %s: %w",
+			fileAbsPath,
+			err,
+		)
+	}
+
+	return inputBuf, nil
+}
+
+func (g *LilliputThumbsGenerator) decode(
+	fileAbsPath string,
+	inputBuf []byte,
+) (lilliput.Decoder, error) {
+	decoder, err := lilliput.NewDecoder(inputBuf)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to create lilliput decoder for %s: %w",
+			fileAbsPath,
+			err,
+		)
+	}
+
+	return decoder, nil
+}
+
+func (g *LilliputThumbsGenerator) getOrigDimensions(
+	fileAbsPath string,
+	decoder lilliput.Decoder,
+) (int, int, error) {
+	imgHeader, err := decoder.Header()
+	if err != nil {
+		return 0, 0, fmt.Errorf(
+			"failed to get image header for %s: %w",
+			fileAbsPath,
+			err,
+		)
+	}
+
+	origWidth := imgHeader.Width()
+	origHeight := imgHeader.Height()
+	if origWidth == 0 || origHeight == 0 {
+		return 0, 0, fmt.Errorf(
+			"invalid original image dimensions: width=%d, height=%d",
+			origWidth,
+			origHeight,
+		)
+	}
+
+	return origWidth, origHeight, nil
 }

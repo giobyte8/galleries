@@ -7,4 +7,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.8.1
 )
 
-require github.com/google/uuid v1.6.0
+require (
+	github.com/discord/lilliput v1.5.0
+	github.com/google/uuid v1.6.0
+)
