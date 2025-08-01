@@ -22,19 +22,24 @@ func (g *LilliputThumbsGenerator) Generate(
 	meta ThumbnailMeta,
 ) error {
 	slog.Debug(
-		"LilliputThumbsGen: Generating thumbnail",
+		"Generating thumbnails",
 		"origFile",
-		meta.OrigFileAbsPath,
+		meta.OrigFileRelPath,
+	)
+
+	origFileAbsPath := filepath.Join(
+		meta.OrigFilesRootDir,
+		meta.OrigFileRelPath,
 	)
 
 	// Load original file into memory
-	inputBuf, err := g.readFile(meta.OrigFileAbsPath)
+	inputBuf, err := g.readFile(origFileAbsPath)
 	if err != nil {
 		return err
 	}
 
 	// Using lilliput, Decode original image to retrieve its dimensions
-	decoder, err := g.decode(meta.OrigFileAbsPath, inputBuf)
+	decoder, err := g.decode(meta.OrigFileRelPath, inputBuf)
 	if err != nil {
 		return err
 	}
@@ -42,35 +47,35 @@ func (g *LilliputThumbsGenerator) Generate(
 
 	// Get original image dimensions
 	origWidth, origHeight, err := g.getOrigDimensions(
-		meta.OrigFileAbsPath,
+		meta.OrigFileRelPath,
 		decoder,
 	)
 	if err != nil {
 		return err
 	}
 
-	// Get ready to resize image
-	// using origWidth * origWidth as max resize buffer size
+	// TODO: Determine appropriate 'maxSize' value
+	// Set max resize buffer size
 	ops := lilliput.NewImageOps(int(float64(origWidth) * 1.5))
 	defer ops.Close()
 
+	// TODO: Determine appropriate 'resizeBuffer' size
 	// Create a 50MB buffer to store resized image(s)
-
-	resizeBuffer := make([]byte, 1000*1024*1024)
+	resizeBuffer := make([]byte, 500*1024*1024)
 
 	// All thumb files will share the same base name
-	fileBaseName := filepath.Base(meta.OrigFileAbsPath)
+	fileBaseName := filepath.Base(meta.OrigFileRelPath)
 	fileBaseNameNoExt := strings.TrimSuffix(
 		fileBaseName,
 		filepath.Ext(fileBaseName),
 	)
 
-	// Iterate meta.TargetWidths and generate thumbnails
+	// Iterate meta.TargetWidths and generate a thumbnail for each width
 	for _, tgtWidth := range meta.ThumbWidths {
 		select {
 		case <-ctx.Done():
 			slog.Warn(
-				"LilliputThumbsGen: Context cancelled during thumbs generation",
+				"Context cancelled during thumbs generation",
 			)
 			return ctx.Err()
 		default:
@@ -78,7 +83,7 @@ func (g *LilliputThumbsGenerator) Generate(
 		}
 
 		// TODO: Find a way to reuse decoder for multiple widths
-		decoder, err := g.decode(meta.OrigFileAbsPath, inputBuf)
+		decoder, err := g.decode(origFileAbsPath, inputBuf)
 		if err != nil {
 			return err
 		}
@@ -97,12 +102,11 @@ func (g *LilliputThumbsGenerator) Generate(
 		}
 
 		// Create thumbnail
-		//resizedImgBuf := make([]byte, 500*1024*1024) // It can be reusable (see docs)
 		resizedImgBuf, err := ops.Transform(decoder, opts, resizeBuffer)
 		if err != nil {
 			return fmt.Errorf(
 				"failed to create thumbnail for %s: %w",
-				meta.OrigFileAbsPath,
+				meta.OrigFileRelPath,
 				err,
 			)
 		}
@@ -145,14 +149,14 @@ func (g *LilliputThumbsGenerator) readFile(
 }
 
 func (g *LilliputThumbsGenerator) decode(
-	fileAbsPath string,
+	fileRelPath string,
 	inputBuf []byte,
 ) (lilliput.Decoder, error) {
 	decoder, err := lilliput.NewDecoder(inputBuf)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to create lilliput decoder for %s: %w",
-			fileAbsPath,
+			fileRelPath,
 			err,
 		)
 	}
@@ -161,14 +165,14 @@ func (g *LilliputThumbsGenerator) decode(
 }
 
 func (g *LilliputThumbsGenerator) getOrigDimensions(
-	fileAbsPath string,
+	fileRelPath string,
 	decoder lilliput.Decoder,
 ) (int, int, error) {
 	imgHeader, err := decoder.Header()
 	if err != nil {
 		return 0, 0, fmt.Errorf(
 			"failed to get image header for %s: %w",
-			fileAbsPath,
+			fileRelPath,
 			err,
 		)
 	}

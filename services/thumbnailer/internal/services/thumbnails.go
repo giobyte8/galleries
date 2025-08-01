@@ -102,7 +102,7 @@ func (s *ThumbnailsService) cleanupExisting(
 		select {
 		case <-ctx.Done():
 			slog.Warn(
-				"ThumbsSvc: Context cancelled during thumbnail cleanup.",
+				"Context cancelled during thumbnail cleanup.",
 				"path",
 				matchPath,
 			)
@@ -111,7 +111,7 @@ func (s *ThumbnailsService) cleanupExisting(
 			// Continue with deletion
 		}
 
-		slog.Debug("ThumbsSvc: Removing existing thumbnail", "path", matchPath)
+		slog.Debug("Removing existing thumbnail", "path", matchPath)
 		if err := os.Remove(matchPath); err != nil {
 			return fmt.Errorf(
 				"failed to remove existing thumbnail %s: %w",
@@ -130,10 +130,8 @@ func (s *ThumbnailsService) prepareThumbnailMeta(
 	origFileRelPath string,
 ) (*thumbsgen.ThumbnailMeta, error) {
 	thumbMeta := new(thumbsgen.ThumbnailMeta)
-	thumbMeta.OrigFileAbsPath = filepath.Join(
-		s.config.DirOriginalsRoot,
-		origFileRelPath,
-	)
+	thumbMeta.OrigFilesRootDir = s.config.DirOriginalsRoot
+	thumbMeta.OrigFileRelPath = origFileRelPath
 
 	// Determine output directory for thumbnails
 	origFileRelDir := filepath.Dir(origFileRelPath)
@@ -141,6 +139,8 @@ func (s *ThumbnailsService) prepareThumbnailMeta(
 		s.config.DirThumbnailsRoot,
 		origFileRelDir,
 	)
+
+	// TODO: Consider move dir creation to the moment of thumbnail saving
 	if _, err := os.Stat(thumbMeta.ThumbFileAbsDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(thumbMeta.ThumbFileAbsDir, 0755); err != nil {
 			return nil, fmt.Errorf(
