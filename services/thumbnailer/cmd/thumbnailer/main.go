@@ -12,8 +12,10 @@ import (
 
 	"github.com/giobyte8/galleries/thumbnailer/internal/consumer"
 	"github.com/giobyte8/galleries/thumbnailer/internal/services"
-	thumbsgen "github.com/giobyte8/galleries/thumbnailer/internal/thumbs_gen"
 	"github.com/joho/godotenv"
+
+	"github.com/giobyte8/galleries/thumbnailer/internal/telemetry"
+	thumbsgen "github.com/giobyte8/galleries/thumbnailer/internal/thumbs_gen"
 )
 
 func setupLogging() {
@@ -63,16 +65,22 @@ func prepareAMQPUri() string {
 	)
 }
 
-func prepareAMQPConsumer() (consumer.MessageConsumer, error) {
+func prepareAMQPConsumer(
+	telemetry *telemetry.TelemetrySvc,
+) (consumer.MessageConsumer, error) {
 	var amqpCfg consumer.AMQPConfig
 	amqpCfg.AMQPUri = prepareAMQPUri()
 	amqpCfg.Exchange = os.Getenv("AMQP_EXCHANGE_GALLERIES")
 	amqpCfg.QueueName = os.Getenv("AMQP_QUEUE_DISCOVERED_FILES")
 
-	return consumer.NewAMQPConsumer(amqpCfg, prepareThumbsService())
+	return consumer.NewAMQPConsumer(
+		amqpCfg,
+		prepareThumbsService(telemetry),
+		telemetry,
+	)
 }
 
-func prepareThumbsService() *services.ThumbnailsService {
+func prepareThumbsService(telemetry *telemetry.TelemetrySvc) *services.ThumbnailsService {
 	thumbsConfig := services.ThumbnailsConfig{
 		DirOriginalsRoot:  os.Getenv("DIR_ORIGINALS_ROOT"),
 		DirThumbnailsRoot: os.Getenv("DIR_THUMBNAILS_ROOT"),
@@ -129,7 +137,7 @@ func prepareThumbsService() *services.ThumbnailsService {
 		)
 	}
 
-	thumbsGenerator := thumbsgen.NewLilliputThumbsGenerator()
+	thumbsGenerator := thumbsgen.NewLilliputThumbsGenerator(telemetry)
 	return services.NewThumbnailsService(thumbsConfig, thumbsGenerator)
 }
 
@@ -138,20 +146,26 @@ func main() {
 	slog.Info("Starting Thumbnailer service...")
 	loadEnv()
 
-	amqpConsumer, err := prepareAMQPConsumer()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Init telemetry services
+	telemetry, err := telemetry.NewTelemetrySvc(ctx)
+	if err != nil {
+		slog.Error("Failed to initialize Telemetry services", "error", err)
+		os.Exit(1)
+	}
+
+	amqpConsumer, err := prepareAMQPConsumer(telemetry)
 	if err != nil {
 		slog.Error("Failed to create AMQP consumer", "error", err)
 		os.Exit(1)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	if err := amqpConsumer.Start(ctx); err != nil {
 		slog.Error("Failed to start AMQP consumer", "error", err)
 		os.Exit(1)
 	}
-	defer amqpConsumer.Stop()
 	slog.Info("Thumbnailer service is running. Press Ctrl+C to stop.")
 
 	// Graceful shutdown (listen for OS signals)
@@ -169,6 +183,16 @@ func main() {
 		)
 	}
 
-	cancel() // Trigger context cancellation
+	// --- --- --- --- --- --- --- --- --- --- --- ---
+	// Perform graceful shutdown operations
+	// before cancelling context
+
+	amqpConsumer.Stop()
+	if err := telemetry.Shutdown(ctx); err != nil {
+		slog.Error("Failed to shutdown telemetry services", "error", err)
+	}
+
+	// Trigger context cancellation
+	cancel()
 	slog.Info("Thumbnailer service exited gracefully.")
 }

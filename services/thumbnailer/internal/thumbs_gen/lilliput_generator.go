@@ -9,12 +9,21 @@ import (
 	"strings"
 
 	"github.com/discord/lilliput"
+	"github.com/giobyte8/galleries/thumbnailer/internal/telemetry"
+	"github.com/giobyte8/galleries/thumbnailer/internal/telemetry/metrics"
 )
 
-type LilliputThumbsGenerator struct{}
+type LilliputThumbsGenerator struct {
+	telemetry *telemetry.TelemetrySvc
+}
 
-func NewLilliputThumbsGenerator() *LilliputThumbsGenerator {
-	return &LilliputThumbsGenerator{}
+func NewLilliputThumbsGenerator(
+	telemetry *telemetry.TelemetrySvc,
+) *LilliputThumbsGenerator {
+
+	return &LilliputThumbsGenerator{
+		telemetry: telemetry,
+	}
 }
 
 func (g *LilliputThumbsGenerator) Generate(
@@ -128,6 +137,18 @@ func (g *LilliputThumbsGenerator) Generate(
 				err,
 			)
 		}
+
+		// Record metric to count generated thumbnail
+		g.telemetry.Metrics().Increment(
+			metrics.ThumbCreated,
+			map[string]string{
+				"filePath":   meta.OrigFileRelPath,
+				"origSize":   fmt.Sprintf("%d", len(inputBuf)),
+				"origWidth":  fmt.Sprintf("%d", origWidth),
+				"thumbSize":  fmt.Sprintf("%d", len(resizedImgBuf)),
+				"thumbWidth": fmt.Sprintf("%d", tgtWidth),
+			},
+		)
 	}
 
 	return nil

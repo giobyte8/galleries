@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"log/slog"
 
+	amqp "github.com/rabbitmq/amqp091-go"
+
 	"github.com/giobyte8/galleries/thumbnailer/internal/models"
 	"github.com/giobyte8/galleries/thumbnailer/internal/services"
-	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/giobyte8/galleries/thumbnailer/internal/telemetry"
+	"github.com/giobyte8/galleries/thumbnailer/internal/telemetry/metrics"
 )
 
 // Holds the config params for the consumer
@@ -23,12 +26,14 @@ type AMQPConsumer struct {
 	channel      *amqp.Channel
 	config       AMQPConfig
 	thumbnailSvc *services.ThumbnailsService
+	telemetry    telemetry.TelemetrySvc
 }
 
 // Creates a new AMQPConsumer instance ready to connect to broker
 func NewAMQPConsumer(
 	config AMQPConfig,
 	thumbnailSvc *services.ThumbnailsService,
+	telemetry *telemetry.TelemetrySvc,
 ) (*AMQPConsumer, error) {
 
 	if config.AMQPUri == "" {
@@ -44,6 +49,7 @@ func NewAMQPConsumer(
 	return &AMQPConsumer{
 		config:       config,
 		thumbnailSvc: thumbnailSvc,
+		telemetry:    *telemetry,
 	}, nil
 }
 
@@ -173,6 +179,14 @@ func (c *AMQPConsumer) consume(ctx context.Context) {
 				}
 				continue
 			}
+
+			c.telemetry.Metrics().Increment(
+				metrics.FileEvtReceived,
+				map[string]string{
+					"eventType": fileEvt.EventType,
+					"filePath":  fileEvt.FilePath,
+				},
+			)
 
 			// TODO Verify event type (?)
 			err = c.thumbnailSvc.ProcessEvent(ctx, fileEvt)
