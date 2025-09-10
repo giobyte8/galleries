@@ -56,7 +56,7 @@ func NewAMQPConsumer(
 // Connects to AMQP broker, declares exchange and queue and
 // starts consuming messages
 func (c *AMQPConsumer) Start(ctx context.Context) error {
-	slog.Info("AMQP - Initializing AMQP Consumer")
+	slog.Debug("AMQP - Initializing AMQP Consumer")
 
 	var err error
 	c.conn, err = amqp.Dial(c.config.AMQPUri)

@@ -19,8 +19,20 @@ import (
 )
 
 func setupLogging() {
+	var log_level slog.Level
+	switch os.Getenv("LOG_LEVEL") {
+	case "DEBUG", "debug":
+		log_level = slog.LevelDebug
+	case "WARN", "warn":
+		log_level = slog.LevelWarn
+	case "ERROR", "error":
+		log_level = slog.LevelError
+	default:
+		log_level = slog.LevelInfo
+	}
+
 	handlerOpts := &slog.HandlerOptions{
-		Level:     slog.LevelDebug,
+		Level:     log_level,
 		AddSource: false,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 
@@ -142,10 +154,10 @@ func prepareThumbsService(telemetry *telemetry.TelemetrySvc) *services.Thumbnail
 }
 
 func main() {
-	setupLogging()
-	slog.Info("Starting Thumbnailer service...")
 	loadEnv()
+	setupLogging()
 
+	slog.Info("Starting Thumbnailer service...")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
