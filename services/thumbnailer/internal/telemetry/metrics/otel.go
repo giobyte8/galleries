@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -148,9 +149,10 @@ func newResource(ctx context.Context) (*resource.Resource, error) {
 
 // Creates a new gRPC connection to the OpenTelemetry collector.
 func newCollectorGrpcConn() (*grpc.ClientConn, error) {
-	// TODO Update otel implementation to read host/port from env vars
+	grpc_endpoint := os.Getenv("OTEL_COLLECTOR_GRPC_ENDPOINT")
+
 	conn, err := grpc.NewClient(
-		"localhost:4317",
+		grpc_endpoint,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
@@ -169,9 +171,9 @@ func newMeterProvider(
 	conn *grpc.ClientConn,
 ) (*sdkmetric.MeterProvider, error) {
 	// metricExporter, err := stdoutmetric.New(
-	// 	// TODO: Implement otel collector exporter
 	// 	stdoutmetric.WithPrettyPrint(),
 	// )
+
 	metricExporter, err := otlpmetricgrpc.New(
 		ctx,
 		otlpmetricgrpc.WithGRPCConn(conn),
