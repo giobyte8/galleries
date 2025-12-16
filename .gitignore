@@ -1,27 +1,45 @@
-.DS_Store
-*.pyc
-venv
-.env
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-data.dev/
-config/synchronizer/src_sync.crontab
-config/http_downloader/gallery-dl.conf.json
-config/http_downloader/gallery-dl.cookies.json
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
 
-# VSCode
-.vscode
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
 
-# draw.io diagrams backups
-docs/*.drawio.bkp
-docs/*.drawio.dtmp
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
 
-# Mat migrations manager
-db/migrations.yml
-db/migrations-test.yml
+### VS Code ###
+.vscode/
 
-# Obsidian vault for documentation
-docs/.obsidian
+.tool-versions
+*.env
+!docker/scanner.template.env
 
-# Docker deployment files
-docker/http_downloader.docker.env
-docker/synchronizer.docker.env
+# Drawio temporary files
+.bkp
+.dtmp
