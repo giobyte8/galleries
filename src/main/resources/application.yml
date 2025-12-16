@@ -1,0 +1,31 @@
+spring:
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
+logging:
+  level:
+    me.giobyte8.galleries.scanner: DEBUG
+
+galleries:
+  scanner:
+    amqp:
+      exchange_gl: GL_EXCHANGE
+      queue_scan_requests: GL_SCAN_REQUESTS
+      queue_scan_hooks: GL_SCAN_HOOKS
+      queue_scan_discovered_files: GL_SCAN_DISCOVERED_FILES
+    content_dirs:
+      root_path: ${SCANNER_CONTENT_DIR:/replace/in/intellij/spring/override}
+    media_files_extensions:
+      - jpeg
+      - jpg
+      - png
+      # - mp4
+      # TODO add support for raw formats
+
+neo4j:
+  uri: neo4j://${NEO4J_HOST:localhost}:${NEO4J_PORT:7687}
+  username: ${NEO4J_USERNAME:neo4j}
+  password: ${NEO4J_PASSWORD:neo4j_devpass}

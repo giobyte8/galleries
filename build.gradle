@@ -1,0 +1,62 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.0.2'
+	id 'io.spring.dependency-management' version '1.1.0'
+}
+
+group = 'me.giobyte8.galleries'
+version = '2.0.0'
+sourceCompatibility = '17'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.neo4j.driver:neo4j-java-driver:5.20.0'
+	implementation 'org.springframework.boot:spring-boot-starter-amqp'
+	implementation 'com.drewnoakes:metadata-extractor:2.18.0'
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+	implementation 'commons-codec:commons-codec:1.15'
+
+	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+	annotationProcessor 'org.projectlombok:lombok:1.18.32'
+
+	compileOnly 'org.projectlombok:lombok:1.18.32'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+}
+
+// Introducing test suites blog: https://blog.gradle.org/introducing-test-suites
+// Reference: https://docs.gradle.org/7.6.1/userguide/jvm_test_suite_plugin.html#sec:jvm_test_suite_usage
+testing {
+	suites {
+		configureEach {
+			useJUnitJupiter()
+			dependencies {
+				implementation 'org.springframework.boot:spring-boot-starter-test'
+			}
+		}
+
+		test(JvmTestSuite)
+
+		integrationTest(JvmTestSuite) {
+			dependencies {
+				implementation project()
+				implementation 'org.neo4j.driver:neo4j-java-driver:5.20.0'
+			}
+
+			targets {
+				all {
+					testTask.configure {
+						shouldRunAfter(test)
+					}
+				}
+			}
+		}
+	}
+}
+
+//tasks.named('check') {
+//	dependsOn(testing.suites.integrationTest)
+//}

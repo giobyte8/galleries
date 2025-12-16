@@ -1,180 +1,131 @@
-# Galleries
-Manage and expose image, video and text galleries by fetching items from
-multiple local and remote sources.
+# Scanner
+Scans directories looking for media files
 
-- [Use cases](#some-use-cases)
-- [Supported media sources](#supported-media-sources)
+- [How it works](#how-it-works)
+  - [How to trigger directory scan](#how-to-trigger-directory-scan)
+  - [Events emitted during scan](#events-emitted-during-scan-of-target-dir)
+    - [Scan start and end time](#scan-processing-start-and-end-time)
+    - [Scanned file events](#scanned-files-event)
 - [Deployment](#deployment)
-    - [Required infrastructure](#required-infrastructure)
-    - [Global config](#global-config)
-    - Database setup
-    - Redis setup
-    - RabbitMQ setup
-  - [Http Downloader](#http-downloader)
-  - [Synchronizer](#synchronizer)
+- [Development](#development)
 
-## Some use cases
+## How it works
 
-- Combine a collection from unsplash.com and a pinterest.com board into a single
-  gallery and expose their contents through a single API
-- Expose a list of custom quotes (text fragments) through a single API
-- Expose your pictures from local folders through galleries API
+1. Receives scan request through AMQP
+   1. Validates request contains a valid target directory
+   2. Validates there isn't another scan in progress for same directory
+2. Mark all previously found files in target directory as in `VERIFYING` status
+3. Scan for files in target dir
+   1. Upsert every found file into database along with its metadata
+   2. Emit AMQP event for each found/updated file
+4. Remove from database all files (and dirs) that remain in `VERIFYING` status once scan is
+   complete (Files not found in disk anymore)
+   1. Emit AMQP event for each file deleted from DB
 
-## Supported media sources
+### How to trigger directory scan
 
-- Unsplash images and collections
-- Pinterest pins and boards
-- Specific folders inside git repositories
-- Local folders
-- Local database collections of JSON documents
+Scan requests are received through AMQP.
 
-## Disclaimer
+Connection and queue name params are configured through application properties
 
-Please be aware that content on remotes sites such as pinterest, unsplash or
-500px may be subject to copyright, use content from those sources
-appropriately
+````yml
+galleries:
+  scanner:
+    amqp:
+      exchange_gl: GL_EXCHANGE
+      queue_scan_requests: GL_SCAN_REQUESTS
+````
 
-## Deployment
-Galleries is composed of multiple, independent microservices. Each one is
-deployed independently.
+Message must be a JSON object with a structure like following:
 
-All of the microservices can be started through docker compose. Start by
-fetching the compose file and the environment template
-
-```shell
-mkdir galleries && cd galleries
-
-wget https://github.com/giobyte8/galleries/raw/main/docker/.gitignore
-wget https://github.com/giobyte8/galleries/raw/main/docker/docker-compose.yml
-wget -O .env https://github.com/giobyte8/galleries/raw/main/docker/compose.template.env
+```json
+{
+   "id": "e4461002-a5ac-4b3a-b050-23a0355f1eaf",
+   "dirPath": "relative/path/to/directory",
+   "requestedAt": "2023-02-14 05:36:23"
+}
 ```
 
-### Required Infrastructure
-You'll need access to running instances of:
-- MySQL
-- Redis
-- RabbitMQ
+- `id` UUID v4 used to identify the scan request through logs and metrics
+- `dirPath` Relative path of directory to scan, such directory must exist in database to enable scanning on it.
+- `requestedAt` UTC datetime when this scan request was created by requester.
 
-If you don't have preexisting instances you can create them based on contents
-from `docker.dev/` directory.
+### Events emitted during scan of target dir
 
-### Global config
+During scan process multiple AMQP messages are emitted to notify about events
 
-1. Make sure to enter values for below env variables into `.env` file
-   ```shell
-   # Path in host file system where galleries content will be stored
-   CONTENT_DIR=
+#### Scan processing start and end time
 
-   # Path in host file system where to store runtime files (logs, temp files, etc)
-   RUNTIME_DIR=
-   ```
+Event is posted to following queue:
+```yml
+galleries:
+  scanner:
+    amqp:
+      queue_scan_hooks: GL_SCAN_HOOKS
+```
 
-2. **Optional:** Update `docker-compose.yml` to put services into appropiate network
-   ```yml
-   // ...other configs
-   services:
-     <http_downloader|synchronizer|scanner>:
-       networks:
-         - hservices
-   // ...
+Scan start message:
+```json
+{
+   "scanRequestId": "e4461002-a5ac-4b3a-b050-23a0355f1eaf",
+   "eventType": "SCAN_START",
+   "time": "2023-06-09 17:30:35"
+}
+```
 
-   networks:
-     hservices:
-       external: true
-   ```
+Scan end message:
+```json
+{
+   "scanRequestId": "e4461002-a5ac-4b3a-b050-23a0355f1eaf",
+   "eventType": "SCAN_END",
+   "time": "2023-06-09 17:35:35"
+}
+```
 
-### Http Downloader
+Where:
+- `scanRequestId` UUID of scan request
+- `eventType`: Type of scan event
+- `time`: Timestamp when event occurred
 
-1. Prepare `gallery-dl` config template
-   ```shell
-   mkdir -p config/http_downloader && cd config/http_downloader
+#### Scanned files event
 
-   wget https://github.com/giobyte8/galleries/raw/main/services/http_downloader/config/gallery-dl.conf.template.json
-   cp gallery-dl.conf.template.json gallery-dl.conf.json
+During a directory scan several events are emitted:
+- `NEW_FILE_FOUND`: When a new file is found in directory
+- `FILE_CHANGED`: Content's of previously scanned file have changed
+- `FILE_NOT_FOUND`: A previously scanned file does not exist anymore
 
-   # Optional: Some sites need authentication using cookies to allow downloads,
-   # if you plan to fetch private content from such sites, add your own cookie
-   # values to corresponding extractor config
-   vim gallery-dl.conf.json
-   ```
+Events are posted to following queue:
+```yml
+galleries:
+  scanner:
+    amqp:
+      queue_scan_discovered_files: GL_SCAN_DISCOVERED_FILES
+```
 
-   You can edit `gallery-dl.conf.json` file to add custom configs.
-   Check [gallery-dl repo](https://github.com/mikf/gallery-dl#configuration)
-   for complete documentation of allowed options.
+Example message:
+```json
+{
+   "scanRequestId": "e4461002-a5ac-4b3a-b050-23a0355f1eaf",
+   "eventType": "FILE_CHANGED",
+   "filePath": "/testphotos/file.jpg"
+}
+```
 
-2. Make sure to enter values for below env variables into `.env` file
-   ```shell
+Where:
+- `scanRequestId`: UUID of scan request
+- `eventType`: One of: 'NEW_FILE_FOUND', 'FILE_CHANGED' or 'FILE_NOT_FOUND'
+- `filePath`: Relative path to target file
 
-   # Path in host file system where config files are stored for http_downloader
-   HTTP_DOWNLOADER_CONFIG=
-   ```
+## Deployment
 
-3. Setup http downloader specific env
-   ```shell
-   wget -O http_downloader.docker.env https://github.com/giobyte8/galleries/raw/main/services/http_downloader/docker/http_downloader.docker.template.env
-   vim http_downloader.docker.env
+The recommended way to deploy is by using the `docker-compose.yml` file
+provided as part of the whole project. Such file includes all the
+galleries microservices.
 
-   # Enter right values for rabbitmq connection and other settings
-   ```
+Make sure to edit the global `.env` file to reference to your target env
+and start scanner using docker compose.
 
-4. Start http_downloader service
-   ```shell
-   docker compose up -d http_downloader
+See [galleries deployment guide]() for a full walkthrough
 
-   # Monitor running container:
-   docker logs -f gl-downloader
-
-   # Or watch application logs directly in provided runtime path
-   tail -f logs/http_downloader.log
-   ```
-
-### Synchronizer
-
-1. Prepare config files
-   ```shell
-   mkdir -p config/synchronizer && cd config/synchronizer
-   wget https://github.com/giobyte8/galleries/raw/main/services/synchronizer/config/sync_scheduler.template.crontab
-   ```
-
-   Edit crontab file to match your desired synchronization time
-   ```shell
-   cp sync_scheduler.template.crontab sync_scheduler.crontab
-   vim sync_scheduler.crontab
-   ```
-
-2. Make sure to enter values for below env variables into `.env` file
-   ```shell
-
-   # Path in host file system where config flles are stored for synchronizer
-   SYNCHRONIZER_CONFIG=
-   ```
-
-3. Setup `synchronizer` specific env variables
-   ```shell
-   wget -O synchronizer.docker.env https://github.com/giobyte8/galleries/raw/main/services/synchronizer/docker/synchronizer.docker.template.env
-   vim synchronizer.docker.env
-
-   # Enter right values for rabbitmq, database and other settings
-   ```
-
-4. Start `synchronizer` services
-   ```shell
-   docker compose up -d synchronizer sync-sch
-   docker logs -f gl-sync             # Monitor synchronizer logs
-   tail -f logs/synchronizer.log      # ...Or watch app logs directly from runtime path
-
-   docker logs -f gl-sync-sch         # Monitor sync scheduler logs
-   tail -f logs/sync-sch.log          # ...or watch app logs directly from runtime path
-   ```
-
-
-# Legacy Docs
-
-### 4. Setup your databse
-
-1. From project root: `cd db && cp migrations.template.yml migrations.yml`
-2. Edit `migrations.yml` and add your datasource config (MySQL)
-3. Make sure entered database was previously created
-4. Apply the migrations: `./matw migrate`
-
-> Note: You may want to insert some sources into `http_source` table
+## Development
+See [development section](docs/DEVELOPMENT.md)
