@@ -22,6 +22,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.drew.metadata.exif.ExifDirectoryBase.*;
 
+/**
+ * Image metadata extractor using the
+ * <a href="https://github.com/drewnoakes/metadata-extractor/"/>
+ * metadata-extractor</a> library.
+ * <br/>
+ *
+ * See
+ * <a href="https://github.com/drewnoakes/metadata-extractor/wiki/Getting-Started-(Java)">
+ * Getting started reference
+ * </a>
+ * for more details about exif tag reading
+ */
 @Component
 @Slf4j
 public class LFSImgMetaExtractor implements ImgMetaExtractor {
@@ -34,6 +46,8 @@ public class LFSImgMetaExtractor implements ImgMetaExtractor {
             MFMetadata mfMeta = new MFMetadata();
 
             loadDatetimeOriginal(metadata, mfMeta);
+            loadDatetimeOriginalRaw(metadata, mfMeta);
+            loadTzOffsetOriginal(metadata, mfMeta);
             loadGpsCoordinates(metadata, mfMeta);
             loadCameraMaker(metadata, mfMeta);
             loadCameraModel(metadata, mfMeta);
@@ -49,12 +63,19 @@ public class LFSImgMetaExtractor implements ImgMetaExtractor {
         }
     }
 
+    /**
+     * Extracts the original datetime the photo was taken.
+     * <br/>
+     *
+     * NOTE: The library converts/parses the raw string into a localized Date
+     * using local system timezone.
+     */
     private void loadDatetimeOriginal(Metadata meta, MFMetadata mfMeta) {
         AtomicBoolean dateFound = new AtomicBoolean(false);
 
         meta.getDirectoriesOfType(ExifSubIFDDirectory.class)
                 .stream()
-                .takeWhile(exifDir -> !dateFound.get())
+                .takeWhile(_ -> !dateFound.get())
                 .forEach(exifDir -> {
                     if (exifDir.hasTagName(TAG_DATETIME_ORIGINAL)) {
                         Date dateOriginal = exifDir.getDateOriginal();
@@ -65,12 +86,48 @@ public class LFSImgMetaExtractor implements ImgMetaExtractor {
                 });
     }
 
+    /**
+     * Extracts the raw datetime original string as stored in image metadata.
+     * No conversion/parsing is applied.
+     */
+    private void loadDatetimeOriginalRaw(Metadata meta, MFMetadata mfMeta) {
+        AtomicBoolean dateFound = new AtomicBoolean(false);
+
+        meta.getDirectoriesOfType(ExifSubIFDDirectory.class)
+                .stream()
+                .takeWhile(_ -> !dateFound.get())
+                .forEach(exifDir -> {
+                    if (exifDir.hasTagName(TAG_DATETIME_ORIGINAL)) {
+                        var dTimeRaw = exifDir.getStringValue(TAG_DATETIME_ORIGINAL);
+                        mfMeta.setDatetimeOriginalRaw(dTimeRaw.toString());
+
+                        dateFound.set(true);
+                    }
+                });
+    }
+
+    private void loadTzOffsetOriginal(Metadata meta, MFMetadata mfMeta) {
+        AtomicBoolean tzFound = new AtomicBoolean(false);
+
+        meta.getDirectoriesOfType(ExifSubIFDDirectory.class)
+                .stream()
+                .takeWhile(_ -> !tzFound.get())
+                .forEach(exifDir -> {
+                    if (exifDir.hasTagName(TAG_TIME_ZONE_ORIGINAL)) {
+                        var tzOffset = exifDir.getStringValue(TAG_TIME_ZONE_ORIGINAL);
+                        mfMeta.setTzOffset(tzOffset.toString());
+
+                        tzFound.set(true);
+                    }
+                });
+    }
+
     private void loadGpsCoordinates(Metadata meta, MFMetadata mfMeta) {
         AtomicBoolean gpsFound = new AtomicBoolean(false);
 
         meta.getDirectoriesOfType(GpsDirectory.class)
                 .stream()
-                .takeWhile(gpsDir -> !gpsFound.get())
+                .takeWhile(_ -> !gpsFound.get())
                 .forEach(gpsDir -> {
                     GeoLocation geoLoc = gpsDir.getGeoLocation();
                     if (geoLoc != null) {
@@ -88,7 +145,7 @@ public class LFSImgMetaExtractor implements ImgMetaExtractor {
 
         meta.getDirectoriesOfType(ExifIFD0Directory.class)
                 .stream()
-                .takeWhile(exifDir -> !camMakerFound.get())
+                .takeWhile(_ -> !camMakerFound.get())
                 .forEach(exifDir -> {
                     if (exifDir.hasTagName(TAG_MAKE)) {
                         StringValue camModel = exifDir.getStringValue(TAG_MAKE);
@@ -105,7 +162,7 @@ public class LFSImgMetaExtractor implements ImgMetaExtractor {
 
         meta.getDirectoriesOfType(ExifIFD0Directory.class)
                 .stream()
-                .takeWhile(exifDir -> !camModelFound.get())
+                .takeWhile(_ -> !camModelFound.get())
                 .forEach(exifDir -> {
                     if (exifDir.hasTagName(TAG_MODEL)) {
                         StringValue camModel = exifDir.getStringValue(TAG_MODEL);
