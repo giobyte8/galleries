@@ -1,7 +1,5 @@
 package me.giobyte8.galleries.scanner.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import me.giobyte8.galleries.scanner.config.properties.Neo4jProps;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
@@ -11,10 +9,6 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,44 +29,6 @@ public class ScannerConfig {
 
     public ScannerConfig(Neo4jProps neo4jProps) {
         this.neo4jProps = neo4jProps;
-    }
-
-    @Bean
-    public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
-            ConnectionFactory connFactory,
-            Jackson2JsonMessageConverter jsonMsgConverter
-    ) {
-        SimpleRabbitListenerContainerFactory factory =
-                new SimpleRabbitListenerContainerFactory();
-        factory.setConnectionFactory(connFactory);
-        factory.setMessageConverter(jsonMsgConverter);
-
-        return factory;
-    }
-
-    @Bean
-    public RabbitTemplate rabbitTemplate(
-            ConnectionFactory connFactory,
-            Jackson2JsonMessageConverter jsonMsgConverter
-    ) {
-        RabbitTemplate rabbitTemplate = new RabbitTemplate(connFactory);
-        rabbitTemplate.setMessageConverter(jsonMsgConverter);
-        rabbitTemplate.setExchange(galleriesX);
-
-        return rabbitTemplate;
-    }
-
-    @Bean
-    public ObjectMapper objectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-
-        return objectMapper;
-    }
-
-    @Bean
-    public Jackson2JsonMessageConverter jsonMsgConverter(ObjectMapper objectMapper) {
-        return new Jackson2JsonMessageConverter(objectMapper);
     }
 
     @Bean

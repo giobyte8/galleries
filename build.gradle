@@ -1,29 +1,37 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.0.2'
-	id 'io.spring.dependency-management' version '1.1.0'
+	id 'org.springframework.boot' version '4.0.0'
+	id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'me.giobyte8.galleries'
 version = '2.0.0'
-sourceCompatibility = '17'
+
+// REPLACED: sourceCompatibility = 'xx'
+// BEST PRACTICE: Use Java Toolchain for explicit Java version support.
+// This ensures Gradle uses the correct JDK, even if your local JAVA_HOME is different.
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(25)
+	}
+}
 
 repositories {
 	mavenCentral()
 }
 
 dependencies {
-	implementation 'org.neo4j.driver:neo4j-java-driver:5.20.0'
+	implementation 'org.neo4j.driver:neo4j-java-driver:6.0.2'
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
-	implementation 'com.drewnoakes:metadata-extractor:2.18.0'
+	implementation 'com.drewnoakes:metadata-extractor:2.19.0'
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-	implementation 'commons-codec:commons-codec:1.15'
+	implementation 'commons-codec:commons-codec:1.20.0'
 
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
-	annotationProcessor 'org.projectlombok:lombok:1.18.32'
+	annotationProcessor 'org.projectlombok:lombok:1.18.42'
 
-	compileOnly 'org.projectlombok:lombok:1.18.32'
+	compileOnly 'org.projectlombok:lombok:1.18.42'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 }
 
@@ -43,7 +51,7 @@ testing {
 		integrationTest(JvmTestSuite) {
 			dependencies {
 				implementation project()
-				implementation 'org.neo4j.driver:neo4j-java-driver:5.20.0'
+				implementation 'org.neo4j.driver:neo4j-java-driver:6.0.2'
 			}
 
 			targets {
