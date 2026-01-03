@@ -56,7 +56,6 @@ public class MFMetadata {
      *
      * This is done by applying the time zone offset to the
      * original datetime.
-     *
      * TODO: Verify/Complete implementation (Use right timezone offset)
      *       Assume time format as "yyyy:MM:dd HH:mm:ss"
      */

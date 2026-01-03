@@ -5,7 +5,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
 public abstract class Neo4jEphemeralTest extends BaseIntegrationTest {
 
