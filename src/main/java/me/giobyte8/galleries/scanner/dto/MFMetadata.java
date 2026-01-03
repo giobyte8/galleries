@@ -49,4 +49,23 @@ public class MFMetadata {
         return cal;
     }
 
+    /**
+     * Returns the original date and time as a Calendar instance
+     * adjusted to the local time zone where the photo was taken.
+     * <br/>
+     *
+     * This is done by applying the time zone offset to the
+     * original datetime.
+     *
+     * TODO: Verify/Complete implementation (Use right timezone offset)
+     *       Assume time format as "yyyy:MM:dd HH:mm:ss"
+     */
+    public Calendar dateTimeLocalized() {
+        if (datetimeOriginal == null) return null;
+
+        var cal = Calendar.getInstance();
+        cal.setTime(datetimeOriginal);
+        cal.add(Calendar.MILLISECOND, cal.getTimeZone().getOffset(cal.getTimeInMillis()));
+        return cal;
+    }
 }

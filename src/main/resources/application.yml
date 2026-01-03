@@ -18,6 +18,13 @@ galleries:
       queue_scan_discovered_files: GL_SCAN_DISCOVERED_FILES
     content_dirs:
       root_path: ${SCANNER_CONTENT_DIR:/replace/in/intellij/spring/override}
+    image_file_extensions:
+      - jpeg
+      - jpg
+      - png
+      - heic
+
+    # Deprecated, use image_file_extensions instead
     media_files_extensions:
       - jpeg
       - jpg

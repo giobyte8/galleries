@@ -1,7 +1,9 @@
 spring:
+
+  # Actual connection details are overridden during tests execution
+  # to match test container settings, via '@ServiceConnection' annotation
   rabbitmq:
-    username: dev
-    password: devpass
+    host: localhost
 
 logging:
   level:
@@ -16,13 +18,14 @@ galleries:
       queue_scan_discovered_files: GL_SCAN_DISCOVERED_FILES
     content_dirs:
       root_path: src/test/resources/galleries
-    media-files-extensions:
+    image-file-extensions:
       - jpg
+      - heic
 
 neo4j:
 
-  # Port has been updated from default to integration tests instance's
-  uri: neo4j://localhost:7087
+  # uri is override during tests execution to match test container settings
+  uri: neo4j://localhost:7687
 
   # Dedicated neo4j instance for integration tests doesn't require auth
   # We just enter dummy values to prevent client code to fail during

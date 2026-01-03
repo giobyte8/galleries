@@ -1,18 +1,16 @@
 package me.giobyte8.galleries.scanner;
 
-import me.giobyte8.galleries.scanner.scanners.DirMediaScanner;
+import me.giobyte8.galleries.scanner.scanners.MediaScanner;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
-@SpringBootTest
-class ScannerApplicationTests {
+class ScannerApplicationTests extends BaseIntegrationTest {
 
     @Autowired
-    private DirMediaScanner dirScanner;
+    private MediaScanner dirScanner;
 
     @Test
     void contextLoads() {

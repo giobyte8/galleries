@@ -52,6 +52,16 @@ testing {
 			dependencies {
 				implementation project()
 				implementation 'org.neo4j.driver:neo4j-java-driver:6.0.2'
+
+				// Spring Boot Testcontainers Support
+				implementation 'org.springframework.boot:spring-boot-testcontainers'
+
+				// Testcontainers BOM and Modules
+				implementation platform('org.testcontainers:testcontainers-bom:2.0.3')
+				implementation 'org.testcontainers:testcontainers-junit-jupiter'
+				implementation 'org.testcontainers:testcontainers-neo4j'
+				implementation 'org.testcontainers:testcontainers-rabbitmq'
+
 			}
 
 			targets {
