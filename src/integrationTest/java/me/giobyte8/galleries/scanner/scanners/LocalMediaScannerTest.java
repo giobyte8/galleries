@@ -5,13 +5,13 @@ import me.giobyte8.galleries.scanner.model.Directory;
 import me.giobyte8.galleries.scanner.model.Image;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.mockito.Mockito.*;
 
 public class LocalMediaScannerTest extends BaseIntegrationTest {
 
-    @MockitoSpyBean
+    @MockitoBean
     private ScanEventsHub eventsHub;
 
     @Autowired
@@ -46,6 +46,31 @@ public class LocalMediaScannerTest extends BaseIntegrationTest {
 
         // Verify 2 images found
         verify(eventsHub, times(2))
+                .imgFound(any(Image.class));
+
+        verifyNoMoreInteractions(eventsHub);
+    }
+
+    @Test
+    void when_scan_recursive_then_emit_dir_and_file_events() {
+        var rootDir = Directory.builder()
+                .path("cameras")
+                .recursive(true)
+                .build();
+        mediaScanner.scan(rootDir);
+
+        // Verify scan start/complete interactions
+        verify(eventsHub, times(3))
+                .scanStarted(any(Directory.class));
+        verify(eventsHub, times(3))
+                .scanCompleted(any(Directory.class));
+
+        // Verify directories found
+        verify(eventsHub, times(2))
+                .dirFound(any(Directory.class));
+
+        // Verify images found
+        verify(eventsHub, times(7))
                 .imgFound(any(Image.class));
 
         verifyNoMoreInteractions(eventsHub);
