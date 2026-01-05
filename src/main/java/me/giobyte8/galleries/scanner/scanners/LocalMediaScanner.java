@@ -58,7 +58,6 @@ public class LocalMediaScanner implements MediaScanner {
 
         Directory dir = scanPendingQueue.poll();
         eventsHub.scanStarted(dir);
-        // TODO scanMediaObserver.prepareForScanning(dir);
 
         Path dirAbsPath = pathSvc.toAbsolute(dir.getPath());
         try (Stream<Path> fStream = Files.list(dirAbsPath)) {
@@ -69,7 +68,7 @@ public class LocalMediaScanner implements MediaScanner {
 
                 // Handle image files
                 else if (hasImageExtension(absPath)) {
-                    onImageFound(absPath);
+                    onImageFound(dir, absPath);
                 }
 
                 // Handle video files...
@@ -81,7 +80,6 @@ public class LocalMediaScanner implements MediaScanner {
         }
 
         eventsHub.scanCompleted(dir);
-        //TODO scanMediaObserver.onScanCompleted(scanReq, dir);
         scanNext();
     }
 
@@ -99,17 +97,17 @@ public class LocalMediaScanner implements MediaScanner {
                 .recursive(parent.isRecursive())
                 .build();
 
-        // TODO scanMediaObserver.onDirectoryFound(parent, childDir);
-        eventsHub.dirFound(dir);
+        eventsHub.dirFound(parent, dir);
         scanPendingQueue.offer(dir);
     }
 
     /**
      * Callback invoked when an image is found during scanning.
      *
+     * @param parent Directory where given image was found.
      * @param absPath The absolute path of the found image.
      */
-    private void onImageFound(Path absPath) {
+    private void onImageFound(Directory parent, Path absPath) {
         try {
             String contentHash = hashingSvc.hashContent(absPath);
 
@@ -119,7 +117,7 @@ public class LocalMediaScanner implements MediaScanner {
                     .build();
             img.setMetadata(imgMetaExtractor.extract(absPath));
 
-            eventsHub.imgFound(img);
+            eventsHub.imgFound(parent, img);
         } catch (IOException e) {
             log.error("Error while hashing content: {}", absPath, e);
         }

@@ -46,7 +46,7 @@ public class LocalMediaScannerTest extends BaseIntegrationTest {
 
         // Verify 2 images found
         verify(eventsHub, times(2))
-                .imgFound(any(Image.class));
+                .imgFound(eq(caDir), any(Image.class));
 
         verifyNoMoreInteractions(eventsHub);
     }
@@ -67,11 +67,11 @@ public class LocalMediaScannerTest extends BaseIntegrationTest {
 
         // Verify directories found
         verify(eventsHub, times(2))
-                .dirFound(any(Directory.class));
+                .dirFound(eq(rootDir), any(Directory.class));
 
         // Verify images found
         verify(eventsHub, times(7))
-                .imgFound(any(Image.class));
+                .imgFound(any(Directory.class), any(Image.class));
 
         verifyNoMoreInteractions(eventsHub);
     }
