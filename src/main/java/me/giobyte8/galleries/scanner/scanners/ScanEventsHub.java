@@ -3,7 +3,9 @@ package me.giobyte8.galleries.scanner.scanners;
 import lombok.extern.slf4j.Slf4j;
 import me.giobyte8.galleries.scanner.model.Directory;
 import me.giobyte8.galleries.scanner.model.Image;
+import me.giobyte8.galleries.scanner.scanners.listeners.GalleriesScanEventsListener;
 import me.giobyte8.galleries.scanner.scanners.listeners.ScanEventsListener;
+import me.giobyte8.galleries.scanner.scanners.listeners.TelemetryScanEventsListener;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -15,12 +17,18 @@ import java.util.Set;
 public class ScanEventsHub {
     private final Set<ScanEventsListener> listeners = new HashSet<>();
 
-    public void subscribe(ScanEventsListener listener) {
-        listeners.add(listener);
+    public ScanEventsHub(
+            GalleriesScanEventsListener galleriesEventsListener,
+            TelemetryScanEventsListener telemetryEventsListener
+    ) {
+
+        // Subscribe built-in listeners
+        subscribe(galleriesEventsListener);
+        subscribe(telemetryEventsListener);
     }
 
-    public void unsubscribe(ScanEventsListener listener) {
-        listeners.remove(listener);
+    public void subscribe(ScanEventsListener listener) {
+        listeners.add(listener);
     }
 
     public void scanStarted(Directory dir) {
