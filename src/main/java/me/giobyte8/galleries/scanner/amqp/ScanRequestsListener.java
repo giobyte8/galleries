@@ -1,32 +1,21 @@
 package me.giobyte8.galleries.scanner.amqp;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.giobyte8.galleries.scanner.dto.ScanRequest;
-import me.giobyte8.galleries.scanner.model.DirStatus;
-import me.giobyte8.galleries.scanner.model.Directory;
-import me.giobyte8.galleries.scanner.repository.DirectoryRepository;
-import me.giobyte8.galleries.scanner.scanners.MediaScanner;
+import me.giobyte8.galleries.scanner.services.ScanService;
 import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
-
+@RequiredArgsConstructor
 @Service
 @Slf4j
 public class ScanRequestsListener {
 
-    private final MediaScanner mScanner;
-    private final DirectoryRepository dirRepository;
-
-    public ScanRequestsListener(
-            MediaScanner mScanner,
-            DirectoryRepository dirRepository
-    ) {
-        this.mScanner = mScanner;
-        this.dirRepository = dirRepository;
-    }
+    private final ScanService scanService;
 
     @RabbitListener(bindings = @QueueBinding(
             value = @Queue(value = "${galleries.scanner.amqp.queue_scan_requests}"),
@@ -34,28 +23,7 @@ public class ScanRequestsListener {
             key = "${galleries.scanner.amqp.queue_scan_requests}"
     ))
     public void onScanRequest(ScanRequest request) {
-        log.info("AMQP Scan request received: {}", request);
-
-        // Verify directory exist
-        Directory directory = dirRepository.findBy(request.path());
-        if (directory == null) {
-            log.error(
-                    "Provided directory wasn't not found in DB: {}",
-                    request.path()
-            );
-            return;
-        }
-
-        // Validate directory status is ok
-        if (directory.getStatus() == DirStatus.SCAN_IN_PROGRESS) {
-            log.error(
-                    "Another scan is already in progress for: {}",
-                    directory.getPath()
-            );
-            return;
-        }
-
-        // TODO: Invoke scanner service to process the request
-        //mScanner.scan(request, directory);
+        log.info("AMQP Scan request received: {}", request.id());
+        scanService.scan(request);
     }
 }

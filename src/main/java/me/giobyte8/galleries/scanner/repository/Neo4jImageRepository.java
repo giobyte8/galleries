@@ -29,7 +29,23 @@ public class Neo4jImageRepository implements ImageRepository {
 
     @Override
     public long countBy(ImageStatus status) {
-        return 0;
+        try (Session session = driver.session()) {
+            String countQuery = """
+                MATCH (i:Image { status: $status })
+                RETURN count(i) as count;""";
+
+            Map<String, Object> params = new HashMap<>(1);
+            params.put("status", status.toString());
+
+            return session.executeRead(tx -> {
+                var res = tx.run(countQuery, params);
+                if (res.hasNext()) {
+                    return res.single().get("count").asLong();
+                }
+
+                return 0L;
+            });
+        }
     }
 
     @Override
