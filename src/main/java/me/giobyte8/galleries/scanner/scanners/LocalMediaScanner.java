@@ -74,13 +74,13 @@ public class LocalMediaScanner implements MediaScanner {
                 // Handle video files...
                 // else if (hasVideoExtension(absPath)) {
             });
-        } catch (IOException e) {
-            // TODO scanMediaObserver.onScanFailed(dir, e);
-            return;
-        }
 
-        eventsHub.scanCompleted(dir);
-        scanNext();
+            eventsHub.scanCompleted(dir);
+        } catch (IOException e) {
+            eventsHub.scanFailed(dir, e);
+        } finally {
+            scanNext();
+        }
     }
 
     /**

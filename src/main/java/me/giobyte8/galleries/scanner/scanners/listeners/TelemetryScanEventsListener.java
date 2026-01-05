@@ -2,7 +2,9 @@ package me.giobyte8.galleries.scanner.scanners.listeners;
 
 import me.giobyte8.galleries.scanner.model.Directory;
 import me.giobyte8.galleries.scanner.model.Image;
+import org.springframework.stereotype.Service;
 
+@Service
 public class TelemetryScanEventsListener implements ScanEventsListener {
 
     @Override

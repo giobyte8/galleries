@@ -6,6 +6,7 @@ import me.giobyte8.galleries.scanner.model.Image;
 import me.giobyte8.galleries.scanner.scanners.listeners.ScanEventsListener;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -50,5 +51,10 @@ public class ScanEventsHub {
     public void imgFound(Directory parent, Image img) {
         log.debug("Image found: {}", img.getPath());
         listeners.forEach(l -> l.onImageFound(parent, img));
+    }
+
+    public void scanFailed(Directory dir, IOException e) {
+        log.error("Error while scanning directory: {}", dir.getPath(), e);
+        listeners.forEach(l -> l.onScanFailed(dir, e));
     }
 }

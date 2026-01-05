@@ -1,7 +1,6 @@
 package me.giobyte8.galleries.scanner.scanners.listeners;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import me.giobyte8.galleries.scanner.model.DirStatus;
 import me.giobyte8.galleries.scanner.model.Directory;
 import me.giobyte8.galleries.scanner.model.Image;
@@ -19,7 +18,6 @@ import java.nio.file.Path;
  */
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class GalleriesScanEventsListener implements ScanEventsListener {
 
     private final DirectoryRepository dirRepository;
@@ -89,8 +87,6 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
 
     @Override
     public void onScanFailed(Directory dir, Exception e) {
-        log.error("Error while scanning directory: {}", dir.getPath(), e);
-
         dir.setStatus(DirStatus.SCAN_FAILED);
         dirRepository.save(dir);
     }
