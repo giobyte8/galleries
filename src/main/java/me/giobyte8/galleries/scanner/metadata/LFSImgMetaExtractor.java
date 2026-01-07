@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.drew.metadata.exif.ExifDirectoryBase.*;
@@ -99,9 +100,11 @@ public class LFSImgMetaExtractor implements ImgMetaExtractor {
                 .forEach(exifDir -> {
                     if (exifDir.hasTagName(TAG_DATETIME_ORIGINAL)) {
                         var dTimeRaw = exifDir.getStringValue(TAG_DATETIME_ORIGINAL);
-                        mfMeta.setDatetimeOriginalRaw(dTimeRaw.toString());
 
-                        dateFound.set(true);
+                        if (Objects.nonNull(dTimeRaw)) {
+                            mfMeta.setDatetimeOriginalRaw(dTimeRaw.toString());
+                            dateFound.set(true);
+                        }
                     }
                 });
     }
@@ -115,9 +118,11 @@ public class LFSImgMetaExtractor implements ImgMetaExtractor {
                 .forEach(exifDir -> {
                     if (exifDir.hasTagName(TAG_TIME_ZONE_ORIGINAL)) {
                         var tzOffset = exifDir.getStringValue(TAG_TIME_ZONE_ORIGINAL);
-                        mfMeta.setTzOffset(tzOffset.toString());
 
-                        tzFound.set(true);
+                        if (Objects.nonNull(tzOffset)) {
+                            mfMeta.setTzOffset(tzOffset.toString());
+                            tzFound.set(true);
+                        }
                     }
                 });
     }
