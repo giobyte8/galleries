@@ -5,71 +5,16 @@ import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Queue;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ScannerConfig {
 
-    @Value("${galleries.scanner.amqp.exchange_gl}")
-    private String galleriesX;
-
-    @Value("${galleries.scanner.amqp.queue_scan_hooks}")
-    private String qNameScanHooks;
-
-    @Value("${galleries.scanner.amqp.queue_scan_discovered_files}")
-    private String qNameScanDiscoveredFiles;
-
     private final Neo4jProps neo4jProps;
 
     public ScannerConfig(Neo4jProps neo4jProps) {
         this.neo4jProps = neo4jProps;
-    }
-
-    @Bean
-    public DirectExchange galleriesX() {
-        return new DirectExchange(
-                galleriesX,
-                true,  // Survive to broker restarts?
-                false          // X deleted when last queue is unbound from it
-        );
-    }
-
-    @Bean
-    public Queue qScanHooks() {
-        return new Queue(qNameScanHooks);
-    }
-
-    @Bean
-    public Queue qScanDiscoveredFiles() {
-        return new Queue(qNameScanDiscoveredFiles, true);
-    }
-
-    @Bean
-    public Binding bindScanHooksToGalleriesX(
-            Queue qScanHooks,
-            DirectExchange galleriesX
-    ) {
-        return BindingBuilder
-                .bind(qScanHooks)
-                .to(galleriesX)
-                .with(qNameScanHooks);
-    }
-
-    @Bean
-    public Binding bindScanDiscoveredFilesToGalleriesX(
-            Queue qScanDiscoveredFiles,
-            DirectExchange galleriesX
-    ) {
-        return BindingBuilder
-                .bind(qScanDiscoveredFiles)
-                .to(galleriesX)
-                .with(qNameScanDiscoveredFiles);
     }
 
     @Bean( destroyMethod = "")

@@ -14,6 +14,9 @@ galleries:
     amqp:
       exchange_gl: GL_EXCHANGE
       queue_scan_requests: GL_SCAN_REQUESTS
+      queue_gen_thumb_requests: GL_GEN_THUMB_REQUESTS
+      queue_del_thumb_requests: GL_DEL_THUMB_REQUESTS
+
       queue_scan_hooks: GL_SCAN_HOOKS
       queue_scan_discovered_files: GL_SCAN_DISCOVERED_FILES
     content_dirs:
@@ -23,14 +26,6 @@ galleries:
       - jpg
       - png
       - heic
-
-    # Deprecated, use image_file_extensions instead
-    media_files_extensions:
-      - jpeg
-      - jpg
-      - png
-      # - mp4
-      # TODO add support for raw formats
 
 neo4j:
   uri: neo4j://${NEO4J_HOST:localhost}:${NEO4J_PORT:7687}

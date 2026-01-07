@@ -12,4 +12,12 @@ import java.util.Set;
 public class ScannerProps {
     private ContentDirsProps contentDirs;
     private Set<String> imageFileExtensions;
+    private AMQPProps amqp;
+
+    @Data
+    public static class AMQPProps {
+        private String exchangeGl;
+        private String queueGenThumbRequests;
+        private String queueDelThumbRequests;
+    }
 }
