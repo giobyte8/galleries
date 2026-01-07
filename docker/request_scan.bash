@@ -18,13 +18,13 @@ UUID=$(uuidgen)
 
 msg="{
   \"id\": \"$UUID\",
-  \"dirPath\": \"testphotos\",
+  \"path\": \"testphotos\",
   \"requestedAt\": \"2050-02-14T10:00:00\"
 }"
 j_msg=$(json_escape "$msg")
 
 amqp_msg="{
-  \"properties\": {},
+  \"properties\": {\"content_type\": \"application/json\"},
   \"routing_key\": \"$RABBITMQ_ROUTING_KEY\",
   \"payload\": $j_msg,
   \"payload_encoding\": \"string\"
