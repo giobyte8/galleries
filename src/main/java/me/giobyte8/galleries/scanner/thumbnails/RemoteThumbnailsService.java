@@ -3,6 +3,8 @@ package me.giobyte8.galleries.scanner.thumbnails;
 import lombok.RequiredArgsConstructor;
 import me.giobyte8.galleries.scanner.config.properties.ScannerProps;
 import me.giobyte8.galleries.scanner.dto.ThumbnailsRequest;
+import me.giobyte8.galleries.scanner.metrics.Metric;
+import me.giobyte8.galleries.scanner.metrics.MetricsService;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.stereotype.Service;
 
@@ -14,26 +16,37 @@ public class RemoteThumbnailsService implements ThumbnailsService {
 
     private final ScannerProps scannerProps;
     private final AmqpTemplate rbTemplate;
+    private final MetricsService metricsService;
 
     @Override
     public void generateThumbnails(Path path) {
-        rbTemplate.convertAndSend(
+        sendThumbnailRequest(
                 scannerProps.getAmqp().getQueueGenThumbRequests(),
-                mkThumbRequest(path)
+                path
         );
+        metricsService.increment(Metric.THUMBS_REQUESTED_GEN);
     }
 
     @Override
     public void refreshThumbnails(Path path) {
-        this.generateThumbnails(path);
+        sendThumbnailRequest(
+                scannerProps.getAmqp().getQueueGenThumbRequests(),
+                path
+        );
+        metricsService.increment(Metric.THUMBS_REQUESTED_REF);
     }
 
     @Override
     public void deleteThumbnails(Path path) {
-        rbTemplate.convertAndSend(
+        sendThumbnailRequest(
                 scannerProps.getAmqp().getQueueDelThumbRequests(),
-                mkThumbRequest(path)
+                path
         );
+        metricsService.increment(Metric.THUMBS_REQUESTED_DEL);
+    }
+
+    private void sendThumbnailRequest(String queueName, Path path) {
+        rbTemplate.convertAndSend(queueName, mkThumbRequest(path));
     }
 
     private ThumbnailsRequest mkThumbRequest(Path path) {

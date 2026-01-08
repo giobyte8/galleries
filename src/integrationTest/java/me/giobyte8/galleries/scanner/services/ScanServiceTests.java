@@ -1,6 +1,8 @@
 package me.giobyte8.galleries.scanner.services;
 
 import me.giobyte8.galleries.scanner.dto.ScanRequest;
+import me.giobyte8.galleries.scanner.metrics.Metric;
+import me.giobyte8.galleries.scanner.metrics.MetricsService;
 import me.giobyte8.galleries.scanner.model.Directory;
 import me.giobyte8.galleries.scanner.model.ImageStatus;
 import me.giobyte8.galleries.scanner.repository.DirectoryRepository;
@@ -9,11 +11,14 @@ import me.giobyte8.galleries.scanner.repository.Neo4jEphemeralTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 public class ScanServiceTests extends Neo4jEphemeralTest {
@@ -26,6 +31,9 @@ public class ScanServiceTests extends Neo4jEphemeralTest {
 
     @Autowired
     private ImageRepository imgRepo;
+
+    @MockitoBean
+    private MetricsService metricsService;
 
     @Test
     void test_scan_iphone_gallery() {
@@ -92,8 +100,26 @@ public class ScanServiceTests extends Neo4jEphemeralTest {
         assertThat(imgRepo.countBy(ImageStatus.AVAILABLE))
                 .isEqualTo(2);
 
-        // Verify two new directories were created
+        // Verify no new directories were created
         assertThat(dirRepo.count())
                 .isEqualTo(1);
+    }
+
+    @Test
+    void test_scan_cameras_gallery_with_metrics() {
+        // Reuse the existing recursive test setup
+        test_scan_cameras_gallery_recursive();
+
+        // Verify MetricsService invocations
+        verify(metricsService, times(3))
+                .increment(Metric.SCAN_DIR_STARTED);
+        verify(metricsService, times(3))
+                .increment(Metric.SCAN_DIR_COMPLETED);
+        verify(metricsService, times(7))
+                .increment(Metric.SCAN_FOUND_IMG);
+        verify(metricsService, times(7))
+                .increment(Metric.THUMBS_REQUESTED_GEN);
+        verify(metricsService, times(2))
+                .increment(Metric.SCAN_FOUND_DIR);
     }
 }
