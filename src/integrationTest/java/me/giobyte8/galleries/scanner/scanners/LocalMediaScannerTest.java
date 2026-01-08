@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.io.IOException;
+
 import static org.mockito.Mockito.*;
 
 public class LocalMediaScannerTest extends BaseIntegrationTest {
@@ -28,6 +30,8 @@ public class LocalMediaScannerTest extends BaseIntegrationTest {
         // Verify events hub interactions
         verify(eventsHub, times(1))
                 .scanStarted(invalidDir);
+        verify(eventsHub, times(1))
+                .scanFailed(eq(invalidDir), any(IOException.class));
         verifyNoMoreInteractions(eventsHub);
     }
 
