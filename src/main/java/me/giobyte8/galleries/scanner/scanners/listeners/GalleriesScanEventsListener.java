@@ -98,7 +98,7 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
 
     @Override
     public void onImageFound(Directory parent, Image img) {
-        Image dbImg = imgRepository.findBy(img.getPath());
+        Image dbImg = imgRepository.findByPath(img.getPath());
 
         // If image is new, generate thumbnails
         if (dbImg == null) {

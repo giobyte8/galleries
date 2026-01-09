@@ -24,6 +24,33 @@ public class Neo4jImageRepositoryTests extends Neo4jEphemeralTest {
     private Neo4jDirectoryRepository dirRepository;
 
     @Test
+    void findByHashAndPath() {
+        var path = "test/path/image.jpg";
+        var contentHash = "test_hash_12345";
+
+        // Create a test directory and image
+        Directory parent = Directory.builder()
+                .path("test/path")
+                .build();
+        dirRepository.save(parent);
+        var image = Image.builder()
+                .path(path)
+                .contentHash(contentHash)
+                .build();
+        imgRepository.save(parent, image);
+
+        // Retrieve image by path and content hash
+        Image dbImg = imgRepository
+                .findByPathAndContentHash(path, contentHash);
+        assertEquals(image, dbImg);
+
+        // Try retrieving with updated hash
+        Image missingImg = imgRepository
+                .findByPathAndContentHash(path, "different_hash");
+        assertNull(missingImg);
+    }
+
+    @Test
     void save() {
         String dirPath = "test/dir/img/repo";
         Directory parent = Directory.builder()
@@ -44,7 +71,7 @@ public class Neo4jImageRepositoryTests extends Neo4jEphemeralTest {
         imgRepository.save(parent, img);
 
         // Assert image was saved
-        Image dbImg = imgRepository.findBy(img.getPath());
+        Image dbImg = imgRepository.findByPath(img.getPath());
         assert dbImg != null;
 
         // Assert image was added to parent dir
@@ -66,7 +93,7 @@ public class Neo4jImageRepositoryTests extends Neo4jEphemeralTest {
                 .build();
         imgRepository.save(parent, img);
 
-        Image dbImg = imgRepository.findBy("random.jpg");
+        Image dbImg = imgRepository.findByPath("random.jpg");
         assertNull(dbImg.getGpsLatitude());
         assertNull(dbImg.getGpsLongitude());
     }
@@ -88,14 +115,14 @@ public class Neo4jImageRepositoryTests extends Neo4jEphemeralTest {
                 .build();
         imgRepository.save(parent, img);
 
-        Image dbImg = imgRepository.findBy("random.jpg");
+        Image dbImg = imgRepository.findByPath("random.jpg");
         assertNull(dbImg.getDatetimeOriginal());
     }
 
     @Test
     void findNonExistent() {
         String path = "test/not/found";
-        Image img = imgRepository.findBy(path);
+        Image img = imgRepository.findByPath(path);
         assertNull(img);
     }
 
