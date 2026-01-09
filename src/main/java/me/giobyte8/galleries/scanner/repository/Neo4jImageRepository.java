@@ -49,13 +49,40 @@ public class Neo4jImageRepository implements ImageRepository {
     }
 
     @Override
-    public Image findBy(String path) {
+    public Image findByPath(String path) {
         try (Session session = driver.session()) {
             String query = "MATCH (i:Image { path: $path }) RETURN i";
 
             return session.executeRead(ctx -> {
                 Image image = null;
                 var res = ctx.run(query, Values.parameters(
+                        "path",
+                        path
+                ));
+
+                if (res.hasNext()) {
+                    image = rowMapper.from(res.single().get("i").asMap());
+                }
+
+                return image;
+            });
+        }
+    }
+
+    public Image findByPathAndContentHash(String path, String hash) {
+        try (Session session = driver.session()) {
+            String query = """
+                MATCH (i:Image {
+                    path: $path,
+                    contentHash: $hash
+                })
+                RETURN i""";
+
+            return session.executeRead(ctx -> {
+                Image image = null;
+                var res = ctx.run(query, Values.parameters(
+                        "hash",
+                        hash,
                         "path",
                         path
                 ));

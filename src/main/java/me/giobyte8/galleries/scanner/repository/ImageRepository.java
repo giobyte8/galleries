@@ -11,7 +11,9 @@ public interface ImageRepository {
 
     long countBy(ImageStatus status);
 
-    Image findBy(String path);
+    Image findByPath(String path);
+
+    Image findByPathAndContentHash(String path, String hash);
 
     Stream<Image> findBy(Directory parent);
 
