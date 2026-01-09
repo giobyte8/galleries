@@ -17,8 +17,6 @@ galleries:
       queue_gen_thumb_requests: GL_GEN_THUMB_REQUESTS
       queue_del_thumb_requests: GL_DEL_THUMB_REQUESTS
 
-      queue_scan_hooks: GL_SCAN_HOOKS
-      queue_scan_discovered_files: GL_SCAN_DISCOVERED_FILES
     content_dirs:
       root_path: src/test/resources/galleries
     image-file-extensions:
