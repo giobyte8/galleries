@@ -116,10 +116,10 @@ public class ScanServiceTests extends Neo4jEphemeralTest {
         verify(metricsService, times(3))
                 .increment(Metric.SCAN_DIR_COMPLETED);
         verify(metricsService, times(7))
-                .increment(Metric.SCAN_FOUND_IMG);
+                .increment(Metric.SCAN_IMG_FOUND_NEW);
         verify(metricsService, times(7))
                 .increment(Metric.THUMBS_REQUESTED_GEN);
         verify(metricsService, times(2))
-                .increment(Metric.SCAN_FOUND_DIR);
+                .increment(Metric.SCAN_DIR_FOUND);
     }
 }

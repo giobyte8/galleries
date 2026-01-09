@@ -31,7 +31,7 @@ RABBITMQ_API_PORT=15672
 UUID=$(uuidgen)
 msg="{
   \"id\": \"$UUID\",
-  \"path\": \"Wallpapers/horizontal\",
+  \"path\": \"Wallpapers/vertical\",
   \"requestedAt\": \"2025-05-03T10:15:35\"
 }"
 j_msg=$(json_escape "$msg")

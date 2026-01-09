@@ -30,11 +30,26 @@ public class TelemetryScanEventsListener implements ScanEventsListener {
 
     @Override
     public void onDirFound(Directory parent, Directory dir) {
-        metricsService.increment(Metric.SCAN_FOUND_DIR);
+        metricsService.increment(Metric.SCAN_DIR_FOUND);
     }
 
     @Override
-    public void onImageFound(Directory parent, Image img) {
-        metricsService.increment(Metric.SCAN_FOUND_IMG);
+    public void onNewImageFound(Directory parent, Image img) {
+        metricsService.increment(Metric.SCAN_IMG_FOUND_NEW);
+    }
+
+    @Override
+    public void onUpdatedImageFound(Directory parent, Image img) {
+        metricsService.increment(Metric.SCAN_IMG_FOUND_UPDATED);
+    }
+
+    @Override
+    public void onUnchangedImageFound(Directory parent, Image img) {
+        metricsService.increment(Metric.SCAN_IMG_FOUND_UNCHANGED);
+    }
+
+    @Override
+    public void onImageNotFound(Directory parent, Image img) {
+        metricsService.increment(Metric.SCAN_IMG_NOT_FOUND);
     }
 }

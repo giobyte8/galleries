@@ -55,6 +55,10 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
         // wasn't found during scanning.
         // Remove every image that remains in 'VERIFYING' status.
         imgRepository
+
+                // TODO Mark as NOT_FOUND instead of deleting?
+                // TODO Schedule thumbs to be deleted later instead of now?
+                // TODO Schedule image record to be deleted later instead of now?
                 .deleteAndGetPaths(dir, ImageStatus.VERIFYING)
                 .forEach(path ->
                         thumbnailsSvc.deleteThumbnails(
@@ -97,22 +101,25 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
     }
 
     @Override
-    public void onImageFound(Directory parent, Image img) {
-        Image dbImg = imgRepository.findByPath(img.getPath());
+    public void onNewImageFound(Directory parent, Image img) {
+        imgRepository.save(parent, img);
+        thumbnailsSvc.generateThumbnails(Path.of(img.getPath()));
+    }
 
-        // If image is new, generate thumbnails
-        if (dbImg == null) {
-            thumbnailsSvc.generateThumbnails(Path.of(img.getPath()));
-        }
+    @Override
+    public void onUpdatedImageFound(Directory parent, Image img) {
+        imgRepository.save(parent, img);
+        thumbnailsSvc.refreshThumbnails(Path.of(img.getPath()));
+    }
 
-        // If image content has changed, refresh thumbnails
-        else if (!img.getContentHash().equals(dbImg.getContentHash())) {
-            thumbnailsSvc.refreshThumbnails(Path.of(img.getPath()));
-        }
+    @Override
+    public void onUnchangedImageFound(Directory parent, Image img) {
+//        img.setStatus(ImageStatus.AVAILABLE);
+//        imgRepository.save(parent, img);
+    }
 
-        // If image is new or attributes were changed, save to DB
-        if (!img.equals(dbImg)) {
-            imgRepository.save(parent, img);
-        }
+    @Override
+    public void onImageNotFound(Directory parent, Image img) {
+
     }
 }

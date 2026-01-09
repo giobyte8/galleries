@@ -6,7 +6,9 @@ import me.giobyte8.galleries.scanner.config.properties.ScannerProps;
 import me.giobyte8.galleries.scanner.metadata.ImgMetaExtractor;
 import me.giobyte8.galleries.scanner.model.Directory;
 import me.giobyte8.galleries.scanner.model.Image;
+import me.giobyte8.galleries.scanner.scanners.listeners.ScanEventsHub;
 import me.giobyte8.galleries.scanner.services.HashingService;
+import me.giobyte8.galleries.scanner.services.ImageService;
 import me.giobyte8.galleries.scanner.services.PathService;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.stream.Stream;
 
@@ -36,6 +39,7 @@ public class LocalMediaScanner implements MediaScanner {
     private final PathService pathSvc;
     private final HashingService hashingSvc;
     private final ImgMetaExtractor imgMetaExtractor;
+    private final ImageService imageSvc;
     private final ScanEventsHub eventsHub;
 
     private final Queue<Directory> scanPendingQueue = new ArrayDeque<>();
@@ -57,7 +61,7 @@ public class LocalMediaScanner implements MediaScanner {
         if (scanPendingQueue.isEmpty()) return;
 
         Directory dir = scanPendingQueue.poll();
-        eventsHub.scanStarted(dir);
+        eventsHub.onScanStarted(dir);
 
         Path dirAbsPath = pathSvc.toAbsolute(dir.getPath());
         try (Stream<Path> fStream = Files.list(dirAbsPath)) {
@@ -75,9 +79,9 @@ public class LocalMediaScanner implements MediaScanner {
                 // else if (hasVideoExtension(absPath)) {
             });
 
-            eventsHub.scanCompleted(dir);
+            eventsHub.onScanCompleted(dir);
         } catch (IOException e) {
-            eventsHub.scanFailed(dir, e);
+            eventsHub.onScanFailed(dir, e);
         } finally {
             scanNext();
         }
@@ -97,7 +101,7 @@ public class LocalMediaScanner implements MediaScanner {
                 .recursive(parent.isRecursive())
                 .build();
 
-        eventsHub.dirFound(parent, dir);
+        eventsHub.onDirFound(parent, dir);
         scanPendingQueue.offer(dir);
     }
 
@@ -109,15 +113,35 @@ public class LocalMediaScanner implements MediaScanner {
      */
     private void onImageFound(Directory parent, Path absPath) {
         try {
+            String path = pathSvc.toRelative(absPath).toString();
             String contentHash = hashingSvc.hashContent(absPath);
 
-            Image img = Image.builder()
-                    .path(pathSvc.toRelative(absPath).toString())
+            Image foundImage = Image.builder()
+                    .path(path)
                     .contentHash(contentHash)
                     .build();
-            img.setMetadata(imgMetaExtractor.extract(absPath));
 
-            eventsHub.imgFound(parent, img);
+            // Look for same image found during previous scans
+            var dbImage = imageSvc.findByPath(path);
+            if (Objects.nonNull(dbImage)) {
+
+                // Hashes match, image has not changed
+                if (dbImage.getContentHash().equals(contentHash)) {
+                    eventsHub.onUnchangedImageFound(parent, dbImage);
+                }
+
+                // Hashes don't match, image has been updated
+                else {
+                    foundImage.setMetadata(imgMetaExtractor.extract(absPath));
+                    eventsHub.onUpdatedImageFound(parent, foundImage);
+                }
+            }
+
+            // No preexistent image. New image has been discovered
+            else {
+                foundImage.setMetadata(imgMetaExtractor.extract(absPath));
+                eventsHub.onNewImageFound(parent, foundImage);
+            }
         } catch (IOException e) {
             log.error("Error while hashing content: {}", absPath, e);
         }

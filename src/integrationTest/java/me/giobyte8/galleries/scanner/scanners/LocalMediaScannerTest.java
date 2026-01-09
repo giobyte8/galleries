@@ -3,6 +3,7 @@ package me.giobyte8.galleries.scanner.scanners;
 import me.giobyte8.galleries.scanner.BaseIntegrationTest;
 import me.giobyte8.galleries.scanner.model.Directory;
 import me.giobyte8.galleries.scanner.model.Image;
+import me.giobyte8.galleries.scanner.scanners.listeners.ScanEventsHub;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -29,9 +30,9 @@ public class LocalMediaScannerTest extends BaseIntegrationTest {
 
         // Verify events hub interactions
         verify(eventsHub, times(1))
-                .scanStarted(invalidDir);
+                .onScanStarted(invalidDir);
         verify(eventsHub, times(1))
-                .scanFailed(eq(invalidDir), any(IOException.class));
+                .onScanFailed(eq(invalidDir), any(IOException.class));
         verifyNoMoreInteractions(eventsHub);
     }
 
@@ -44,13 +45,13 @@ public class LocalMediaScannerTest extends BaseIntegrationTest {
 
         // Verify scan start/complete interactions
         verify(eventsHub, times(1))
-                .scanStarted(caDir);
+                .onScanStarted(caDir);
         verify(eventsHub, times(1))
-                .scanCompleted(caDir);
+                .onScanCompleted(caDir);
 
         // Verify 2 images found
         verify(eventsHub, times(2))
-                .imgFound(eq(caDir), any(Image.class));
+                .onNewImageFound(eq(caDir), any(Image.class));
 
         verifyNoMoreInteractions(eventsHub);
     }
@@ -65,17 +66,17 @@ public class LocalMediaScannerTest extends BaseIntegrationTest {
 
         // Verify scan start/complete interactions
         verify(eventsHub, times(3))
-                .scanStarted(any(Directory.class));
+                .onScanStarted(any(Directory.class));
         verify(eventsHub, times(3))
-                .scanCompleted(any(Directory.class));
+                .onScanCompleted(any(Directory.class));
 
         // Verify directories found
         verify(eventsHub, times(2))
-                .dirFound(eq(rootDir), any(Directory.class));
+                .onDirFound(eq(rootDir), any(Directory.class));
 
         // Verify images found
         verify(eventsHub, times(7))
-                .imgFound(any(Directory.class), any(Image.class));
+                .onNewImageFound(any(Directory.class), any(Image.class));
 
         verifyNoMoreInteractions(eventsHub);
     }
