@@ -114,8 +114,8 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
 
     @Override
     public void onUnchangedImageFound(Directory parent, Image img) {
-//        img.setStatus(ImageStatus.AVAILABLE);
-//        imgRepository.save(parent, img);
+        img.setStatus(ImageStatus.AVAILABLE);
+        imgRepository.save(parent, img);
     }
 
     @Override
