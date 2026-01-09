@@ -1,3 +1,7 @@
+// Detach existing data if any
+MATCH (n)
+DETACH DELETE n;
+
 
 // --- --- --- --- --- --- --- --- ---
 // Create directories for main galleries

@@ -1,5 +1,6 @@
 package me.giobyte8.galleries.scanner.metrics;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -7,7 +8,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class MetricsService {
 
+    private final MeterRegistry meterRegistry;
+
     public void increment(Metric metric) {
-        // TODO: Implement metric increment logic
+        meterRegistry.counter(metric.getName()).increment();
     }
 }

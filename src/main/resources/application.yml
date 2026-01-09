@@ -1,4 +1,7 @@
 spring:
+  application:
+    name: galleries
+
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
@@ -31,3 +34,18 @@ neo4j:
   uri: neo4j://${NEO4J_HOST:localhost}:${NEO4J_PORT:7687}
   username: ${NEO4J_USERNAME:neo4j}
   password: ${NEO4J_PASSWORD:neo4j_devpass}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics
+
+  otlp:
+    metrics:
+      export:
+        enabled: true
+        url: http://localhost:4318/v1/metrics
+
+        # Use higher value in production
+        step: 5s
