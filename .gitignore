@@ -37,9 +37,9 @@ out/
 .vscode/
 
 .tool-versions
-*.env
+**/.env
 !docker/scanner.template.env
 
 # Drawio temporary files
-.bkp
-.dtmp
+*.bkp
+*.dtmp
