@@ -1,6 +1,6 @@
 package me.giobyte8.galleries.scanner.scanners;
 
-import me.giobyte8.galleries.scanner.model.Directory;
+import me.giobyte8.galleries.persistence.models.Directory;
 
 public interface MediaScanner {
 

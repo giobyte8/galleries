@@ -1,8 +1,8 @@
-package me.giobyte8.galleries.scanner.repository;
+package me.giobyte8.galleries.persistence.repositories;
 
-import me.giobyte8.galleries.scanner.model.Directory;
-import me.giobyte8.galleries.scanner.model.ImageStatus;
-import me.giobyte8.galleries.scanner.model.Image;
+import me.giobyte8.galleries.persistence.models.Directory;
+import me.giobyte8.galleries.persistence.models.ImageStatus;
+import me.giobyte8.galleries.persistence.models.Image;
 
 import java.util.Set;
 import java.util.stream.Stream;

@@ -1,4 +1,4 @@
-package me.giobyte8.galleries.scanner.repository;
+package me.giobyte8.galleries.persistence.repositories;
 
 import me.giobyte8.galleries.scanner.BaseIntegrationTest;
 import org.junit.jupiter.api.AfterEach;

@@ -1,8 +1,8 @@
 package me.giobyte8.galleries.scanner.scanners;
 
 import me.giobyte8.galleries.scanner.BaseIntegrationTest;
-import me.giobyte8.galleries.scanner.model.Directory;
-import me.giobyte8.galleries.scanner.model.Image;
+import me.giobyte8.galleries.persistence.models.Directory;
+import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.scanner.scanners.listeners.ScanEventsHub;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

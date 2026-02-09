@@ -1,8 +1,8 @@
 package me.giobyte8.galleries.scanner.services;
 
 import lombok.RequiredArgsConstructor;
-import me.giobyte8.galleries.scanner.model.Image;
-import me.giobyte8.galleries.scanner.repository.ImageRepository;
+import me.giobyte8.galleries.persistence.models.Image;
+import me.giobyte8.galleries.persistence.repositories.ImageRepository;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor

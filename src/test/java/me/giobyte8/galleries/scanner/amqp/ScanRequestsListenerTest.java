@@ -1,22 +1,13 @@
 package me.giobyte8.galleries.scanner.amqp;
 
-import me.giobyte8.galleries.scanner.dto.ScanRequest;
-import me.giobyte8.galleries.scanner.model.DirStatus;
-import me.giobyte8.galleries.scanner.model.Directory;
-import me.giobyte8.galleries.scanner.repository.DirectoryRepository;
+import me.giobyte8.galleries.persistence.repositories.DirectoryRepository;
 import me.giobyte8.galleries.scanner.scanners.MediaScanner;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ScanRequestsListenerTest {

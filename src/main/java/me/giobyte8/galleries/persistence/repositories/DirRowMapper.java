@@ -1,7 +1,7 @@
-package me.giobyte8.galleries.scanner.repository;
+package me.giobyte8.galleries.persistence.repositories;
 
-import me.giobyte8.galleries.scanner.model.DirStatus;
-import me.giobyte8.galleries.scanner.model.Directory;
+import me.giobyte8.galleries.persistence.models.DirStatus;
+import me.giobyte8.galleries.persistence.models.Directory;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;

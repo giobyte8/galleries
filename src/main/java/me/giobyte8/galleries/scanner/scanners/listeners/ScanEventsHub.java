@@ -1,8 +1,8 @@
 package me.giobyte8.galleries.scanner.scanners.listeners;
 
 import lombok.extern.slf4j.Slf4j;
-import me.giobyte8.galleries.scanner.model.Directory;
-import me.giobyte8.galleries.scanner.model.Image;
+import me.giobyte8.galleries.persistence.models.Directory;
+import me.giobyte8.galleries.persistence.models.Image;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;

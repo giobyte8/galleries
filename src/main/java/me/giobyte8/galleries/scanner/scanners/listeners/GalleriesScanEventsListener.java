@@ -1,12 +1,12 @@
 package me.giobyte8.galleries.scanner.scanners.listeners;
 
 import lombok.RequiredArgsConstructor;
-import me.giobyte8.galleries.scanner.model.DirStatus;
-import me.giobyte8.galleries.scanner.model.Directory;
-import me.giobyte8.galleries.scanner.model.Image;
-import me.giobyte8.galleries.scanner.model.ImageStatus;
-import me.giobyte8.galleries.scanner.repository.DirectoryRepository;
-import me.giobyte8.galleries.scanner.repository.ImageRepository;
+import me.giobyte8.galleries.persistence.models.DirStatus;
+import me.giobyte8.galleries.persistence.models.Directory;
+import me.giobyte8.galleries.persistence.models.Image;
+import me.giobyte8.galleries.persistence.models.ImageStatus;
+import me.giobyte8.galleries.persistence.repositories.DirectoryRepository;
+import me.giobyte8.galleries.persistence.repositories.ImageRepository;
 import me.giobyte8.galleries.scanner.thumbnails.ThumbnailsService;
 import org.springframework.stereotype.Service;
 

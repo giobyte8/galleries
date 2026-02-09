@@ -1,4 +1,4 @@
-package me.giobyte8.galleries.scanner.model;
+package me.giobyte8.galleries.persistence.models;
 
 public enum DirStatus {
     SCAN_PENDING,

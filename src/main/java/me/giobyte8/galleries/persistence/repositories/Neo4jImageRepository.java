@@ -1,9 +1,9 @@
-package me.giobyte8.galleries.scanner.repository;
+package me.giobyte8.galleries.persistence.repositories;
 
 import lombok.extern.slf4j.Slf4j;
-import me.giobyte8.galleries.scanner.model.Directory;
-import me.giobyte8.galleries.scanner.model.Image;
-import me.giobyte8.galleries.scanner.model.ImageStatus;
+import me.giobyte8.galleries.persistence.models.Directory;
+import me.giobyte8.galleries.persistence.models.Image;
+import me.giobyte8.galleries.persistence.models.ImageStatus;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
