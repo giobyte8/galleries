@@ -204,7 +204,7 @@ public class Neo4jDirectoryRepository implements DirectoryRepository {
                 .withParameters(params)
                 .execute();
 
-        return res.records().get(0).get("updatedCount").asInt();
+        return res.records().getFirst().get("updatedCount").asInt();
     }
 
     @Override
@@ -225,6 +225,6 @@ public class Neo4jDirectoryRepository implements DirectoryRepository {
                 .withParameters(params)
                 .execute();
 
-        return res.records().get(0).get("deletedCount").asInt();
+        return res.records().getFirst().get("deletedCount").asInt();
     }
 }
