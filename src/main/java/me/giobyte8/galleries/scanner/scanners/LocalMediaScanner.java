@@ -8,7 +8,7 @@ import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.scanner.scanners.listeners.ScanEventsHub;
 import me.giobyte8.galleries.scanner.services.HashingService;
-import me.giobyte8.galleries.scanner.services.ImageService;
+import me.giobyte8.galleries.services.ImageService;
 import me.giobyte8.galleries.scanner.services.PathService;
 import org.springframework.stereotype.Service;
 

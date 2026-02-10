@@ -98,7 +98,25 @@ public class Neo4jImageRepository implements ImageRepository {
 
     @Override
     public Stream<Image> findBy(Directory parent) {
-        return Stream.empty();
+
+        // Currently restricting max depth to 5000 hops just as a safeguard
+        // for performance. Real limit should be evaluated once in prod
+        String findImagesQry = """
+                MATCH (d:Directory { path: $dirPath })
+                    -[:CONTAINS*..5000]
+                    ->(i:Image)
+                RETURN i""" ;
+
+        Map<String, Object> params = new HashMap<>(1);
+        params.put("dirPath", parent.getPath());
+
+        var res = driver.executableQuery(findImagesQry)
+                .withParameters(params)
+                .execute();
+
+        return res.records()
+                .stream()
+                .map(row -> rowMapper.from(row.get("i").asMap()));
     }
 
     @Override
