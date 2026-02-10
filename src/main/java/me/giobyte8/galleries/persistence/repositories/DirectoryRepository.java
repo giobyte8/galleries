@@ -3,6 +3,7 @@ package me.giobyte8.galleries.persistence.repositories;
 import me.giobyte8.galleries.persistence.models.DirStatus;
 import me.giobyte8.galleries.persistence.models.Directory;
 
+import java.util.List;
 import java.util.Set;
 
 public interface DirectoryRepository {
@@ -10,6 +11,16 @@ public interface DirectoryRepository {
     int count();
 
     Directory findBy(String path);
+
+    /**
+     * Finds root directories, i.e., directories that don't
+     * have a parent directory.
+     *
+     * @return List of root directories sorted by path
+     */
+    List<Directory> findRoots();
+
+    List<Directory> findByParentPath(String parentPath);
 
     Set<Directory> findBy(Directory parent, DirStatus status);
 

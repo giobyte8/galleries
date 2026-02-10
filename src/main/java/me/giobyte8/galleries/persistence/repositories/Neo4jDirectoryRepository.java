@@ -8,9 +8,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,6 +35,57 @@ public class Neo4jDirectoryRepository implements DirectoryRepository {
                 }
 
                 return 0;
+            });
+        }
+    }
+
+    @Override
+    public List<Directory> findRoots() {
+        try (Session session = driver.session()) {
+            String query = """
+                MATCH (d:Directory)
+                WHERE NOT ( ()-[:CONTAINS]->(d) )
+                RETURN d
+                ORDER BY d.path ASC;""";
+
+            return session.executeRead(tx -> {
+                var result = tx.run(query);
+
+                List<Directory> roots = new ArrayList<>();
+                while (result.hasNext()) {
+                    roots.add(rowMapper.from(result.next().get("d").asMap()));
+                }
+
+                return roots;
+            });
+        }
+    }
+
+    @Override
+    public List<Directory> findByParentPath(String parentPath) {
+        try (Session session = driver.session()) {
+            String query = """
+                MATCH (parent:Directory { path: $parentPath })
+                    -[:CONTAINS]
+                    ->(dir:Directory)
+                RETURN dir
+                ORDER BY dir.path ASC;""";
+
+            return session.executeRead(tx -> {
+                var result = tx.run(
+                        query,
+                        Values.parameters(
+                                "parentPath",
+                                parentPath
+                        )
+                );
+
+                List<Directory> dirs = new ArrayList<>();
+                while (result.hasNext()) {
+                    dirs.add(rowMapper.from(result.next().get("dir").asMap()));
+                }
+
+                return dirs;
             });
         }
     }
