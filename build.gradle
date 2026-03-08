@@ -21,9 +21,9 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.neo4j.driver:neo4j-java-driver:6.0.2'
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-data-neo4j'
 	implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
@@ -45,6 +45,7 @@ testing {
 			useJUnitJupiter()
 			dependencies {
 				implementation 'org.springframework.boot:spring-boot-starter-test'
+				implementation 'org.springframework.boot:spring-boot-starter-data-neo4j-test'
 			}
 		}
 
@@ -53,7 +54,10 @@ testing {
 		integrationTest(JvmTestSuite) {
 			dependencies {
 				implementation project()
-				implementation 'org.neo4j.driver:neo4j-java-driver:6.0.2'
+
+				// Include the main project's runtime classpath so all implementation/runtime deps
+				// of the main project are available to the integrationTest suite.
+				implementation project.configurations.runtimeClasspath
 
 				// Spring Boot Testcontainers Support
 				implementation 'org.springframework.boot:spring-boot-testcontainers'
@@ -63,7 +67,6 @@ testing {
 				implementation 'org.testcontainers:testcontainers-junit-jupiter'
 				implementation 'org.testcontainers:testcontainers-neo4j'
 				implementation 'org.testcontainers:testcontainers-rabbitmq'
-
 			}
 
 			targets {

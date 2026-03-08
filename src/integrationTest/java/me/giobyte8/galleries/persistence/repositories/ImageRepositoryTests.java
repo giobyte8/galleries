@@ -3,28 +3,31 @@ package me.giobyte8.galleries.persistence.repositories;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.persistence.models.ImageStatus;
+import me.giobyte8.galleries.scanner.BaseIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-public class Neo4jImageRepositoryTests extends Neo4jEphemeralTest {
+@Import({
+        DirRowMapper.class,
+        ImgRowMapper.class,
+})
+public class ImageRepositoryTests extends BaseIntegrationTest {
 
     @Autowired
-    private Neo4jImageRepository imgRepository;
+    private ImageRepository imgRepository;
 
     @Autowired
-    private Neo4jDirectoryRepository dirRepository;
+    private DirectoryRepository dirRepository;
 
     @Test
-    void findByHashAndPath() {
+    void findByPathAndContentHash() {
         var path = "test/path/image.jpg";
         var contentHash = "test_hash_12345";
 
@@ -37,7 +40,7 @@ public class Neo4jImageRepositoryTests extends Neo4jEphemeralTest {
                 .path(path)
                 .contentHash(contentHash)
                 .build();
-        imgRepository.save(parent, image);
+        imgRepository.saveAsChild(parent, image);
 
         // Retrieve image by path and content hash
         Image dbImg = imgRepository
@@ -62,13 +65,13 @@ public class Neo4jImageRepositoryTests extends Neo4jEphemeralTest {
                 .path("random.jpg")
                 .contentHash("12345")
                 .datetimeOriginal(LocalDateTime.MIN)
-                .gpsLatitude(BigDecimal.ONE)
-                .gpsLongitude(BigDecimal.TEN)
+                .gpsLatitude(1d)
+                .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
                 .build();
 
-        imgRepository.save(parent, img);
+        imgRepository.saveAsChild(parent, img);
 
         // Assert image was saved
         Image dbImg = imgRepository.findByPath(img.getPath());
@@ -91,7 +94,7 @@ public class Neo4jImageRepositoryTests extends Neo4jEphemeralTest {
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
                 .build();
-        imgRepository.save(parent, img);
+        imgRepository.saveAsChild(parent, img);
 
         Image dbImg = imgRepository.findByPath("random.jpg");
         assertNull(dbImg.getGpsLatitude());
@@ -108,12 +111,12 @@ public class Neo4jImageRepositoryTests extends Neo4jEphemeralTest {
         Image img = Image.builder()
                 .path("random.jpg")
                 .contentHash("12345")
-                .gpsLatitude(BigDecimal.ONE)
-                .gpsLongitude(BigDecimal.TEN)
+                .gpsLatitude(1d)
+                .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
                 .build();
-        imgRepository.save(parent, img);
+        imgRepository.saveAsChild(parent, img);
 
         Image dbImg = imgRepository.findByPath("random.jpg");
         assertNull(dbImg.getDatetimeOriginal());
@@ -138,28 +141,28 @@ public class Neo4jImageRepositoryTests extends Neo4jEphemeralTest {
                 .path("test_image.jpg")
                 .contentHash("12345")
                 .datetimeOriginal(LocalDateTime.MIN)
-                .gpsLatitude(BigDecimal.ONE)
-                .gpsLongitude(BigDecimal.TEN)
+                .gpsLatitude(1d)
+                .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
                 .status(ImageStatus.AVAILABLE)
                 .build();
-        imgRepository.save(dir, img1);
+        imgRepository.saveAsChild(dir, img1);
 
         Image img2 = Image.builder()
                 .path("test_image_2.jpg")
                 .contentHash("12345")
                 .datetimeOriginal(LocalDateTime.MIN)
-                .gpsLatitude(BigDecimal.ONE)
-                .gpsLongitude(BigDecimal.TEN)
+                .gpsLatitude(1d)
+                .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
                 .status(ImageStatus.AVAILABLE)
                 .build();
-        imgRepository.save(dir, img2);
+        imgRepository.saveAsChild(dir, img2);
 
         // Verify both images are updated
-        long updatedCount = imgRepository.update(dir, ImageStatus.NOT_FOUND);
+        long updatedCount = imgRepository.updateStatusByParent(dir, ImageStatus.NOT_FOUND);
         assertEquals(
                 2,
                 updatedCount,
@@ -167,7 +170,7 @@ public class Neo4jImageRepositoryTests extends Neo4jEphemeralTest {
         );
 
         // Verify subsequent update affects 0 images
-        updatedCount = imgRepository.update(dir, ImageStatus.NOT_FOUND);
+        updatedCount = imgRepository.updateStatusByParent(dir, ImageStatus.NOT_FOUND);
         assertEquals(
                 0,
                 updatedCount,
@@ -187,58 +190,58 @@ public class Neo4jImageRepositoryTests extends Neo4jEphemeralTest {
                 .path("test_image.jpg")
                 .contentHash("12345")
                 .datetimeOriginal(LocalDateTime.MIN)
-                .gpsLatitude(BigDecimal.ONE)
-                .gpsLongitude(BigDecimal.TEN)
+                .gpsLatitude(1d)
+                .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
                 .status(ImageStatus.AVAILABLE)
                 .build();
-        imgRepository.save(parent, img1);
+        imgRepository.saveAsChild(parent, img1);
 
         Image img2 = Image.builder()
                 .path("test_image_2.jpg")
                 .contentHash("12345")
                 .datetimeOriginal(LocalDateTime.MIN)
-                .gpsLatitude(BigDecimal.ONE)
-                .gpsLongitude(BigDecimal.TEN)
+                .gpsLatitude(1d)
+                .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
                 .status(ImageStatus.AVAILABLE)
                 .build();
-        imgRepository.save(parent, img2);
+        imgRepository.saveAsChild(parent, img2);
 
         Directory nestedDir = Directory.builder()
                 .path("abc/test/nested")
                 .recursive(true)
                 .build();
-        dirRepository.save(parent, nestedDir);
+        dirRepository.saveAsChild(parent, nestedDir);
 
         Image nestedImg1 = Image.builder()
                 .path("nested_dir_img_1.jpg")
                 .contentHash("12345")
                 .datetimeOriginal(LocalDateTime.MIN)
-                .gpsLatitude(BigDecimal.ONE)
-                .gpsLongitude(BigDecimal.TEN)
+                .gpsLatitude(1d)
+                .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
                 .status(ImageStatus.AVAILABLE)
                 .build();
-        imgRepository.save(nestedDir, nestedImg1);
+        imgRepository.saveAsChild(nestedDir, nestedImg1);
 
         Image nestedImg2 = Image.builder()
                 .path("nested_dir_img_2.jpg")
                 .contentHash("12345")
                 .datetimeOriginal(LocalDateTime.MIN)
-                .gpsLatitude(BigDecimal.ONE)
-                .gpsLongitude(BigDecimal.TEN)
+                .gpsLatitude(1d)
+                .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
                 .status(ImageStatus.AVAILABLE)
                 .build();
-        imgRepository.save(nestedDir, nestedImg2);
+        imgRepository.saveAsChild(nestedDir, nestedImg2);
 
         // Update on 'parent' dir should impact only 2 images
-        long updatedCount = imgRepository.update(parent, ImageStatus.NOT_FOUND);
+        long updatedCount = imgRepository.updateStatusByParent(parent, ImageStatus.NOT_FOUND);
         assertEquals(
                 2,
                 updatedCount,
@@ -258,27 +261,27 @@ public class Neo4jImageRepositoryTests extends Neo4jEphemeralTest {
                 .path("test_image.jpg")
                 .contentHash("12345")
                 .datetimeOriginal(LocalDateTime.MIN)
-                .gpsLatitude(BigDecimal.ONE)
-                .gpsLongitude(BigDecimal.TEN)
+                .gpsLatitude(1d)
+                .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
                 .status(ImageStatus.NOT_FOUND)
                 .build();
-        imgRepository.save(parent, img1);
+        imgRepository.saveAsChild(parent, img1);
 
         Image img2 = Image.builder()
                 .path("test_image_2.jpg")
                 .contentHash("12345")
                 .datetimeOriginal(LocalDateTime.MIN)
-                .gpsLatitude(BigDecimal.ONE)
-                .gpsLongitude(BigDecimal.TEN)
+                .gpsLatitude(1d)
+                .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
                 .status(ImageStatus.NOT_FOUND)
                 .build();
-        imgRepository.save(parent, img2);
+        imgRepository.saveAsChild(parent, img2);
 
-        long deleteCount = imgRepository.delete(parent, ImageStatus.NOT_FOUND);
+        long deleteCount = imgRepository.deleteByParentAndStatus(parent, ImageStatus.NOT_FOUND);
         assertEquals(
                 2,
                 deleteCount,
@@ -392,7 +395,7 @@ public class Neo4jImageRepositoryTests extends Neo4jEphemeralTest {
 
     private Directory createDir(Directory parent, Directory dir) {
         if (parent != null) {
-            dirRepository.save(parent, dir);
+            dirRepository.saveAsChild(parent, dir);
         } else {
             dirRepository.save(dir);
         }
@@ -400,12 +403,13 @@ public class Neo4jImageRepositoryTests extends Neo4jEphemeralTest {
         return dir;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private Image createImage(Directory parent, String path, ImageStatus status) {
         Image img = Image.builder()
                 .path(path)
                 .status(status)
                 .build();
-        imgRepository.save(parent, img);
+        imgRepository.saveAsChild(parent, img);
         return img;
     }
 }

@@ -4,7 +4,6 @@ import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.persistence.models.ImageStatus;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +15,7 @@ public class ImgRowMapper {
     public Map<String, Object> asMap(Image image) {
         Map<String, Object> imgMap = new HashMap<>();
         imgMap.put("path", image.getPath());
+        imgMap.put("version", image.getVersion());
         imgMap.put("contentHash", image.getContentHash());
 
         // Add it to map even if its value is null
@@ -23,11 +23,11 @@ public class ImgRowMapper {
 
         imgMap.put("gpsLatitude", Objects.isNull(image.getGpsLatitude())
                 ? null
-                : image.getGpsLatitude().doubleValue()
+                : image.getGpsLatitude()
         );
         imgMap.put("gpsLongitude", Objects.isNull(image.getGpsLongitude())
                 ? null
-                : image.getGpsLongitude().doubleValue()
+                : image.getGpsLongitude()
         );
 
         imgMap.put("cameraMaker", image.getCameraMaker());
@@ -39,6 +39,7 @@ public class ImgRowMapper {
     public Image from(Map<String, Object> imgMap) {
         Image.ImageBuilder imgBuilder = Image.builder()
                 .path((String) imgMap.get("path"))
+                .version((Long) imgMap.get("version"))
                 .contentHash((String) imgMap.get("contentHash"))
                 .cameraMaker((String) imgMap.get("cameraMaker"))
                 .cameraModel((String) imgMap.get("cameraModel"))
@@ -51,15 +52,11 @@ public class ImgRowMapper {
         }
 
         if (Objects.nonNull(imgMap.get("gpsLatitude"))) {
-            imgBuilder.gpsLatitude(
-                    BigDecimal.valueOf((Double) imgMap.get("gpsLatitude"))
-            );
+            imgBuilder.gpsLatitude((Double) imgMap.get("gpsLatitude"));
         }
 
         if (Objects.nonNull(imgMap.get("gpsLongitude"))) {
-            imgBuilder.gpsLongitude(
-                    BigDecimal.valueOf((Double) imgMap.get("gpsLongitude"))
-            );
+            imgBuilder.gpsLongitude((Double) imgMap.get("gpsLongitude"));
         }
 
         return imgBuilder.build();

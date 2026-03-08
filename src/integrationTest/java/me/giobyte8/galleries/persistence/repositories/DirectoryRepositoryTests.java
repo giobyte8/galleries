@@ -2,23 +2,27 @@ package me.giobyte8.galleries.persistence.repositories;
 
 import me.giobyte8.galleries.persistence.models.DirStatus;
 import me.giobyte8.galleries.persistence.models.Directory;
+import me.giobyte8.galleries.scanner.BaseIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-public class Neo4jDirectoryRepositoryTests extends Neo4jEphemeralTest {
+@Import({
+        DirRowMapper.class,
+        ImgRowMapper.class,
+})
+class DirectoryRepositoryTests extends BaseIntegrationTest {
 
     @Autowired
-    private Neo4jDirectoryRepository dirRepository;
+    private DirectoryRepository dirRepository;
 
     @Test
     void findNonExistent() {
-        Directory dir = dirRepository.findBy("non/existent/dir");
+        Directory dir = dirRepository.findByPath("non/existent/dir");
         assertNull(dir);
     }
 
@@ -30,28 +34,81 @@ public class Neo4jDirectoryRepositoryTests extends Neo4jEphemeralTest {
                 .build();
 
         dirRepository.save(dir);
-        Directory dirDb = dirRepository.findBy(path);
+        Directory dirDb = dirRepository.findById(path).orElseThrow();
 
         assert dirDb.equals(dir);
     }
 
     @Test
-    void saveWithParent() {
+    void saveAndFindByPath() {
+        final String path = "test/portraits";
+        Directory dir = Directory.builder()
+                .path(path)
+                .build();
+
+        dirRepository.save(dir);
+        Directory dirDb = dirRepository.findByPath(path);
+
+        assert dirDb.equals(dir);
+    }
+
+    @Test
+    void saveAsChild() {
+        var parentPath = "test";
+        var childPath = "test/portraits";
+
         Directory parent = Directory.builder()
-                .path("test")
+                .path(parentPath)
                 .build();
         dirRepository.save(parent);
 
         Directory portraits = Directory.builder()
-                .path("test/portraits")
+                .path(childPath)
                 .build();
 
         // Save child and associate to parent
-        dirRepository.save(parent, portraits);
+        var portraitsDirOpt = dirRepository.saveAsChild(parent, portraits);
+        assertTrue(
+                portraitsDirOpt.isPresent(),
+                "Should return Optional with saved child"
+        );
+        assertEquals(
+                portraits,
+                portraitsDirOpt.get(),
+                "Returned child should match input child"
+        );
 
         // Verify child dir was saved
-        Directory dbPortraitsDir = dirRepository.findBy(portraits.getPath());
-        assert dbPortraitsDir.equals(portraits);
+        Directory dbPortraitsDir = dirRepository
+                .findById(portraits.getPath())
+                .orElseThrow();
+        assertEquals(portraits, dbPortraitsDir);
+    }
+
+    @Test
+    void saveAsChildNonExistentParent() {
+        var parentPath = "non/existent/parent";
+        var childPath = "non/existent/parent/child";
+
+        Directory parent = Directory.builder()
+                .path(parentPath)
+                .build();
+
+        Directory child = Directory.builder()
+                .path(childPath)
+                .build();
+
+        // Attempt to save child with non-existent parent
+        var childOpt = dirRepository.saveAsChild(parent, child);
+        assertTrue(
+                childOpt.isEmpty(),
+                "Should return empty Optional for non-existent parent"
+        );
+        assertEquals(
+                0,
+                dirRepository.count(),
+                "No directories should have been saved"
+        );
     }
 
     @Test
@@ -64,16 +121,17 @@ public class Neo4jDirectoryRepositoryTests extends Neo4jEphemeralTest {
         dirRepository.save(dir);
 
         // Update dir node
-        int countBeforeUpdate = dirRepository.count();
+        var countBeforeUpdate = dirRepository.count();
         dir.setRecursive(false);
         dirRepository.save(dir);
 
         // Assert no new dir node was created
-        int countAfterUpdate = dirRepository.count();
+        var countAfterUpdate = dirRepository.count();
         assert countAfterUpdate == countBeforeUpdate;
 
         // Assert dir node was updated in database
-        assert dir.equals(dirRepository.findBy(path));
+        var dbDir = dirRepository.findById(path).orElseThrow();
+        assertEquals(dir, dbDir);
     }
 
     @Test
@@ -85,7 +143,7 @@ public class Neo4jDirectoryRepositoryTests extends Neo4jEphemeralTest {
 
         // Update children to 'VERIFYING' status
         long updatedCount = dirRepository
-                .updateByParent(parent, DirStatus.VERIFYING);
+                .updateStatusByParent(parent, DirStatus.VERIFYING);
 
         // Only two should be updated since the third one is already on 'VERIFYING'
         assertEquals(2, updatedCount, "Updated count should be 2");
@@ -99,7 +157,7 @@ public class Neo4jDirectoryRepositoryTests extends Neo4jEphemeralTest {
         Directory dir3 = createDir(parent, "test/parent/dir3", DirStatus.SCAN_PENDING);
 
         Set<Directory> dirsInVerifying = dirRepository
-                .findBy(parent, DirStatus.VERIFYING);
+                .findByParentPathAndStatus(parent, DirStatus.VERIFYING);
 
         assertEquals(2, dirsInVerifying.size());
         assertTrue(dirsInVerifying.contains(dir1));
@@ -116,7 +174,7 @@ public class Neo4jDirectoryRepositoryTests extends Neo4jEphemeralTest {
         createDir("test/parent/dir2", DirStatus.VERIFYING);
 
         Set<Directory> dirsInVerifying = dirRepository
-                .findBy(parent, DirStatus.VERIFYING);
+                .findByParentPathAndStatus(parent, DirStatus.VERIFYING);
         assertTrue(dirsInVerifying.isEmpty(), "Should return empty set");
     }
 
@@ -131,7 +189,7 @@ public class Neo4jDirectoryRepositoryTests extends Neo4jEphemeralTest {
                 .build();
 
         Set<Directory> dirsInVerifying = dirRepository
-                .findBy(parent, DirStatus.VERIFYING);
+                .findByParentPathAndStatus(parent, DirStatus.VERIFYING);
         assertTrue(dirsInVerifying.isEmpty(), "Should return empty set");
     }
 
@@ -167,7 +225,11 @@ public class Neo4jDirectoryRepositoryTests extends Neo4jEphemeralTest {
         return createDir(parent, dir);
     }
 
-    private Directory createDir(String path, DirStatus status) {
+    @SuppressWarnings("UnusedReturnValue")
+    private Directory createDir(
+            String path,
+            @SuppressWarnings("SameParameterValue") DirStatus status
+    ) {
         Directory dir = Directory.builder()
                 .path(path)
                 .status(status)
@@ -187,7 +249,7 @@ public class Neo4jDirectoryRepositoryTests extends Neo4jEphemeralTest {
 
     private Directory createDir(Directory parent, Directory dir) {
         if (parent != null) {
-            dirRepository.save(parent, dir);
+            dirRepository.saveAsChild(parent, dir);
         } else {
             dirRepository.save(dir);
         }

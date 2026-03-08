@@ -22,9 +22,9 @@ public class ImageService {
     public Stream<Image> findByParent(String parentPath)
             throws DirectoryNotFoundException {
 
-        var parent = dirRepository.findBy(parentPath);
+        var parent = dirRepository.findByPath(parentPath);
         if (parent == null) throw new DirectoryNotFoundException(parentPath);
 
-        return imgRepository.findBy(parent);
+        return imgRepository.findByParent(parent);
     }
 }

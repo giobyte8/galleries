@@ -21,7 +21,7 @@ public class ScanService {
         log.debug("Processing scan request: {}", scanRequest);
 
         // Verify directory exist
-        Directory directory = dirRepository.findBy(scanRequest.path());
+        Directory directory = dirRepository.findByPath(scanRequest.path());
         if (directory == null) {
             log.error(
                     "Scan request directory not found in DB: {}",

@@ -24,6 +24,6 @@ public class DirectoryService {
     public List<Directory> directories(String parentPath) {
         return Objects.isNull(parentPath)
                 ? dirRepository.findRoots()
-                : dirRepository.findByParentPath(parentPath);
+                : dirRepository.findChildren(parentPath);
     }
 }

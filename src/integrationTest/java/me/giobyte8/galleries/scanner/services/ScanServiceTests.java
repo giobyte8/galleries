@@ -1,13 +1,13 @@
 package me.giobyte8.galleries.scanner.services;
 
-import me.giobyte8.galleries.scanner.dto.ScanRequest;
-import me.giobyte8.galleries.scanner.metrics.Metric;
-import me.giobyte8.galleries.scanner.metrics.MetricsService;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.ImageStatus;
 import me.giobyte8.galleries.persistence.repositories.DirectoryRepository;
 import me.giobyte8.galleries.persistence.repositories.ImageRepository;
-import me.giobyte8.galleries.persistence.repositories.Neo4jEphemeralTest;
+import me.giobyte8.galleries.scanner.BaseIntegrationTest;
+import me.giobyte8.galleries.scanner.dto.ScanRequest;
+import me.giobyte8.galleries.scanner.metrics.Metric;
+import me.giobyte8.galleries.scanner.metrics.MetricsService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @SpringBootTest
-public class ScanServiceTests extends Neo4jEphemeralTest {
+public class ScanServiceTests extends BaseIntegrationTest {
 
     @Autowired
     private ScanService scanService;
@@ -50,7 +50,7 @@ public class ScanServiceTests extends Neo4jEphemeralTest {
         scanService.scan(request);
 
         // Verify three images were found
-        assertThat(imgRepo.countBy(ImageStatus.AVAILABLE))
+        assertThat(imgRepo.countByStatus(ImageStatus.AVAILABLE))
                 .isEqualTo(3);
 
         // Verify no new directories were created
@@ -74,7 +74,7 @@ public class ScanServiceTests extends Neo4jEphemeralTest {
         scanService.scan(request);
 
         // Verify all images were found
-        assertThat(imgRepo.countBy(ImageStatus.AVAILABLE))
+        assertThat(imgRepo.countByStatus(ImageStatus.AVAILABLE))
                 .isEqualTo(7);
 
         // Verify two new directories were created
@@ -97,7 +97,7 @@ public class ScanServiceTests extends Neo4jEphemeralTest {
         scanService.scan(request);
 
         // Verify all images were found
-        assertThat(imgRepo.countBy(ImageStatus.AVAILABLE))
+        assertThat(imgRepo.countByStatus(ImageStatus.AVAILABLE))
                 .isEqualTo(2);
 
         // Verify no new directories were created

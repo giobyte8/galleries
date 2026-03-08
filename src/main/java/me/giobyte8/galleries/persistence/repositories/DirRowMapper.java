@@ -11,9 +11,13 @@ import java.util.Map;
 public class DirRowMapper {
 
     public Directory from(Map<String, Object> dirMap) {
+        Number versionNumber = (Number) dirMap.get("version");
+        Long version = versionNumber == null ? null : versionNumber.longValue();
+
         return Directory
                 .builder()
                 .path((String) dirMap.get("path"))
+                .version(version)
                 .recursive((Boolean) dirMap.get("recursive"))
                 .status(DirStatus.valueOf((String) dirMap.get("status")))
                 .build();

@@ -1,5 +1,9 @@
 package me.giobyte8.galleries.scanner;
 
+import org.junit.jupiter.api.AfterEach;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -10,6 +14,7 @@ import org.testcontainers.rabbitmq.RabbitMQContainer;
 @SpringBootTest
 public abstract class BaseIntegrationTest {
 
+    // Started once when the class is loaded, reused for all test classes
     protected static final Neo4jContainer neo4j =
             new Neo4jContainer("neo4j:5.20-community-bullseye")
                     .withoutAuthentication();
@@ -29,5 +34,16 @@ public abstract class BaseIntegrationTest {
     @DynamicPropertySource
     static void overrideProps(DynamicPropertyRegistry registry) {
         registry.add("neo4j.uri", neo4j::getBoltUrl);
+
+        // Support for spring data neo4j
+        registry.add("spring.neo4j.uri", neo4j::getBoltUrl);
+    }
+
+    @AfterEach
+    void cleanup(@Autowired Driver n4jDriver) {
+        try (Session session = n4jDriver.session()) {
+            String deleteAll = "MATCH (n) DETACH DELETE n";
+            session.executeWriteWithoutResult(ctx -> ctx.run(deleteAll));
+        }
     }
 }

@@ -28,10 +28,10 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
     public void onScanStarted(Directory dir) {
 
         // Set all images under dir to 'VERIFYING' status
-        imgRepository.update(dir, ImageStatus.VERIFYING);
+        imgRepository.updateStatusByParent(dir, ImageStatus.VERIFYING);
 
         // Set all children directories to 'VERIFYING' status
-        dirRepository.updateByParent(dir, DirStatus.VERIFYING);
+        dirRepository.updateStatusByParent(dir, DirStatus.VERIFYING);
 
         dir.setStatus(DirStatus.SCAN_IN_PROGRESS);
         dirRepository.save(dir);
@@ -68,7 +68,7 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
 
         // Process children directories that remains in 'VERIFYING' status
         dirRepository
-                .findBy(dir, DirStatus.VERIFYING)
+                .findByParentPathAndStatus(dir, DirStatus.VERIFYING)
                 .forEach(notFoundDir -> {
 
                     // Remove all descendant images from not found dir and
@@ -97,25 +97,25 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
 
     @Override
     public void onDirFound(Directory parent, Directory dir) {
-        dirRepository.save(parent, dir);
+        dirRepository.saveAsChild(parent, dir);
     }
 
     @Override
     public void onNewImageFound(Directory parent, Image img) {
-        imgRepository.save(parent, img);
+        imgRepository.saveAsChild(parent, img);
         thumbnailsSvc.generateThumbnails(Path.of(img.getPath()));
     }
 
     @Override
     public void onUpdatedImageFound(Directory parent, Image img) {
-        imgRepository.save(parent, img);
+        imgRepository.saveAsChild(parent, img);
         thumbnailsSvc.refreshThumbnails(Path.of(img.getPath()));
     }
 
     @Override
     public void onUnchangedImageFound(Directory parent, Image img) {
         img.setStatus(ImageStatus.AVAILABLE);
-        imgRepository.save(parent, img);
+        imgRepository.saveAsChild(parent, img);
     }
 
     @Override
