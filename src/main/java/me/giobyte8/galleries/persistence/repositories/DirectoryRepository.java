@@ -9,14 +9,16 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface DirectoryRepository extends
-        CrudRepository<Directory, String>,
-        PagingAndSortingRepository<Directory, String>,
+        CrudRepository<Directory, UUID>,
+        PagingAndSortingRepository<Directory, UUID>,
         CustomizedDirectoryRepository {
 
-    Directory findByPath(String path);
+    Optional<Directory> findByPath(String path);
 
     @Query("""
             MATCH (parent:Directory { path: $parentPath })

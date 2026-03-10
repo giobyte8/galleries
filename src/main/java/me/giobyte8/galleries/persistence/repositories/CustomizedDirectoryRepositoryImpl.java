@@ -57,19 +57,26 @@ public class CustomizedDirectoryRepositoryImpl implements CustomizedDirectoryRep
                 MERGE (parent)-[:CONTAINS]->(d:Directory { path: $path })
                 ON CREATE
                   SET
+                    d.id        = $id,
                     d.recursive = $recursive,
-                    d.status = $status,
-                    d.version = 0
+                    d.version   = 0,
+                    d.status    = $status
                 ON MATCH
                   SET
                     d.recursive = $recursive,
-                    d.status = $status,
-                    d.version = coalesce(d.version, 0) + 1
+                    d.version   = coalesce(d.version, 0) + 1,
+                    d.status    = $status
                 RETURN d;""";
 
         Map<String, Object> params = new HashMap<>();
         params.put("parentPath", parent.getPath());
         params.put("path", directory.getPath());
+
+        // Generate new UUID when Spring Data Neo4j hasn't assigned an ID yet
+        params.put("id", Objects.isNull(directory.getId())
+                ? UUID.randomUUID().toString()
+                : directory.getId().toString()
+        );
         params.put("recursive", directory.isRecursive());
         params.put("status", directory.getStatus().toString());
 
@@ -81,9 +88,10 @@ public class CustomizedDirectoryRepositoryImpl implements CustomizedDirectoryRep
                 )
                 .one();
 
-        upsertedDirOpt.ifPresent(upsertedDir ->
-                directory.setVersion(upsertedDir.getVersion())
-        );
+        upsertedDirOpt.ifPresent(upsertedDir -> {
+            directory.setId(upsertedDir.getId());
+            directory.setVersion(upsertedDir.getVersion());
+        });
 
         return upsertedDirOpt;
     }

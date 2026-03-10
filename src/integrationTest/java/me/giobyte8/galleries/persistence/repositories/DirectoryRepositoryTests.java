@@ -25,21 +25,22 @@ class DirectoryRepositoryTests extends BaseIntegrationTest {
 
     @Test
     void findNonExistent() {
-        Directory dir = dirRepository.findByPath("non/existent/dir");
-        assertNull(dir);
+        var dirOpt = dirRepository.findByPath("non/existent/dir");
+        assertTrue(dirOpt.isEmpty());
     }
 
     @Test
-    void saveAndFind() {
+    void saveAndFindById() {
         final String path = "test/portraits";
         Directory dir = Directory.builder()
                 .path(path)
                 .build();
 
         dirRepository.save(dir);
-        Directory dirDb = dirRepository.findById(path).orElseThrow();
+        var dirOpt = dirRepository.findById(dir.getId());
 
-        assert dirDb.equals(dir);
+        assertTrue(dirOpt.isPresent());
+        assertEquals(dir, dirOpt.get());
     }
 
     @Test
@@ -50,9 +51,10 @@ class DirectoryRepositoryTests extends BaseIntegrationTest {
                 .build();
 
         dirRepository.save(dir);
-        Directory dirDb = dirRepository.findByPath(path);
+        var dirOpt = dirRepository.findByPath(path);
 
-        assert dirDb.equals(dir);
+        assertTrue(dirOpt.isPresent());
+        assertEquals(dir, dirOpt.get());
     }
 
     @Test
@@ -83,7 +85,7 @@ class DirectoryRepositoryTests extends BaseIntegrationTest {
 
         // Verify child dir was saved
         Directory dbPortraitsDir = dirRepository
-                .findById(portraits.getPath())
+                .findByPath(portraits.getPath())
                 .orElseThrow();
         assertEquals(portraits, dbPortraitsDir);
     }
@@ -133,7 +135,7 @@ class DirectoryRepositoryTests extends BaseIntegrationTest {
         assert countAfterUpdate == countBeforeUpdate;
 
         // Assert dir node was updated in database
-        var dbDir = dirRepository.findById(path).orElseThrow();
+        var dbDir = dirRepository.findByPath(path).orElseThrow();
         assertEquals(dir, dbDir);
     }
 
