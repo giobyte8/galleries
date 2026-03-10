@@ -1,14 +1,12 @@
 package me.giobyte8.galleries.api;
 
 import lombok.RequiredArgsConstructor;
+import me.giobyte8.galleries.CreateDirectoryDto;
+import me.giobyte8.galleries.exceptions.DirectoryNotFoundException;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.services.DirectoryService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/directories")
@@ -17,10 +15,25 @@ public class DirectoriesController {
 
     private final DirectoryService directorySvc;
 
-    @GetMapping
-    public List<Directory> directories(
-            @RequestParam(required = false) String parentPath
+    @PostMapping
+    public Directory createDirectory(
+            @RequestBody CreateDirectoryDto createDirDto
     ) {
-        return directorySvc.directories(parentPath);
+        // TODO Validate path
+        return directorySvc.createDirectory(createDirDto);
+    }
+
+    @GetMapping
+    public Directory directoryByPath(@RequestParam String path) {
+        return directorySvc
+                .directoryByPath(path)
+                .orElseThrow(() -> new DirectoryNotFoundException(path));
+    }
+
+    // Handle DirectoryNotFoundException and return 404
+    @ExceptionHandler(DirectoryNotFoundException.class)
+    @ResponseStatus(code = HttpStatus.NOT_FOUND)
+    public String handleDirectoryNotFound(DirectoryNotFoundException ex) {
+        return ex.getMessage();
     }
 }
