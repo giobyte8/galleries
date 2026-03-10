@@ -226,7 +226,7 @@ class DirectoryRepositoryTests extends BaseIntegrationTest {
         }
 
         var page = dirRepository.findChildren(
-                parentPath,
+                root.getId(),
                 PageRequest.of(1, 3)
         );
 
@@ -253,7 +253,8 @@ class DirectoryRepositoryTests extends BaseIntegrationTest {
     void findRoots() {
         createDir("root1");
         createDir("root2");
-        createDir("root3");
+        var root3 = createDir("root3");
+        createDir(root3, "root3/children1");
 
         var page = dirRepository.findRoots(PageRequest.of(0, 2));
         assertEquals(

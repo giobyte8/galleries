@@ -2,13 +2,14 @@ package me.giobyte8.galleries.services;
 
 import lombok.RequiredArgsConstructor;
 import me.giobyte8.galleries.CreateDirectoryDto;
+import me.giobyte8.galleries.dto.Page;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.repositories.DirectoryRepository;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -16,17 +17,16 @@ public class DirectoryService {
 
     private final DirectoryRepository dirRepository;
 
-    /**
-     * Get directories contained in a given parent directory.
-     * If parentPath is null, return root directories.
-     *
-     * @param parentPath the parent directory, or null for root directories
-     * @return a list of directories contained in the given parent directory
-     */
-    public List<Directory> directories(String parentPath) {
-        return Objects.isNull(parentPath)
-                ? dirRepository.findRoots()
-                : dirRepository.findChildren(parentPath);
+    public Page<Directory> getRoots(Pageable pageable) {
+        return Page.from(dirRepository.findRoots(pageable));
+    }
+
+    public Page<Directory> getChildren(UUID parentId, Pageable pageable) {
+        return Page.from(dirRepository.findChildren(parentId, pageable));
+    }
+
+    public Optional<Directory> getById(UUID directoryId) {
+        return dirRepository.findById(directoryId);
     }
 
     public Directory createDirectory(CreateDirectoryDto createDirDto) {
@@ -37,9 +37,5 @@ public class DirectoryService {
 
         // TODO Handle non unique 'path' error
         return dirRepository.save(dir);
-    }
-
-    public Optional<Directory> directoryByPath(String path) {
-        return dirRepository.findByPath(path);
     }
 }

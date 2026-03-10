@@ -1,7 +1,7 @@
 package me.giobyte8.galleries.exceptions;
 
 public class DirectoryNotFoundException extends RuntimeException {
-    public DirectoryNotFoundException(String parentPath) {
-        super("Directory not found: " + parentPath);
+    public DirectoryNotFoundException(String msg) {
+        super("Directory not found: " + msg);
     }
 }

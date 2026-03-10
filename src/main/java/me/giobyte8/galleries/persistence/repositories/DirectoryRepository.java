@@ -8,7 +8,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,17 +19,9 @@ public interface DirectoryRepository extends
 
     Optional<Directory> findByPath(String path);
 
-    @Query("""
-            MATCH (parent:Directory { path: $parentPath })
-                -[:CONTAINS]
-                ->(dir:Directory)
-            RETURN dir
-            ORDER BY dir.path ASC;""")
-    List<Directory> findChildren(String parentPath);
-
     @Query(
             value = """
-                    MATCH (parent:Directory { path: $parentPath })
+                    MATCH (parent:Directory { id: $parentId })
                         -[:CONTAINS]
                         ->(dir:Directory)
                     RETURN dir
@@ -38,25 +29,12 @@ public interface DirectoryRepository extends
                         SKIP $skip
                        LIMIT $limit""",
             countQuery = """
-                    MATCH (parent:Directory { path: $parentPath })
+                    MATCH (parent:Directory { id: $parentId })
                         -[:CONTAINS]
                         ->(dir:Directory)
                     RETURN count(dir)"""
     )
-    Page<Directory> findChildren(String parentPath, Pageable pageable);
-
-    /**
-     * Finds root directories, i.e., directories that don't
-     * have a parent directory.
-     *
-     * @return List of root directories sorted by path
-     */
-    @Query("""
-            MATCH (d:Directory)
-            WHERE NOT ( ()-[:CONTAINS]->(d) )
-            RETURN d
-            ORDER BY d.path ASC;""")
-    List<Directory> findRoots();
+    Page<Directory> findChildren(UUID parentId, Pageable pageable);
 
     /**
      * Finds root directories, i.e., directories that don't
