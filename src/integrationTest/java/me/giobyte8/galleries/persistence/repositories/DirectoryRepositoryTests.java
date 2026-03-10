@@ -6,6 +6,7 @@ import me.giobyte8.galleries.scanner.BaseIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.Set;
 
@@ -207,6 +208,67 @@ class DirectoryRepositoryTests extends BaseIntegrationTest {
 
         deleteCount = dirRepository.deleteWithDescendants(root);
         assertEquals(4, deleteCount, "Deleted count should be 6");
+    }
+
+    @Test
+    void findChildren() {
+        var parentPath = "root";
+        Directory root = createDir(parentPath);
+        for (int i = 9; i > 0; i--) {
+            createDir(
+                    root,
+                    String.format("%s/dir%d", parentPath, i)
+            );
+        }
+
+        var page = dirRepository.findChildren(
+                parentPath,
+                PageRequest.of(1, 3)
+        );
+
+        assertEquals(
+                9,
+                page.getTotalElements(),
+                "Total elements in DB should be 9"
+        );
+        assertEquals(
+                3,
+                page.getNumberOfElements(),
+                "Page should contain 3 elements");
+        assertEquals(
+                "root/dir4",
+                page.getContent().get(0).getPath(),
+                "First element should be 'root/dir4'");
+        assertEquals(
+                "root/dir5",
+                page.getContent().get(1).getPath(),
+                "Second element should be 'root/dir5'");
+    }
+
+    @Test
+    void findRoots() {
+        createDir("root1");
+        createDir("root2");
+        createDir("root3");
+
+        var page = dirRepository.findRoots(PageRequest.of(0, 2));
+        assertEquals(
+                3,
+                page.getTotalElements(),
+                "Total elements in DB should be 3"
+        );
+        assertEquals(
+                2,
+                page.getNumberOfElements(),
+                "Page should contain 2 elements");
+        assertEquals(
+                "root1",
+                page.getContent().get(0).getPath(),
+                "First element should be 'root1'");
+        assertEquals(
+                "root2",
+                page.getContent().get(1).getPath(),
+                "Second element should be 'root2'");
     }
 
     private Directory createDir(String path) {
