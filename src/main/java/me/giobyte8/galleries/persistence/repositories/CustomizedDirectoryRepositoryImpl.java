@@ -1,5 +1,6 @@
 package me.giobyte8.galleries.persistence.repositories;
 
+import me.giobyte8.galleries.persistence.mappers.DirRowMapper;
 import me.giobyte8.galleries.persistence.models.DirStatus;
 import me.giobyte8.galleries.persistence.models.Directory;
 import org.springframework.data.neo4j.core.Neo4jClient;

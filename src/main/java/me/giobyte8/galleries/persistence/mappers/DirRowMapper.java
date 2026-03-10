@@ -1,4 +1,4 @@
-package me.giobyte8.galleries.persistence.repositories;
+package me.giobyte8.galleries.persistence.mappers;
 
 import me.giobyte8.galleries.persistence.models.DirStatus;
 import me.giobyte8.galleries.persistence.models.Directory;

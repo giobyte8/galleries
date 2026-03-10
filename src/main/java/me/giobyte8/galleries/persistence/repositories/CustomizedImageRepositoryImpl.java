@@ -1,5 +1,6 @@
 package me.giobyte8.galleries.persistence.repositories;
 
+import me.giobyte8.galleries.persistence.mappers.ImgRowMapper;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.persistence.models.ImageStatus;

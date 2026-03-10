@@ -1,5 +1,7 @@
 package me.giobyte8.galleries.persistence.repositories;
 
+import me.giobyte8.galleries.persistence.mappers.DirRowMapper;
+import me.giobyte8.galleries.persistence.mappers.ImgRowMapper;
 import me.giobyte8.galleries.persistence.models.DirStatus;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.scanner.BaseIntegrationTest;
