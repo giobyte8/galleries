@@ -6,11 +6,8 @@ import me.giobyte8.galleries.persistence.models.ImageStatus;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 
 public interface CustomizedImageRepository {
-
-    Stream<Image> findByParent(Directory parent);
 
     /**
      * Upserts image to database and associate it to

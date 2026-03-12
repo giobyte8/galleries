@@ -1,28 +1,26 @@
 package me.giobyte8.galleries.api;
 
 import lombok.RequiredArgsConstructor;
-import me.giobyte8.galleries.exceptions.DirectoryNotFoundException;
+import me.giobyte8.galleries.dto.Page;
 import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.services.ImageService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/images")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class ImagesController {
     private final ImageService imageSvc;
 
-    @GetMapping
-    public List<Image> findByParent(
-            @RequestParam String parentPath
-    ) throws DirectoryNotFoundException {
-        return imageSvc
-                .findByParent(parentPath)
-                .toList();
+    @GetMapping("/directories/{directoryId}/images")
+    public Page<Image> getByDirectory(
+            @PathVariable UUID directoryId,
+            @RequestParam(defaultValue = "false") boolean recursive,
+            Pageable pageable
+    ) {
+        return imageSvc.getByParentDirId(directoryId, recursive, pageable);
     }
 }

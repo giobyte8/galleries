@@ -9,12 +9,16 @@ import me.giobyte8.galleries.scanner.BaseIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @Import({
         DirRowMapper.class,
@@ -377,6 +381,135 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         Set<String> deletedImgPaths = imgRepository
                 .multilevelDeleteAndGetPaths(root);
         assertTrue(deletedImgPaths.isEmpty());
+    }
+
+    @Test
+    void findByParentPath() {
+        prepareTestGraph();
+        var dir2 = dirRepository.findByPath("root/dir2/").orElseThrow();
+        var dir3 = dirRepository.findByPath("root/dir2/dir3/").orElseThrow();
+
+        var img4 = imgRepository.findByPath("root/dir2/img4.jpg");
+        var img5 = imgRepository.findByPath("root/dir2/img5.jpg");
+        var img6 = imgRepository.findByPath("root/dir2/dir3/img6.jpg");
+
+
+        // Retrieve images in dir3, should return only img6:
+        //
+        //     dir3/
+        //       \
+        //       img6
+        //
+        var page = imgRepository.findByParentId(
+                dir3.getId(),
+                PageRequest.of(
+                        0,
+                        10,
+                        Sort.by(ASC, "i.path")
+                )
+        );
+        assertEquals(1, page.getNumberOfElements());
+        assertEquals(1, page.getTotalElements());
+        assertEquals(img6, page.getContent().getFirst());
+
+
+        // Retrieve images in dir2, should return img4 and img5:
+        //
+        //   -|-----|------dir2/
+        //    |     |        \
+        //   img4  img5     dir3/
+        //
+        page = imgRepository.findByParentId(
+                dir2.getId(),
+                PageRequest.of(
+                        1,
+                        1,
+                        Sort.by(ASC, "i.path")
+                )
+        );
+        assertEquals(1, page.getNumberOfElements());
+        assertEquals(2, page.getTotalElements());
+        assertEquals(img5, page.getContent().getFirst());
+
+
+        // Retrieve images in dir2, in descending order by path,
+        // should return img4 and img5:
+        //
+        //   -|-----|------dir2/
+        //    |     |        \
+        //   img4  img5     dir3/
+        //
+        page = imgRepository.findByParentId(
+                dir2.getId(),
+                PageRequest.of(
+                        1,
+                        1,
+                        Sort.by(DESC, "i.path")
+                )
+        );
+        assertEquals(1, page.getNumberOfElements());
+        assertEquals(2, page.getTotalElements());
+        assertEquals(img4, page.getContent().getFirst());
+    }
+
+    @Test
+    void findByParentPathRecursively() {
+        prepareTestGraph();
+        var dir2 = dirRepository.findByPath("root/dir2/").orElseThrow();
+
+        // Retrieve images in dir2 recursively,
+        var page = imgRepository.findByParentIdRecursively(
+                dir2.getId(),
+                PageRequest.of(0, 2)
+        );
+        assertEquals(2, page.getNumberOfElements());
+        assertEquals(3, page.getTotalElements());
+
+
+        // Retrieve next page
+        page = imgRepository.findByParentIdRecursively(
+                dir2.getId(),
+                page.nextPageable()
+        );
+        assertEquals(1, page.getNumberOfElements());
+        assertEquals(3, page.getTotalElements());
+    }
+
+    private void prepareTestGraph() {
+        // Graphical representation of tested scenario
+        //
+        //      |-------|------ root/ ------------|
+        //      |       |                         |
+        //     img1    dir1/        |-----|------dir2/
+        //            /    \        |     |        \
+        //          img2  img3     img4  img5     dir3/
+        //                                           \
+        //                                          img6
+
+        String pathImg1 = "root/img1.jpg";
+        String pathImg2 = "root/dir1/img2.jpg";
+        String pathImg3 = "root/dir1/img3.jpg";
+        String pathImg4 = "root/dir2/img4.jpg";
+        String pathImg5 = "root/dir2/img5.jpg";
+        String pathImg6 = "root/dir2/dir3/img6.jpg";
+        Directory root = createDir("root/");
+
+        // root's children
+        createImage(root, pathImg1, ImageStatus.AVAILABLE);
+        Directory dir1 = createDir(root, "root/dir1/");
+        Directory dir2 = createDir(root, "root/dir2/");
+
+        // dir1's children
+        createImage(dir1, pathImg2, ImageStatus.AVAILABLE);
+        createImage(dir1, pathImg3, ImageStatus.AVAILABLE);
+
+        // dir2's children
+        createImage(dir2, pathImg4, ImageStatus.AVAILABLE);
+        createImage(dir2, pathImg5, ImageStatus.AVAILABLE);
+        Directory dir3 = createDir(dir2, "root/dir2/dir3/");
+
+        // dir3's child
+        createImage(dir3, pathImg6, ImageStatus.AVAILABLE);
     }
 
     private Directory createDir(String path) {

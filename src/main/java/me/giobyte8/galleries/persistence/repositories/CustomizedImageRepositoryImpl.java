@@ -8,7 +8,6 @@ import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 @Component
 public class CustomizedImageRepositoryImpl implements CustomizedImageRepository {
@@ -22,30 +21,6 @@ public class CustomizedImageRepositoryImpl implements CustomizedImageRepository 
     ) {
         this.neo4jClient = neo4jClient;
         this.rowMapper = rowMapper;
-    }
-
-    @Override
-    public Stream<Image> findByParent(Directory parent) {
-
-        // Currently restricting max depth to 5000 hops just as a safeguard
-        // for performance. Real limit should be evaluated once in prod
-        String findImagesQry = """
-                MATCH (d:Directory { path: $dirPath })
-                    -[:CONTAINS*..5000]
-                    ->(i:Image)
-                RETURN i""" ;
-
-        Map<String, Object> params = new HashMap<>(1);
-        params.put("dirPath", parent.getPath());
-
-        var results = neo4jClient.query(findImagesQry)
-                .bindAll(params)
-                .fetchAs(Image.class)
-                .mappedBy((_, record) ->
-                        rowMapper.from(record.get("i").asMap())
-                )
-                .all();
-        return results.stream();
     }
 
     @Override
