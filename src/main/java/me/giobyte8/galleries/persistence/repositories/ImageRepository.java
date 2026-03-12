@@ -9,6 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -19,7 +20,7 @@ public interface ImageRepository extends
 
     long countByStatus(ImageStatus status);
 
-    Image findByPath(String path);
+    Optional<Image> findByPath(String path);
 
     Image findByPathAndContentHash(String path, String contentHash);
 

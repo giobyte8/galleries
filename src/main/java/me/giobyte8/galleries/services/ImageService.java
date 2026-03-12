@@ -7,6 +7,7 @@ import me.giobyte8.galleries.persistence.repositories.ImageRepository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -14,7 +15,7 @@ import java.util.UUID;
 public class ImageService {
     private final ImageRepository imgRepository;
 
-    public Image findByPath(String path) {
+    public Optional<Image> findByPath(String path) {
         return imgRepository.findByPath(path);
     }
 

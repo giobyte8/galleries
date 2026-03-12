@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.stream.Stream;
 
@@ -122,8 +121,9 @@ public class LocalMediaScanner implements MediaScanner {
                     .build();
 
             // Look for same image found during previous scans
-            var dbImage = imageSvc.findByPath(path);
-            if (Objects.nonNull(dbImage)) {
+            var dbImageOpt = imageSvc.findByPath(path);
+            if (dbImageOpt.isPresent()) {
+                var dbImage = dbImageOpt.get();
 
                 // Hashes match, image has not changed
                 if (dbImage.getContentHash().equals(contentHash)) {

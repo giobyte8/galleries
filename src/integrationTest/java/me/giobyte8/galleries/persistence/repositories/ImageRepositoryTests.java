@@ -80,10 +80,19 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         imgRepository.saveAsChild(parent, img);
 
         // Assert image was saved
-        Image dbImg = imgRepository.findByPath(img.getPath());
-        assert dbImg != null;
+        var dbImgOpt = imgRepository.findByPath(img.getPath());
+        assertTrue(dbImgOpt.isPresent());
 
         // Assert image was added to parent dir
+        imgRepository.
+                findByParentId(parent.getId(), PageRequest.of(0, 10))
+                .getContent()
+                .stream()
+                .filter(i -> i.equals(img))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(
+                        "Saved image should be present in parent dir"
+                ));
     }
 
     @Test
@@ -102,7 +111,7 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
                 .build();
         imgRepository.saveAsChild(parent, img);
 
-        Image dbImg = imgRepository.findByPath("random.jpg");
+        Image dbImg = imgRepository.findByPath("random.jpg").orElseThrow();
         assertNull(dbImg.getGpsLatitude());
         assertNull(dbImg.getGpsLongitude());
     }
@@ -124,15 +133,15 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
                 .build();
         imgRepository.saveAsChild(parent, img);
 
-        Image dbImg = imgRepository.findByPath("random.jpg");
+        Image dbImg = imgRepository.findByPath("random.jpg").orElseThrow();
         assertNull(dbImg.getDatetimeOriginal());
     }
 
     @Test
     void findNonExistent() {
         String path = "test/not/found";
-        Image img = imgRepository.findByPath(path);
-        assertNull(img);
+        var imgOpt = imgRepository.findByPath(path);
+        assertTrue(imgOpt.isEmpty());
     }
 
     @Test
@@ -389,9 +398,9 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         var dir2 = dirRepository.findByPath("root/dir2/").orElseThrow();
         var dir3 = dirRepository.findByPath("root/dir2/dir3/").orElseThrow();
 
-        var img4 = imgRepository.findByPath("root/dir2/img4.jpg");
-        var img5 = imgRepository.findByPath("root/dir2/img5.jpg");
-        var img6 = imgRepository.findByPath("root/dir2/dir3/img6.jpg");
+        var img4 = imgRepository.findByPath("root/dir2/img4.jpg").orElseThrow();
+        var img5 = imgRepository.findByPath("root/dir2/img5.jpg").orElseThrow();
+        var img6 = imgRepository.findByPath("root/dir2/dir3/img6.jpg").orElseThrow();
 
 
         // Retrieve images in dir3, should return only img6:
