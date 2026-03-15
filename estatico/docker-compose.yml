@@ -1,0 +1,21 @@
+services:
+  estatico:
+    image: caddy:latest
+    container_name: estatico
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8880:8888/tcp"
+      - "8880:8888/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${DATA_MEDIA}:/data/media:ro
+      - ${DATA_THUMBS}:/data/thumbs:ro
+      - caddy_data:/data/caddy
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
+
