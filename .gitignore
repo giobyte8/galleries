@@ -43,3 +43,5 @@ out/
 # Drawio temporary files
 *.bkp
 *.dtmp
+
+application-local.yml
