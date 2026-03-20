@@ -14,6 +14,16 @@ public class TelemetryScanEventsListener implements ScanEventsListener {
     private final MetricsService metricsService;
 
     @Override
+    public void onScanStarted() {
+        metricsService.increment(Metric.SCAN_STARTED);
+    }
+
+    @Override
+    public void onScanCompleted() {
+        metricsService.increment(Metric.SCAN_COMPLETED);
+    }
+
+    @Override
     public void onScanStarted(Directory dir) {
         metricsService.increment(Metric.SCAN_DIR_STARTED);
     }

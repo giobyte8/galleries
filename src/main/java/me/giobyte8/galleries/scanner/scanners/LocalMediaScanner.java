@@ -45,15 +45,12 @@ public class LocalMediaScanner implements MediaScanner {
 
     @Override
     public void scan(Directory dir) {
-
-        // TODO Refactor into events hub 'scanStarted/beforeScan(ScanRequest)
-        //scanMediaObserver.onScanStarted(scanReq);
+        eventsHub.onScanStarted();
 
         scanPendingQueue.offer(dir);
         scanNext();
 
-        // TODO Refactor into events hub 'scanCompleted/afterScan(ScanRequest)
-        //scanMediaObserver.onScanCompleted(scanReq);
+        eventsHub.onScanCompleted();
     }
 
     private void scanNext() {

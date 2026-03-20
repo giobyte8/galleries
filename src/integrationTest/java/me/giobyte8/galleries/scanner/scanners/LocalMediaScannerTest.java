@@ -1,8 +1,8 @@
 package me.giobyte8.galleries.scanner.scanners;
 
-import me.giobyte8.galleries.scanner.BaseIntegrationTest;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
+import me.giobyte8.galleries.scanner.BaseIntegrationTest;
 import me.giobyte8.galleries.scanner.scanners.listeners.ScanEventsHub;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,13 @@ public class LocalMediaScannerTest extends BaseIntegrationTest {
 
         mediaScanner.scan(invalidDir);
 
-        // Verify events hub interactions
+        // Verify scan start/complete interactions
+        verify(eventsHub, times(1))
+                .onScanStarted();
+        verify(eventsHub, times(1))
+                .onScanCompleted();
+
+        // Verify events hub interactions for directory
         verify(eventsHub, times(1))
                 .onScanStarted(invalidDir);
         verify(eventsHub, times(1))
@@ -44,6 +50,12 @@ public class LocalMediaScannerTest extends BaseIntegrationTest {
         mediaScanner.scan(caDir);
 
         // Verify scan start/complete interactions
+        verify(eventsHub, times(1))
+                .onScanStarted();
+        verify(eventsHub, times(1))
+                .onScanCompleted();
+
+        // Verify scan start/complete interactions for directory
         verify(eventsHub, times(1))
                 .onScanStarted(caDir);
         verify(eventsHub, times(1))
@@ -65,6 +77,12 @@ public class LocalMediaScannerTest extends BaseIntegrationTest {
         mediaScanner.scan(rootDir);
 
         // Verify scan start/complete interactions
+        verify(eventsHub, times(1))
+                .onScanStarted();
+        verify(eventsHub, times(1))
+                .onScanCompleted();
+
+        // Verify scan start/complete interactions for directories
         verify(eventsHub, times(3))
                 .onScanStarted(any(Directory.class));
         verify(eventsHub, times(3))

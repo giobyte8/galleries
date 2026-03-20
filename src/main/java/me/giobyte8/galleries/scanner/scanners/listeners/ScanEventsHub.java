@@ -15,16 +15,30 @@ public class ScanEventsHub implements ScanEventsListener {
 
     public ScanEventsHub(
             GalleriesScanEventsListener galleriesEventsListener,
-            TelemetryScanEventsListener telemetryEventsListener
+            TelemetryScanEventsListener telemetryEventsListener,
+            StatsScanEventsListener statsEventsListener
     ) {
 
         // Subscribe built-in listeners
         subscribe(galleriesEventsListener);
         subscribe(telemetryEventsListener);
+        subscribe(statsEventsListener);
     }
 
     public void subscribe(ScanEventsListener listener) {
         listeners.add(listener);
+    }
+
+    @Override
+    public void onScanStarted() {
+        log.debug("Scan request started");
+        listeners.forEach(ScanEventsListener::onScanStarted);
+    }
+
+    @Override
+    public void onScanCompleted() {
+        log.debug("Scan request completed");
+        listeners.forEach(ScanEventsListener::onScanCompleted);
     }
 
     @Override

@@ -5,6 +5,9 @@ import lombok.Getter;
 @Getter
 public enum Metric {
 
+    SCAN_STARTED("scan.started"),
+    SCAN_COMPLETED("scan.completed"),
+
     SCAN_DIR_STARTED("scan.dir.started"),
     SCAN_DIR_COMPLETED("scan.dir.completed"),
     SCAN_DIR_FAILED("scan.dir.failed"),

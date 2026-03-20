@@ -5,6 +5,18 @@ import me.giobyte8.galleries.persistence.models.Image;
 
 public interface ScanEventsListener {
 
+    /**
+     * Called when a scan request starts processing
+     * (before any directory is scanned).
+     */
+    void onScanStarted();
+
+    /**
+     * Called when a scan request has fully completed
+     * (after all directories are scanned).
+     */
+    void onScanCompleted();
+
     void onScanStarted(Directory dir);
 
     void onScanCompleted(Directory dir);

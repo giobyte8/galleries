@@ -25,6 +25,12 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
     private final ThumbnailsService thumbnailsSvc;
 
     @Override
+    public void onScanStarted() { }
+
+    @Override
+    public void onScanCompleted() { }
+
+    @Override
     public void onScanStarted(Directory dir) {
 
         // Set all images under dir to 'VERIFYING' status
