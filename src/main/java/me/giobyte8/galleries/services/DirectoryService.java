@@ -1,7 +1,7 @@
 package me.giobyte8.galleries.services;
 
 import lombok.RequiredArgsConstructor;
-import me.giobyte8.galleries.CreateDirectoryDto;
+import me.giobyte8.galleries.dto.CreateDirectoryDto;
 import me.giobyte8.galleries.dto.Page;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.repositories.DirectoryRepository;

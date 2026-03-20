@@ -1,4 +1,4 @@
-package me.giobyte8.galleries;
+package me.giobyte8.galleries.dto;
 
 public record CreateDirectoryDto(
         String path,
