@@ -14,25 +14,25 @@ cd "$SCRIPT_PATH"
 
 # Source .env file if exists
 if [ -f .env ]; then
+
+  # Following variables are expected to be set in .env:
+  #   RABBITMQ_HOST, RABBITMQ_USER, RABBITMQ_PASS,
+  #   AMQP_EXCHANGE, AMQP_QUEUE_SCAN_REQUESTS
   source .env
 else
   echo ".env file not found. Exiting."
   exit 1
 fi
 
-#RABBITMQ_HOST=
-#RABBITMQ_USER=
-#RABBITMQ_PASS=
-#AMQP_EXCHANGE=GL_EXCHANGE
-#AMQP_QUEUE_SCAN_REQUESTS=
 RABBITMQ_API_PORT=15672
 
 # Message payload
 UUID=$(uuidgen)
+REQUESTED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 msg="{
   \"id\": \"$UUID\",
-  \"path\": \"Wallpapers/vertical\",
-  \"requestedAt\": \"2025-05-03T10:15:35\"
+  \"path\": \"Wallpapers\",
+  \"requestedAt\": \"$REQUESTED_AT\"
 }"
 j_msg=$(json_escape "$msg")
 
