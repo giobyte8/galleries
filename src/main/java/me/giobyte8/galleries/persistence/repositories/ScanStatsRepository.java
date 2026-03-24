@@ -1,6 +1,7 @@
 package me.giobyte8.galleries.persistence.repositories;
 
 import me.giobyte8.galleries.persistence.models.ScanStats;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
@@ -30,6 +31,7 @@ public interface ScanStatsRepository extends
      * @param pageable Pagination and sort parameters
      * @return Page of scan stats
      */
+    @NullMarked
     Page<ScanStats> findAll(Pageable pageable);
 
     /**
