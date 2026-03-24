@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:x-bind="http://www.w3.org/1999/xhtml"
+      xmlns:x-on="http://www.w3.org/1999/xhtml"
+      th:fragment="layout(title, content)"
+      x-data="themeManager()"
+      x-init="init()"
+      x-bind:data-bs-theme="effectiveTheme">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' – Galleries Admin'">Galleries Admin</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        /* Dim the scan button while HTMX request is in flight */
+        .htmx-request .spinner-border { display: inline-block !important; }
+        .htmx-request .btn-label      { display: none; }
+        .spinner-border                { display: none; }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-md bg-body-tertiary mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-semibold" th:href="@{/admin}">
+            🖼 Galleries Admin
+        </a>
+
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#adminNavbar"
+                aria-controls="adminNavbar"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="adminNavbar">
+            <div class="navbar-nav me-auto">
+                <a class="nav-link"
+                   th:classappend="${currentPage == 'galleries'} ? 'active'"
+                   th:href="@{/admin/galleries}">Galleries</a>
+                <a class="nav-link"
+                   th:classappend="${currentPage == 'scans'} ? 'active'"
+                   th:href="@{/admin/scans}">Scans</a>
+            </div>
+
+            <!-- Theme mode selector -->
+            <div class="dropdown mt-2 mt-md-0">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        x-bind:aria-label="'Theme: ' + modeLabel">
+                    <i class="bi bi-sun"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-md-end">
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2"
+                           href="#"
+                           x-on:click.prevent="setMode('system')"
+                           x-bind:class="mode === 'system' ? 'active' : ''">
+                            <span style="width:1em"
+                                  x-text="mode === 'system' ? '✓' : ''"></span>
+                            System
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2"
+                           href="#"
+                           x-on:click.prevent="setMode('light')"
+                           x-bind:class="mode === 'light' ? 'active' : ''">
+                            <span style="width:1em"
+                                  x-text="mode === 'light' ? '✓' : ''"></span>
+                            Light
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2"
+                           href="#"
+                           x-on:click.prevent="setMode('dark')"
+                           x-bind:class="mode === 'dark' ? 'active' : ''">
+                            <span style="width:1em"
+                                  x-text="mode === 'dark' ? '✓' : ''"></span>
+                            Dark
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Main content -->
+<main class="container">
+
+    <!-- Toast container (HTMX swaps toast body here) -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+        <div id="toast-container"></div>
+    </div>
+
+    <div th:replace="${content}"><!-- page content --></div>
+</main>
+
+<!-- Bootstrap JS bundle (required for toasts) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- HTMX -->
+<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+<!-- Alpine.js -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+<script>
+    function themeManager() {
+        return {
+            mode: localStorage.getItem('themeMode') || 'system',
+            systemDarkQuery: null,
+            systemIsDark: false,
+            init() {
+                this.systemDarkQuery = window.matchMedia(
+                    '(prefers-color-scheme: dark)'
+                );
+                this.systemIsDark = this.systemDarkQuery.matches;
+                this.systemDarkQuery.addEventListener('change', () => {
+                    if (this.mode === 'system') {
+                        this.systemIsDark = this.systemDarkQuery.matches;
+                    }
+                });
+            },
+            get effectiveTheme() {
+                if (this.mode === 'system') {
+                    return this.systemIsDark ? 'dark' : 'light';
+                }
+                return this.mode;
+            },
+            get modeLabel() {
+                if (this.mode === 'light') {
+                    return 'Light';
+                }
+                if (this.mode === 'dark') {
+                    return 'Dark';
+                }
+                return 'System';
+            },
+            setMode(mode) {
+                this.mode = mode;
+                localStorage.setItem('themeMode', mode);
+            }
+        }
+    }
+
+    // Show Bootstrap toast whenever HTMX swaps content into #toast-container
+    document.addEventListener('htmx:afterSwap', function (evt) {
+        if (evt.detail.target.id === 'toast-container') {
+            const toastEl = evt.detail.target.querySelector('.toast');
+            if (toastEl) {
+                bootstrap.Toast.getOrCreateInstance(toastEl).show();
+            }
+        }
+    });
+</script>
+</body>
+</html>
+

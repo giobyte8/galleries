@@ -17,6 +17,7 @@ public class ScannerProps {
     @Data
     public static class AMQPProps {
         private String exchangeGl;
+        private String queueScanRequests;
         private String queueGenThumbRequests;
         private String queueDelThumbRequests;
     }

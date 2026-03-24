@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div>
+
+    <div class="table-responsive d-none d-lg-block">
+        <table class="table table-hover align-middle">
+            <thead>
+            <tr>
+                <th>Path</th>
+                <th>Recursive</th>
+                <th>Scan Status</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr th:each="dir : ${directories.content}">
+                <td>
+                    <span class="font-monospace small text-decoration-underline"
+                          th:text="${dir.path}">path</span>
+                </td>
+                <td>
+                    <span th:if="${dir.recursive}"
+                          class="badge text-bg-primary">Yes</span>
+                    <span th:unless="${dir.recursive}"
+                          class="badge text-bg-secondary">No</span>
+                </td>
+                <td>
+                    <span th:switch="${dir.status.name()}">
+                        <span th:case="'SCAN_PENDING'"
+                              class="badge text-bg-secondary">Scan Pending</span>
+                        <span th:case="'SCAN_IN_PROGRESS'"
+                              class="badge text-bg-primary">
+                            <span class="spinner-border spinner-border-sm me-1"
+                                  role="status"></span>
+                            Scanning
+                        </span>
+                        <span th:case="'SCAN_COMPLETE'"
+                              class="badge text-bg-success">Scan Complete</span>
+                        <span th:case="'SCAN_FAILED'"
+                              class="badge text-bg-danger">Scan Failed</span>
+                        <span th:case="*"
+                              class="badge text-bg-secondary"
+                              th:text="${dir.status.name()}">Unknown</span>
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary"
+                            th:hx-post="@{'/admin/fragments/directories/' + ${dir.id} + '/trigger-scan'}"
+                            hx-target="#toast-container"
+                            hx-swap="innerHTML"
+                            hx-indicator="this">
+                        <span class="spinner-border spinner-border-sm me-1"
+                              role="status" aria-hidden="true"></span>
+                        <span class="btn-label">Scan now</span>
+                    </button>
+                </td>
+            </tr>
+
+            <tr th:if="${directories.content.isEmpty()}">
+                <td colspan="4" class="text-center text-muted py-4">
+                    No directories registered.
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-lg-none">
+        <div class="d-grid gap-3">
+            <div class="card"
+                 th:each="dir : ${directories.content}">
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <span class="font-monospace small text-decoration-underline"
+                                  th:text="${dir.path}">path</span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="small text-body-secondary">Recursive</div>
+                            <span th:if="${dir.recursive}"
+                                  class="badge text-bg-primary">Yes</span>
+                            <span th:unless="${dir.recursive}"
+                                  class="badge text-bg-secondary">No</span>
+                        </div>
+                        <div class="col-6">
+                            <div class="small text-body-secondary">Scan status</div>
+                            <span th:switch="${dir.status.name()}">
+                                <span th:case="'SCAN_PENDING'"
+                                      class="badge text-bg-secondary">Scan Pending</span>
+                                <span th:case="'SCAN_IN_PROGRESS'"
+                                      class="badge text-bg-primary">
+                                    <span class="spinner-border spinner-border-sm me-1"
+                                          role="status"></span>
+                                    Scanning
+                                </span>
+                                <span th:case="'SCAN_COMPLETE'"
+                                      class="badge text-bg-success">Scan Complete</span>
+                                <span th:case="'SCAN_FAILED'"
+                                      class="badge text-bg-danger">Scan Failed</span>
+                                <span th:case="*"
+                                      class="badge text-bg-secondary"
+                                      th:text="${dir.status.name()}">Unknown</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-end py-2">
+                    <div class="row">
+                        <div class="col-12">
+                            <button class="btn btn-sm btn-outline-primary"
+                                    th:hx-post="@{'/admin/fragments/directories/' + ${dir.id} + '/trigger-scan'}"
+                                    hx-target="#toast-container"
+                                    hx-swap="innerHTML"
+                                    hx-indicator="this">
+                                <span class="spinner-border spinner-border-sm me-1"
+                                      role="status" aria-hidden="true"></span>
+                                <span class="btn-label">Scan now</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${directories.content.isEmpty()}"
+                 class="text-center text-muted py-4 border rounded bg-body-tertiary">
+                No directories registered.
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${directories.totalPages > 1}" class="mt-3">
+        <div class="d-flex justify-content-center align-items-center gap-2">
+            <a class="btn btn-sm btn-outline-secondary"
+               th:classappend="${directories.number == 0} ? ' disabled'"
+               th:hx-get="@{/admin/fragments/galleries-table(page=${directories.number - 1}, size=${directories.size})}"
+               th:hx-push-url="@{/admin/galleries(page=${directories.number - 1}, size=${directories.size})}"
+               th:href="@{/admin/galleries(page=${directories.number - 1}, size=${directories.size})}"
+               hx-target="#galleries-table-container"
+               hx-swap="innerHTML">Previous</a>
+
+            <span class="badge text-bg-secondary"
+                  th:text="${directories.number + 1} + ' / ' + ${directories.totalPages}">
+            </span>
+
+            <a class="btn btn-sm btn-outline-secondary"
+               th:classappend="${directories.number + 1 ge directories.totalPages} ? ' disabled'"
+               th:hx-get="@{/admin/fragments/galleries-table(page=${directories.number + 1}, size=${directories.size})}"
+               th:hx-push-url="@{/admin/galleries(page=${directories.number + 1}, size=${directories.size})}"
+               th:href="@{/admin/galleries(page=${directories.number + 1}, size=${directories.size})}"
+               hx-target="#galleries-table-container"
+               hx-swap="innerHTML">Next</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+

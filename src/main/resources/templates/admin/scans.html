@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout('Scans', ~{::main})}">
+<main>
+    <div>
+        <h4>Scans</h4>
+    </div>
+
+    <div id="scans-table-container"
+         th:hx-get="@{/admin/fragments/scans-table(page=${pageable.pageNumber}, size=${pageable.pageSize}, path=${filterPath})}"
+         hx-trigger="load, every 30s"
+         hx-swap="innerHTML">
+        <p class="text-muted">Loading...</p>
+    </div>
+</main>
+</html>

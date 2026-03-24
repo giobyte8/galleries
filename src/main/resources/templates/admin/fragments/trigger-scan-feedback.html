@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="trigger-scan-feedback">
+
+    <div th:switch="${result.name()}">
+
+        <!-- Success -->
+        <div th:case="'QUEUED'"
+             class="toast align-items-center text-bg-success border-0"
+             role="alert" aria-live="assertive" aria-atomic="true"
+             data-bs-delay="4000">
+            <div class="d-flex">
+                <div class="toast-body">✅ Scan queued successfully.</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                        data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+
+        <!-- Not found -->
+        <div th:case="'NOT_FOUND'"
+             class="toast align-items-center text-bg-danger border-0"
+             role="alert" aria-live="assertive" aria-atomic="true"
+             data-bs-delay="5000">
+            <div class="d-flex">
+                <div class="toast-body">❌ Directory not found.</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                        data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+
+        <!-- Already in progress -->
+        <div th:case="'ALREADY_IN_PROGRESS'"
+             class="toast align-items-center text-bg-warning border-0"
+             role="alert" aria-live="assertive" aria-atomic="true"
+             data-bs-delay="5000">
+            <div class="d-flex">
+                <div class="toast-body">⚠️ Scan already in progress for this directory.</div>
+                <button type="button" class="btn-close me-2 m-auto"
+                        data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+
+        <!-- Publish failed -->
+        <div th:case="'PUBLISH_FAILED'"
+             class="toast align-items-center text-bg-danger border-0"
+             role="alert" aria-live="assertive" aria-atomic="true"
+             data-bs-delay="5000">
+            <div class="d-flex">
+                <div class="toast-body">❌ Unable to queue scan. Please try again.</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                        data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+
+    </div>
+
+</th:block>
+</body>
+</html>
+
