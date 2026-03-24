@@ -24,9 +24,11 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-data-neo4j'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 
 	implementation 'com.drewnoakes:metadata-extractor:2.19.0'
 	implementation 'commons-codec:commons-codec:1.20.0'
@@ -47,6 +49,7 @@ testing {
 			dependencies {
 				implementation 'org.springframework.boot:spring-boot-starter-test'
 				implementation 'org.springframework.boot:spring-boot-starter-data-neo4j-test'
+				implementation 'org.springframework.security:spring-security-test'
 			}
 		}
 

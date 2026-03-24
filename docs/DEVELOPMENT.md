@@ -35,6 +35,28 @@ neo4j.password: <value>
 galleries.scanner.content_dirs.root_path: ~/src/galleries/services/scanner/src/test/resources/galleries/cameras
 ```
 
+### Setup development users
+
+1. Generate a BCrypt hash for the default development password (`password`):
+
+```shell
+./scripts/encrypt_password.sh password
+```
+
+> If Python bcrypt is missing, install it first:
+
+```shell
+pip3 install bcrypt
+```
+
+2. Replace the placeholder hash in `scripts/dev_data_reset.cypher` with the
+   generated value and execute the script against your dev database.
+
+The seeded development admin user is:
+
+- username: `dev_admin`
+- password: `password` (before hashing)
+
 
 
 ## Testing

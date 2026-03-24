@@ -13,3 +13,17 @@ MERGE (walls:Directory {
     version: 0,
     status: 'SCAN_PENDING'
 });
+
+
+// --- ---
+// Create development user
+
+MERGE (u:AppUser {
+    id: '6e8c16e3-5b43-4f35-8c5b-737b23b422a1',
+    username: 'dev_admin',
+    password: '$2a$10$REPLACE_WITH_OUTPUT_OF_encrypt_password_sh',
+    roles: ['ROLE_ADMIN'],
+    enabled: true,
+    version: 0
+});
+

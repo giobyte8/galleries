@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:x-bind="http://www.w3.org/1999/xhtml"
+      xmlns:x-on="http://www.w3.org/1999/xhtml"
+      lang="en"
+      x-data="themeManager()"
+      x-init="init()"
+      x-bind:data-bs-theme="effectiveTheme">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Login - Galleries</title>
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body class="bg-body-tertiary">
+
+<main class="container min-vh-100 d-flex align-items-center justify-content-center py-4">
+    <div class="card shadow-sm" style="max-width: 420px; width: 100%;">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="h5 mb-0">Admin Login</h1>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            x-bind:aria-label="'Theme: ' + modeLabel">
+                        <i class="bi bi-sun"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                               href="#"
+                               x-on:click.prevent="setMode('system')"
+                               x-bind:class="mode === 'system' ? 'active' : ''">
+                                <span style="width:1em"
+                                      x-text="mode === 'system' ? 'x' : ''"></span>
+                                System
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                               href="#"
+                               x-on:click.prevent="setMode('light')"
+                               x-bind:class="mode === 'light' ? 'active' : ''">
+                                <span style="width:1em"
+                                      x-text="mode === 'light' ? 'x' : ''"></span>
+                                Light
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                               href="#"
+                               x-on:click.prevent="setMode('dark')"
+                               x-bind:class="mode === 'dark' ? 'active' : ''">
+                                <span style="width:1em"
+                                      x-text="mode === 'dark' ? 'x' : ''"></span>
+                                Dark
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div th:if="${param.error != null and param.error[0] == 'forbidden'}"
+                 class="alert alert-danger py-2" role="alert">
+                You are not authorized to access admin resources.
+            </div>
+
+            <div th:if="${param.error != null and param.error[0] != 'forbidden'}"
+                 class="alert alert-danger py-2" role="alert">
+                Invalid username or password.
+            </div>
+
+            <div th:if="${param.logout != null}"
+                 class="alert alert-success py-2" role="alert">
+                You have been logged out.
+            </div>
+
+            <form method="post" th:action="@{/admin/login}">
+                <input type="hidden"
+                       th:name="${_csrf.parameterName}"
+                       th:value="${_csrf.token}">
+
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input id="username"
+                           name="username"
+                           type="text"
+                           class="form-control"
+                           autocomplete="username"
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input id="password"
+                           name="password"
+                           type="password"
+                           class="form-control"
+                           autocomplete="current-password"
+                           required>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input id="remember-me"
+                           name="remember-me"
+                           type="checkbox"
+                           class="form-check-input">
+                    <label class="form-check-label" for="remember-me">
+                        Keep me signed in for 30 days
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Sign in</button>
+            </form>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script>
+    function themeManager() {
+        return {
+            mode: localStorage.getItem('themeMode') || 'system',
+            systemDarkQuery: null,
+            systemIsDark: false,
+            init() {
+                this.systemDarkQuery = window.matchMedia(
+                    '(prefers-color-scheme: dark)'
+                );
+                this.systemIsDark = this.systemDarkQuery.matches;
+                this.systemDarkQuery.addEventListener('change', () => {
+                    if (this.mode === 'system') {
+                        this.systemIsDark = this.systemDarkQuery.matches;
+                    }
+                });
+            },
+            get effectiveTheme() {
+                if (this.mode === 'system') {
+                    return this.systemIsDark ? 'dark' : 'light';
+                }
+                return this.mode;
+            },
+            get modeLabel() {
+                if (this.mode === 'light') {
+                    return 'Light';
+                }
+                if (this.mode === 'dark') {
+                    return 'Dark';
+                }
+                return 'System';
+            },
+            setMode(mode) {
+                this.mode = mode;
+                localStorage.setItem('themeMode', mode);
+            }
+        }
+    }
+</script>
+</body>
+</html>
+
+

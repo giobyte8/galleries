@@ -13,6 +13,8 @@ logging:
     me.giobyte8.galleries.scanner: DEBUG
 
 galleries:
+  security:
+    remember_me_key: ${GL_REMEMBER_ME_KEY:dev-unsafe-change-me}
   scanner:
     amqp:
       exchange_gl: GL_EXCHANGE

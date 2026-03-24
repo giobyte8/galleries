@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       xmlns:x-bind="http://www.w3.org/1999/xhtml"
       xmlns:x-on="http://www.w3.org/1999/xhtml"
       th:fragment="layout(title, content)"
@@ -9,6 +10,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title th:text="${title} + ' – Galleries Admin'">Galleries Admin</title>
 
     <!-- Bootstrap 5 CSS -->
@@ -54,8 +57,16 @@
                    th:href="@{/admin/scans}">Scans</a>
             </div>
 
-            <!-- Theme mode selector -->
-            <div class="dropdown mt-2 mt-md-0">
+            <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+                <form sec:authorize="isAuthenticated()"
+                      method="post"
+                      th:action="@{/admin/logout}">
+                    <button type="submit"
+                            class="btn btn-sm btn-outline-danger">Logout</button>
+                </form>
+
+                <!-- Theme mode selector -->
+                <div class="dropdown">
                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
                         type="button"
                         data-bs-toggle="dropdown"
@@ -95,6 +106,7 @@
                         </a>
                     </li>
                 </ul>
+            </div>
             </div>
         </div>
     </div>
@@ -164,6 +176,16 @@
             if (toastEl) {
                 bootstrap.Toast.getOrCreateInstance(toastEl).show();
             }
+        }
+    });
+
+    // Add CSRF header to all HTMX requests.
+    document.addEventListener('htmx:configRequest', function (evt) {
+        const csrf = document.querySelector('meta[name="_csrf"]');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+
+        if (csrf && csrfHeader) {
+            evt.detail.headers[csrfHeader.content] = csrf.content;
         }
     });
 </script>
