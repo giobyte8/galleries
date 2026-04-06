@@ -1,19 +1,43 @@
 package me.giobyte8.galleries.scanner.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
 public class MFMetadata {
+
+    /**
+     * Represents the instant and the timezone at which
+     * the media was captured
+     */
+    private ZonedDateTime captureDateTime;
+
+    /**
+     * Capture date time value as is stored in the media file. No conversion
+     * nor parsing is applied.
+     * <p>
+     * This value usually represents date and time in the local timezone where
+     * the photo/video was captured.
+     */
+    private String rawCaptureDateTime;
+
 
     /**
      * Original date and time when the photo was taken.
      * NOTE: The metadata-extractor library converts raw string into
      *       a localized Date using the system timezone.
      */
+    @Deprecated
     private Date datetimeOriginal;
 
     /**
@@ -24,6 +48,7 @@ public class MFMetadata {
      * This usually represents date and time in the local time zone where
      * photo was taken.
      */
+    @Deprecated
     private String datetimeOriginalRaw;
 
     /**
@@ -33,6 +58,7 @@ public class MFMetadata {
      * This is taken from the 'original time zone', which should match
      * the time zone where the photo was taken.
      */
+    @Deprecated
     private String tzOffset;
 
     private BigDecimal gpsLatitude;
@@ -41,30 +67,12 @@ public class MFMetadata {
     private String camMaker;
     private String camModel;
 
+    @Deprecated
     public Calendar dateTimeOriginal() {
         if (datetimeOriginal == null) return null;
 
         var cal = Calendar.getInstance();
         cal.setTime(datetimeOriginal);
-        return cal;
-    }
-
-    /**
-     * Returns the original date and time as a Calendar instance
-     * adjusted to the local time zone where the photo was taken.
-     * <br/>
-     *
-     * This is done by applying the time zone offset to the
-     * original datetime.
-     * TODO: Verify/Complete implementation (Use right timezone offset)
-     *       Assume time format as "yyyy:MM:dd HH:mm:ss"
-     */
-    public Calendar dateTimeLocalized() {
-        if (datetimeOriginal == null) return null;
-
-        var cal = Calendar.getInstance();
-        cal.setTime(datetimeOriginal);
-        cal.add(Calendar.MILLISECOND, cal.getTimeZone().getOffset(cal.getTimeInMillis()));
         return cal;
     }
 }
