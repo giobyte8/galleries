@@ -59,6 +59,26 @@ public class VideoMetaExtractorTests {
     }
 
     @Test
+    void mp4MediaFile_UTCNextDay() throws IOException {
+        var path = pathFor("lake_20231006_182745.mp4");
+        var meta = metaExtractor.extract(path);
+
+        assertThat(meta).isNotNull();
+
+        assertThat(meta.getCamMaker()).isEqualTo("Samsung");
+        assertThat(meta.getCamModel()).isEqualTo("SM-S918B");
+
+        // Verify extracted datetime matches
+        // Notice how datetime is the next day of "local time" at capture
+        // moment (See filename for local time) due to the UTC offset.
+        assertThat(meta.getRawCaptureDateTime())
+                .isEqualTo("2023:10:07 01:27:52");
+        assertThat(meta.getCaptureDateTime().getDayOfMonth()).isEqualTo(7);
+        assertThat(meta.getCaptureDateTime().getHour()).isEqualTo(1);
+        assertThat(meta.getCaptureDateTime().getMinute()).isEqualTo(27);
+    }
+
+    @Test
     void mp4MediaFile() throws IOException {
         var path = pathFor("pour_edit_20230619_122200_1.mp4");
         var meta = metaExtractor.extract(path);
@@ -70,6 +90,13 @@ public class VideoMetaExtractorTests {
 
         assertThat(meta.getGpsLatitude()).isEqualTo("19.4023");
         assertThat(meta.getGpsLongitude()).isEqualTo("-99.1806");
+
+        // Verify extracted datetime matches
+        assertThat(meta.getRawCaptureDateTime())
+                .isEqualTo("2023:06:19 18:22:33");
+        assertThat(meta.getCaptureDateTime().getDayOfMonth()).isEqualTo(19);
+        assertThat(meta.getCaptureDateTime().getHour()).isEqualTo(18);
+        assertThat(meta.getCaptureDateTime().getMinute()).isEqualTo(22);
     }
 
     private Path pathFor(String filename) {

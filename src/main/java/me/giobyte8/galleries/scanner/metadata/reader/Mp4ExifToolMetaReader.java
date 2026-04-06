@@ -12,6 +12,9 @@ import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -20,6 +23,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @RequiredArgsConstructor
 public class Mp4ExifToolMetaReader implements MetaReader {
+
+    // Handles ExifTool default format: "2026:04:05 14:48:22"
+    private static final DateTimeFormatter EXIF_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss");
+
     private final ExifToolMetadata metadata;
 
     public static Mp4ExifToolMetaReader forFile(
@@ -43,11 +51,12 @@ public class Mp4ExifToolMetaReader implements MetaReader {
         //           found regardless of the device.
         //
         // NOTE FOR DEV/DEBUGGING:
-        // 1. To debug group origins (e.g., [Keys] vs [UserData]), add "-G" in the terminal.
+        // 1. To debug group origins (e.g., [Keys] vs [UserData]), add "-G" in
+        //    the terminal.
         // 2. To see human-readable output in the terminal, remove "-j".
         //
         // Full Command:
-        // exiftool -j -n -fast -Make -*Model* -GPSLatitude -GPSLongitude \
+        // exiftool -j -n -fast -Make -"*Model*" -GPSLatitude -GPSLongitude \
         //   -CreationDate -CreateDate <filepath>
         //
         ProcessBuilder pb = new ProcessBuilder(
@@ -95,12 +104,12 @@ public class Mp4ExifToolMetaReader implements MetaReader {
 
     @Override
     public Optional<String> cameraMaker() {
-        return metadata.resolvedCameraMaker();
+        return metadata.cameraMaker();
     }
 
     @Override
     public Optional<String> cameraModel() {
-        return metadata.resolvedCameraModel();
+        return metadata.cameraModel();
     }
 
     @Override
@@ -119,7 +128,19 @@ public class Mp4ExifToolMetaReader implements MetaReader {
 
     @Override
     public Optional<MediaDateTime> datetime() {
-        // TODO Implement parsing/processing logic
-        return Optional.empty();
+        return metadata.rawCaptureDateTime().map(raw -> {
+            var dtBuilder = MediaDateTime.builder().raw(raw);
+
+            var captureDtUtc = LocalDateTime
+                    .parse(raw, EXIF_FORMATTER)
+
+                    // mp4/quicktime videos stores datetime in UTC by
+                    // ISO standard, hence, we assume it is in UTC
+                    .atZone(ZoneOffset.UTC);
+
+            dtBuilder.datetime(captureDtUtc);
+
+            return dtBuilder.build();
+        });
     }
 }

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
+import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,10 +39,12 @@ public class ExifToolMetadata {
 
     // Apple style
     @JsonProperty("CreationDate")
+    @Getter(AccessLevel.NONE)
     private String appleDate;
 
     // Samsung/Standard style
     @JsonProperty("CreateDate")
+    @Getter(AccessLevel.NONE)
     private String standardDate;
 
     @JsonAnySetter
@@ -49,7 +52,7 @@ public class ExifToolMetadata {
         otherTags.put(key, value);
     }
 
-    public Optional<String> resolvedCameraMaker() {
+    public Optional<String> cameraMaker() {
         if (Objects.nonNull(cameraMaker)) {
             return Optional.of(cameraMaker);
         }
@@ -72,11 +75,30 @@ public class ExifToolMetadata {
      * devices use.
      * @return Camera model
      */
-    public Optional<String> resolvedCameraModel() {
+    public Optional<String> cameraModel() {
         // Logic to pick the best model name from the wildcard results
         return otherTags.entrySet().stream()
                 .filter(e -> e.getKey().toLowerCase().contains("model"))
                 .map(e -> e.getValue().toString())
                 .findFirst();
+    }
+
+    /**
+     * Capture date time as returned by the exiftool, which usually is
+     * in "2026:04:05 14:48:22" format and is in UTC timezone.
+     *
+     * @return Capture date time in raw string
+     */
+    public Optional<String> rawCaptureDateTime() {
+        if (StringUtils.hasText(appleDate) && !appleDate.startsWith("0000")) {
+            return Optional.of(appleDate);
+
+        } else if (StringUtils.hasText(standardDate)
+                && !standardDate.startsWith("0000")) {
+            return Optional.of(standardDate);
+
+        } else {
+            return Optional.empty();
+        }
     }
 }
