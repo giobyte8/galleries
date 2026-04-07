@@ -127,7 +127,7 @@ public class Mp4ExifToolMetaReader implements MetaReader {
     }
 
     @Override
-    public Optional<MediaDateTime> datetime() {
+    public Optional<MediaDateTime> captureDateTime() {
         return metadata.rawCaptureDateTime().map(raw -> {
             var dtBuilder = MediaDateTime.builder().raw(raw);
 

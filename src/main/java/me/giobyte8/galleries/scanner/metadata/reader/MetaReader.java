@@ -15,7 +15,7 @@ public interface MetaReader {
 
     Optional<GpsCoordinates> coordinates();
 
-    Optional<MediaDateTime> datetime();
+    Optional<MediaDateTime> captureDateTime();
 
     default MFMetadata read() {
         var mfMetaBuilder = MFMetadata.builder();
@@ -32,7 +32,7 @@ public interface MetaReader {
         this.cameraMaker().ifPresent(mfMetaBuilder::camMaker);
         this.cameraModel().ifPresent(mfMetaBuilder::camModel);
 
-        this.datetime().ifPresent(mDateTime -> {
+        this.captureDateTime().ifPresent(mDateTime -> {
             mfMetaBuilder.rawCaptureDateTime(mDateTime.raw());
             mfMetaBuilder.captureDateTime(mDateTime.datetime());
         });

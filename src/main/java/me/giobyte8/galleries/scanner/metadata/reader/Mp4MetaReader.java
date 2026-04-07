@@ -61,7 +61,7 @@ public class Mp4MetaReader implements MetaReader {
     }
 
     @Override
-    public Optional<MediaDateTime> datetime() {
+    public Optional<MediaDateTime> captureDateTime() {
         return metadata.getDirectoriesOfType(Mp4Directory.class)
                 .stream()
                 .filter(dir -> dir.containsTag(TAG_CREATION_TIME))

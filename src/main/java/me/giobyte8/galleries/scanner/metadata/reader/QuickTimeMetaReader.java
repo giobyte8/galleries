@@ -84,7 +84,7 @@ public class QuickTimeMetaReader implements MetaReader {
     }
 
     @Override
-    public Optional<MediaDateTime> datetime() {
+    public Optional<MediaDateTime> captureDateTime() {
         return metadata.getDirectoriesOfType(QuickTimeMetadataDirectory.class)
                 .stream()
                 .filter(dir -> dir.containsTag(TAG_CREATION_DATE))
@@ -92,11 +92,15 @@ public class QuickTimeMetaReader implements MetaReader {
                     try {
                         var mDateTimeBuilder = MediaDateTime.builder();
 
+                        // Apple stores datetime and timezone at capture location
+                        // in the 'Creation date' tag
                         var rawCreationTime = dir.getString(TAG_CREATION_DATE);
                         mDateTimeBuilder.raw(rawCreationTime);
 
-                        // Apparently, datetime is returned in system local
-                        // timezone, hence, we convert it to media file timezone
+                        // Even though the file stores datetime local to
+                        // capture location, 'drewnoakes' library returns it
+                        // in system local timezone, hence, we convert it back
+                        // to capture location timezone
                         var captureDatetime = TimeUtils.fromSystemTzIntoMediaTz(
                                 dir.getDate(TAG_CREATION_DATE),
                                 rawCreationTime

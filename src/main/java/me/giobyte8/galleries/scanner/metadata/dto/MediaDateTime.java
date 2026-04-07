@@ -5,16 +5,20 @@ import lombok.Builder;
 import java.time.ZonedDateTime;
 
 /**
- * Media files follow different approaches to store "capture" datetime in its
- * metadata. Value is usually stored as a plain string without a clear standard
- * format, also, timezone data is not always included in it.
+ * Media files have different datetime values in its metadata:
+ * capture datetime, creation datetime, modification datetime, etc.
+ * Each of those values may have or not have timezone data.
  * <p>
- * For practicality, we keep the raw string value, and we also parse it into a
- * datetime with timezone information. If timezone is not specified in file
- * metadata, then we assume it is in UTC timezone.
+ * For practicality, we keep the raw value as recovered from media files via
+ * metadata reader libraries, and also the parsed/adjusted datetime with right
+ * timezone information.
+ * <p>
+ * Usually these values should be the same, however, we keep both to handle
+ * edge cases appropriately.
  *
- * @param raw Value as stored in file metadata (no conversion/parsing applied).
- * @param datetime Parsed raw value including its Timezone info or using UTC as
+ * @param raw Value as returned by metadata reading libraries (no
+ *            conversion/parsing applied).
+ * @param datetime Parsed raw value including timezone info or assuming UTC as
  *                 default if not timezone data was found.
  */
 @Builder
