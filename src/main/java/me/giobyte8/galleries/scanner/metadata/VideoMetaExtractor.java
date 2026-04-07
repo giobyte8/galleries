@@ -8,7 +8,6 @@ import com.drew.metadata.Metadata;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.giobyte8.galleries.scanner.dto.MFMetadata;
-import me.giobyte8.galleries.scanner.metadata.reader.MetaReader;
 import me.giobyte8.galleries.scanner.metadata.reader.Mp4ExifToolMetaReader;
 import me.giobyte8.galleries.scanner.metadata.reader.QuickTimeMetaReader;
 import org.springframework.context.annotation.Profile;
@@ -32,14 +31,16 @@ public class VideoMetaExtractor implements ImgMetaExtractor {
         try (var fIs = new BufferedInputStream(Files.newInputStream(absPath))) {
             FileType fileType = FileTypeDetector.detectFileType(fIs);
 
-            MetaReader metaReader;
             switch (fileType) {
-                case FileType.Mp4 -> metaReader
-                        = Mp4ExifToolMetaReader.forFile(absPath, jMapper);
+                case FileType.Mp4 -> {
+                    return Mp4ExifToolMetaReader
+                        .forFile(absPath, jMapper)
+                        .read();
+                }
 
                 case FileType.QuickTime -> {
                     Metadata meta = ImageMetadataReader.readMetadata(fIs);
-                    metaReader = new QuickTimeMetaReader(meta);
+                    return new QuickTimeMetaReader(meta).read();
                 }
 
                 default -> {
@@ -51,19 +52,6 @@ public class VideoMetaExtractor implements ImgMetaExtractor {
                     return null;
                 }
             }
-
-            var mfMeta = metaReader.read();
-//            for (var dir : meta.getDirectories()) {
-//                for (var tag : dir.getTags()) {
-//                    log.debug("Video metadata - {}: {} = {}",
-//                            dir.getName(),
-//                            tag.getTagName(),
-//                            tag.getDescription()
-//                    );
-//                }
-//            }
-
-            return mfMeta;
         } catch (ImageProcessingException e) {
             log.error(
                     "Error while retrieving metadata for: {} - {}",

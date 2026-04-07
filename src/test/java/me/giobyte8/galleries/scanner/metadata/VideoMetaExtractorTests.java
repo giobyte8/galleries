@@ -107,6 +107,19 @@ public class VideoMetaExtractorTests {
                 .isEqualTo("-06:00");
     }
 
+
+    /**
+     * Use this dummy test to try out/troubleshoot particular videos.
+     * Set the video file name to `path` and debug.
+     */
+    @Test
+    void m4vMediaFile() throws IOException {
+        var path = pathFor("lake_20231006_182745.mp4");
+        var meta = metaExtractor.extract(path);
+
+        assertThat(meta).isNotNull();
+    }
+
     private Path pathFor(String filename) {
         return pathFor("videos", filename);
     }
