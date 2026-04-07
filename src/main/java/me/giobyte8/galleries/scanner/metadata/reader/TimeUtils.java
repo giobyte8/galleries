@@ -1,11 +1,70 @@
 package me.giobyte8.galleries.scanner.metadata.reader;
 
+import me.giobyte8.galleries.scanner.metadata.dto.GpsCoordinates;
+import net.iakovlev.timeshape.TimeZoneEngine;
+
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.Optional;
 import java.util.TimeZone;
 
 public class TimeUtils {
+
+    // Geo dataset is relatively expensive to load, hence initialize it only
+    // if/when timezone lookup from GPS becomes necessary.
+    private static volatile TimeZoneEngine tzEngine;
+
+    private static TimeZoneEngine tzEngine() {
+        if (tzEngine == null) {
+            synchronized (TimeUtils.class) {
+                if (tzEngine == null) {
+                    tzEngine = TimeZoneEngine.initialize();
+                }
+            }
+        }
+
+        return tzEngine;
+    }
+
+    public static Optional<ZoneId> timezoneFor(GpsCoordinates coordinates) {
+        return tzEngine().query(
+                coordinates.latitude(),
+                coordinates.longitude()
+        );
+    }
+
+    public static boolean containsTz(String rawDatetime) {
+        return extractTzOffset(rawDatetime).isPresent();
+    }
+
+    private static Optional<String> extractTzOffset(String rawDatetime) {
+        if (!rawDatetime.contains("+") && !rawDatetime.contains("-")) {
+            return Optional.empty();
+        }
+
+        var tzInfo = rawDatetime.substring(
+                Math.max(
+                        rawDatetime.lastIndexOf("+"),
+                        rawDatetime.lastIndexOf("-")
+                )
+        );
+
+        // Check for "+HH:MM" or "-HH:MM" format
+        if (tzInfo.matches("^[+-]\\d{2}:\\d{2}$")) {
+            return Optional.of(tzInfo);
+        }
+
+        // Check for "+HHMM" or "-HHMM" format
+        if (tzInfo.matches("^[+-]\\d{4}$")) {
+            return Optional.of(
+                    tzInfo.substring(0, 3) + ":" + tzInfo.substring(3)
+            );
+        }
+
+        return Optional.empty();
+    }
 
     /**
      * Media files have different approaches when representing creation
@@ -23,35 +82,9 @@ public class TimeUtils {
      * @return Detected timezone or UTC default
      */
     public static TimeZone getTimeZone(String rawDatetime) {
-        // TODO Some mp4 files have values like: Mon Jun 19 12:22:33 CST 2023
-        //   S23 Ultra is an example of it
 
         // Default to UTC timezone offset
-        var tzOffset = "+00:00";
-
-        if (rawDatetime.contains("+") || rawDatetime.contains("-")) {
-
-            // Extract timezone offset from the raw datetime value
-            var tzInfo = rawDatetime.substring(
-                    Math.max(
-                            rawDatetime.lastIndexOf("+"),
-                            rawDatetime.lastIndexOf("-")
-                    )
-            );
-
-            // Check for "+HH:MM" or "-HH:MM" format
-            if (tzInfo.matches("^[+-]\\d{2}:\\d{2}$")) {
-                tzOffset = tzInfo;
-            }
-
-            // Check for "+HHMM" or "-HHMM" format
-            else if (tzInfo.matches("^[+-]\\d{4}$")) {
-                tzOffset = tzInfo.substring(0, 3) +
-                        ":" +
-                        tzInfo.substring(3);
-            }
-        }
-
+        var tzOffset = extractTzOffset(rawDatetime).orElse("+00:00");
 
         return TimeZone.getTimeZone(ZoneOffset.of(tzOffset));
     }

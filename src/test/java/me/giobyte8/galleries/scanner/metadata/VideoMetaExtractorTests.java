@@ -69,13 +69,17 @@ public class VideoMetaExtractorTests {
         assertThat(meta.getCamModel()).isEqualTo("SM-S918B");
 
         // Verify extracted datetime matches
-        // Notice how datetime is the next day of "local time" at capture
+        // Notice how raw datetime is the next day of "local time" at capture
         // moment (See filename for local time) due to the UTC offset.
         assertThat(meta.getRawCaptureDateTime())
                 .isEqualTo("2023:10:07 01:27:52");
-        assertThat(meta.getCaptureDateTime().getDayOfMonth()).isEqualTo(7);
-        assertThat(meta.getCaptureDateTime().getHour()).isEqualTo(1);
+        assertThat(meta.getCaptureDateTime().getDayOfMonth()).isEqualTo(6);
+        assertThat(meta.getCaptureDateTime().getHour()).isEqualTo(18);
         assertThat(meta.getCaptureDateTime().getMinute()).isEqualTo(27);
+        assertThat(meta.getCaptureDateTime().getZone().getId())
+                .isEqualTo("America/Vancouver");
+        assertThat(meta.getCaptureDateTime().getOffset().getId())
+                .isEqualTo("-07:00");
     }
 
     @Test
@@ -95,8 +99,12 @@ public class VideoMetaExtractorTests {
         assertThat(meta.getRawCaptureDateTime())
                 .isEqualTo("2023:06:19 18:22:33");
         assertThat(meta.getCaptureDateTime().getDayOfMonth()).isEqualTo(19);
-        assertThat(meta.getCaptureDateTime().getHour()).isEqualTo(18);
+        assertThat(meta.getCaptureDateTime().getHour()).isEqualTo(12);
         assertThat(meta.getCaptureDateTime().getMinute()).isEqualTo(22);
+        assertThat(meta.getCaptureDateTime().getZone().getId())
+                .isEqualTo("America/Mexico_City");
+        assertThat(meta.getCaptureDateTime().getOffset().getId())
+                .isEqualTo("-06:00");
     }
 
     private Path pathFor(String filename) {

@@ -13,8 +13,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -27,6 +32,17 @@ public class Mp4ExifToolMetaReader implements MetaReader {
     // Handles ExifTool default format: "2026:04:05 14:48:22"
     private static final DateTimeFormatter EXIF_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss");
+
+    private static final DateTimeFormatter EXIF_TZ_FORMATTER =
+            new DateTimeFormatterBuilder()
+                    .appendPattern("yyyy:MM:dd HH:mm:ss")
+                    .optionalStart()
+                    .appendOffset("+HH:MM", "+00:00")
+                    .optionalEnd()
+                    .optionalStart()
+                    .appendOffset("+HHMM", "+0000")
+                    .optionalEnd()
+                    .toFormatter();
 
     private final ExifToolMetadata metadata;
 
@@ -131,16 +147,40 @@ public class Mp4ExifToolMetaReader implements MetaReader {
         return metadata.rawCaptureDateTime().map(raw -> {
             var dtBuilder = MediaDateTime.builder().raw(raw);
 
-            var captureDtUtc = LocalDateTime
-                    .parse(raw, EXIF_FORMATTER)
+            ZonedDateTime captureDt;
+            if (TimeUtils.containsTz(raw)) {
+                captureDt = parseDatetimeWithTz(raw);
 
-                    // mp4/quicktime videos stores datetime in UTC by
-                    // ISO standard, hence, we assume it is in UTC
-                    .atZone(ZoneOffset.UTC);
+            } else {
+                var captureDtUtc = LocalDateTime
+                        .parse(raw, EXIF_FORMATTER)
 
-            dtBuilder.datetime(captureDtUtc);
+                        // mp4/Samsung videos stores datetime in UTC by
+                        // ISO standard, hence, we assume it is in UTC
+                        .atZone(ZoneOffset.UTC);
+
+                ZoneId captureZone = coordinates()
+                        .flatMap(TimeUtils::timezoneFor)
+                        .orElse(ZoneOffset.UTC);
+
+                captureDt = captureDtUtc.withZoneSameInstant(captureZone);
+            }
+
+            dtBuilder.datetime(captureDt);
 
             return dtBuilder.build();
         });
+    }
+
+    private static ZonedDateTime parseDatetimeWithTz(String rawDatetime) {
+        try {
+            return OffsetDateTime
+                    .parse(rawDatetime, EXIF_TZ_FORMATTER)
+                    .toZonedDateTime();
+        } catch (DateTimeParseException ignored) {
+            return OffsetDateTime
+                    .parse(rawDatetime, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                    .toZonedDateTime();
+        }
     }
 }

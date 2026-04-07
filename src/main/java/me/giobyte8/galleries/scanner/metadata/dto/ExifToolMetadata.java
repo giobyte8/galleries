@@ -83,12 +83,19 @@ public class ExifToolMetadata {
                 .findFirst();
     }
 
-    /**
-     * Capture date time as returned by the exiftool, which usually is
-     * in "2026:04:05 14:48:22" format and is in UTC timezone.
-     *
-     * @return Capture date time in raw string
-     */
+    /// Gets the Capture Datetime as returned by the exiftool, no additional
+    /// conversion/parsing is done.
+    ///
+    /// Some devices (Apple) uses "CreationDate" tag and include timezone info,
+    /// while others (like Samsung) use "CreateDate" tag to store datetime in
+    /// UTC and don't include timezone.
+    ///
+    /// So we check for "CreationDate" tag first since is the most complete
+    /// and fallback to "CreationDate" as second option.
+    ///
+    /// @return Capture date time in raw string, if available and valid
+    ///         (not starting with "0000"), otherwise empty.
+    ///
     public Optional<String> rawCaptureDateTime() {
         if (StringUtils.hasText(appleDate) && !appleDate.startsWith("0000")) {
             return Optional.of(appleDate);
