@@ -4,7 +4,7 @@ import me.giobyte8.galleries.persistence.mappers.DirRowMapper;
 import me.giobyte8.galleries.persistence.mappers.ImgRowMapper;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
-import me.giobyte8.galleries.persistence.models.ImageStatus;
+import me.giobyte8.galleries.persistence.models.MediaFileStatus;
 import me.giobyte8.galleries.scanner.BaseIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -200,7 +200,7 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
-                .status(ImageStatus.AVAILABLE)
+                .status(MediaFileStatus.AVAILABLE)
                 .build();
         imgRepository.saveAsChild(dir, img1);
 
@@ -214,12 +214,12 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
-                .status(ImageStatus.AVAILABLE)
+                .status(MediaFileStatus.AVAILABLE)
                 .build();
         imgRepository.saveAsChild(dir, img2);
 
         // Verify both images are updated
-        long updatedCount = imgRepository.updateStatusByParent(dir, ImageStatus.NOT_FOUND);
+        long updatedCount = imgRepository.updateStatusByParent(dir, MediaFileStatus.NOT_FOUND);
         assertEquals(
                 2,
                 updatedCount,
@@ -227,7 +227,7 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         );
 
         // Verify subsequent update affects 0 images
-        updatedCount = imgRepository.updateStatusByParent(dir, ImageStatus.NOT_FOUND);
+        updatedCount = imgRepository.updateStatusByParent(dir, MediaFileStatus.NOT_FOUND);
         assertEquals(
                 0,
                 updatedCount,
@@ -253,7 +253,7 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
-                .status(ImageStatus.AVAILABLE)
+                .status(MediaFileStatus.AVAILABLE)
                 .build();
         imgRepository.saveAsChild(parent, img1);
 
@@ -267,7 +267,7 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
-                .status(ImageStatus.AVAILABLE)
+                .status(MediaFileStatus.AVAILABLE)
                 .build();
         imgRepository.saveAsChild(parent, img2);
 
@@ -287,7 +287,7 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
-                .status(ImageStatus.AVAILABLE)
+                .status(MediaFileStatus.AVAILABLE)
                 .build();
         imgRepository.saveAsChild(nestedDir, nestedImg1);
 
@@ -301,12 +301,12 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
-                .status(ImageStatus.AVAILABLE)
+                .status(MediaFileStatus.AVAILABLE)
                 .build();
         imgRepository.saveAsChild(nestedDir, nestedImg2);
 
         // Update on 'parent' dir should impact only 2 images
-        long updatedCount = imgRepository.updateStatusByParent(parent, ImageStatus.NOT_FOUND);
+        long updatedCount = imgRepository.updateStatusByParent(parent, MediaFileStatus.NOT_FOUND);
         assertEquals(
                 2,
                 updatedCount,
@@ -332,7 +332,7 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
-                .status(ImageStatus.NOT_FOUND)
+                .status(MediaFileStatus.NOT_FOUND)
                 .build();
         imgRepository.saveAsChild(parent, img1);
 
@@ -346,11 +346,11 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
-                .status(ImageStatus.NOT_FOUND)
+                .status(MediaFileStatus.NOT_FOUND)
                 .build();
         imgRepository.saveAsChild(parent, img2);
 
-        long deleteCount = imgRepository.deleteByParentAndStatus(parent, ImageStatus.NOT_FOUND);
+        long deleteCount = imgRepository.deleteByParentAndStatus(parent, MediaFileStatus.NOT_FOUND);
         assertEquals(
                 2,
                 deleteCount,
@@ -365,12 +365,12 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         var imgPath3 = "test/gallery/img3.jpg";
 
         var parent = createDir("test/gallery");
-        createImage(parent, imgPath1, ImageStatus.VERIFYING);
-        createImage(parent, imgPath2, ImageStatus.VERIFYING);
-        createImage(parent, imgPath3, ImageStatus.AVAILABLE);
+        createImage(parent, imgPath1, MediaFileStatus.VERIFYING);
+        createImage(parent, imgPath2, MediaFileStatus.VERIFYING);
+        createImage(parent, imgPath3, MediaFileStatus.AVAILABLE);
 
         Set<String> deletedPaths = imgRepository
-                .deleteAndGetPaths(parent, ImageStatus.VERIFYING);
+                .deleteAndGetPaths(parent, MediaFileStatus.VERIFYING);
 
         assertEquals(
                 2,
@@ -417,14 +417,14 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         String pathImg8 = "root/img8.jpg";
         String pathImg9 = "root/img9.jpg";
 
-        createImage(root, pathImg1, ImageStatus.AVAILABLE);
-        createImage(dir1, pathImg2, ImageStatus.AVAILABLE);
-        createImage(dir1, pathImg6, ImageStatus.AVAILABLE);
+        createImage(root, pathImg1, MediaFileStatus.AVAILABLE);
+        createImage(dir1, pathImg2, MediaFileStatus.AVAILABLE);
+        createImage(dir1, pathImg6, MediaFileStatus.AVAILABLE);
 
-        createImage(dir2, pathImg7, ImageStatus.AVAILABLE);
-        createImage(dir2, pathImg8, ImageStatus.AVAILABLE);
+        createImage(dir2, pathImg7, MediaFileStatus.AVAILABLE);
+        createImage(dir2, pathImg8, MediaFileStatus.AVAILABLE);
 
-        createImage(dir3, pathImg9, ImageStatus.AVAILABLE);
+        createImage(dir3, pathImg9, MediaFileStatus.AVAILABLE);
 
         Set<String> deletedPaths = imgRepository
                 .multilevelDeleteAndGetPaths(root);
@@ -558,21 +558,21 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         Directory root = createDir("root/");
 
         // root's children
-        createImage(root, pathImg1, ImageStatus.AVAILABLE);
+        createImage(root, pathImg1, MediaFileStatus.AVAILABLE);
         Directory dir1 = createDir(root, "root/dir1/");
         Directory dir2 = createDir(root, "root/dir2/");
 
         // dir1's children
-        createImage(dir1, pathImg2, ImageStatus.AVAILABLE);
-        createImage(dir1, pathImg3, ImageStatus.AVAILABLE);
+        createImage(dir1, pathImg2, MediaFileStatus.AVAILABLE);
+        createImage(dir1, pathImg3, MediaFileStatus.AVAILABLE);
 
         // dir2's children
-        createImage(dir2, pathImg4, ImageStatus.AVAILABLE);
-        createImage(dir2, pathImg5, ImageStatus.AVAILABLE);
+        createImage(dir2, pathImg4, MediaFileStatus.AVAILABLE);
+        createImage(dir2, pathImg5, MediaFileStatus.AVAILABLE);
         Directory dir3 = createDir(dir2, "root/dir2/dir3/");
 
         // dir3's child
-        createImage(dir3, pathImg6, ImageStatus.AVAILABLE);
+        createImage(dir3, pathImg6, MediaFileStatus.AVAILABLE);
     }
 
     private Directory createDir(String path) {
@@ -602,7 +602,7 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    private Image createImage(Directory parent, String path, ImageStatus status) {
+    private Image createImage(Directory parent, String path, MediaFileStatus status) {
         Image img = Image.builder()
                 .path(path)
                 .status(status)

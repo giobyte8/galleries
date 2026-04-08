@@ -3,7 +3,7 @@ package me.giobyte8.galleries.persistence.repositories;
 import me.giobyte8.galleries.persistence.mappers.ImgRowMapper;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
-import me.giobyte8.galleries.persistence.models.ImageStatus;
+import me.giobyte8.galleries.persistence.models.MediaFileStatus;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.stereotype.Component;
 
@@ -75,7 +75,7 @@ public class CustomizedImageRepositoryImpl implements CustomizedImageRepository 
     }
 
     @Override
-    public long updateStatusByParent(Directory parent, ImageStatus status) {
+    public long updateStatusByParent(Directory parent, MediaFileStatus status) {
         String updateStatusQry = """
                 MATCH (d:Directory { path: $dirPath })-[:CONTAINS]->(i:Image)
                 WHERE i.status <> $status
@@ -97,7 +97,7 @@ public class CustomizedImageRepositoryImpl implements CustomizedImageRepository 
     }
 
     @Override
-    public long deleteByParentAndStatus(Directory parent, ImageStatus status) {
+    public long deleteByParentAndStatus(Directory parent, MediaFileStatus status) {
         String deleteQry = """
                 MATCH (d:Directory { path: $dirPath })
                     -[:CONTAINS]
@@ -120,7 +120,7 @@ public class CustomizedImageRepositoryImpl implements CustomizedImageRepository 
     }
 
     @Override
-    public Set<String> deleteAndGetPaths(Directory parent, ImageStatus status) {
+    public Set<String> deleteAndGetPaths(Directory parent, MediaFileStatus status) {
         String deleteQry = """
                 MATCH (d:Directory { path: $dirPath })
                     -[:CONTAINS]

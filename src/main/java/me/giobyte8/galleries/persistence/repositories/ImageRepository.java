@@ -1,7 +1,7 @@
 package me.giobyte8.galleries.persistence.repositories;
 
 import me.giobyte8.galleries.persistence.models.Image;
-import me.giobyte8.galleries.persistence.models.ImageStatus;
+import me.giobyte8.galleries.persistence.models.MediaFileStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -18,7 +18,7 @@ public interface ImageRepository extends
         PagingAndSortingRepository<Image, String>,
         CustomizedImageRepository {
 
-    long countByStatus(ImageStatus status);
+    long countByStatus(MediaFileStatus status);
 
     Optional<Image> findByPath(String path);
 

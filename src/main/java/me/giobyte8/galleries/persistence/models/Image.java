@@ -43,7 +43,7 @@ public class Image {
     private String cameraModel;
 
     @Builder.Default
-    private ImageStatus status = ImageStatus.AVAILABLE;
+    private MediaFileStatus status = MediaFileStatus.AVAILABLE;
 
     public void setMetadata(MFMetadata meta) {
         cameraMaker = meta.getCamMaker();

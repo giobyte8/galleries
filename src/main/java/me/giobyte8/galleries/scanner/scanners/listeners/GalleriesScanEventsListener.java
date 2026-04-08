@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import me.giobyte8.galleries.persistence.models.DirStatus;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
-import me.giobyte8.galleries.persistence.models.ImageStatus;
+import me.giobyte8.galleries.persistence.models.MediaFileStatus;
 import me.giobyte8.galleries.persistence.repositories.DirectoryRepository;
 import me.giobyte8.galleries.persistence.repositories.ImageRepository;
 import me.giobyte8.galleries.scanner.thumbnails.ThumbnailsService;
@@ -34,7 +34,7 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
     public void onScanStarted(Directory dir) {
 
         // Set all images under dir to 'VERIFYING' status
-        imgRepository.updateStatusByParent(dir, ImageStatus.VERIFYING);
+        imgRepository.updateStatusByParent(dir, MediaFileStatus.VERIFYING);
 
         // Set all children directories to 'VERIFYING' status
         dirRepository.updateStatusByParent(dir, DirStatus.VERIFYING);
@@ -65,7 +65,7 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
                 // TODO Mark as NOT_FOUND instead of deleting?
                 // TODO Schedule thumbs to be deleted later instead of now?
                 // TODO Schedule image record to be deleted later instead of now?
-                .deleteAndGetPaths(dir, ImageStatus.VERIFYING)
+                .deleteAndGetPaths(dir, MediaFileStatus.VERIFYING)
                 .forEach(path ->
                         thumbnailsSvc.deleteThumbnails(
                                 Path.of(path)
@@ -120,7 +120,7 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
 
     @Override
     public void onUnchangedImageFound(Directory parent, Image img) {
-        img.setStatus(ImageStatus.AVAILABLE);
+        img.setStatus(MediaFileStatus.AVAILABLE);
         imgRepository.saveAsChild(parent, img);
     }
 

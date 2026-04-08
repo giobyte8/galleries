@@ -1,7 +1,7 @@
 package me.giobyte8.galleries.persistence.mappers;
 
 import me.giobyte8.galleries.persistence.models.Image;
-import me.giobyte8.galleries.persistence.models.ImageStatus;
+import me.giobyte8.galleries.persistence.models.MediaFileStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -59,7 +59,7 @@ public class ImgRowMapper {
                 .cameraMaker((String) imgMap.get("cameraMaker"))
                 .cameraModel((String) imgMap.get("cameraModel"))
                 .rawCaptureDateTime((String) imgMap.get("rawCaptureDateTime"))
-                .status(ImageStatus.valueOf((String) imgMap.get("status")));
+                .status(MediaFileStatus.valueOf((String) imgMap.get("status")));
 
         var captureDateTimeObj = imgMap.get("captureDateTime");
         if (captureDateTimeObj instanceof ZonedDateTime captureDateTime) {

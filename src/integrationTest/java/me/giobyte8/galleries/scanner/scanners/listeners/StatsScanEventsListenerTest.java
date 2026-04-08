@@ -1,7 +1,7 @@
 package me.giobyte8.galleries.scanner.scanners.listeners;
 
 import me.giobyte8.galleries.persistence.models.Directory;
-import me.giobyte8.galleries.persistence.models.ImageStatus;
+import me.giobyte8.galleries.persistence.models.MediaFileStatus;
 import me.giobyte8.galleries.persistence.models.ScanStatus;
 import me.giobyte8.galleries.persistence.repositories.DirectoryRepository;
 import me.giobyte8.galleries.persistence.repositories.ImageRepository;
@@ -55,7 +55,7 @@ public class StatsScanEventsListenerTest extends BaseIntegrationTest {
         scanService.scan(scanRequest);
 
         // Verify images were found
-        assertThat(imgRepository.countByStatus(ImageStatus.AVAILABLE))
+        assertThat(imgRepository.countByStatus(MediaFileStatus.AVAILABLE))
                 .isEqualTo(7);
 
         // Verify scan stats were persisted
@@ -99,7 +99,7 @@ public class StatsScanEventsListenerTest extends BaseIntegrationTest {
         // First scan - all images are new
         scanService.scan(firstScan);
 
-        assertThat(imgRepository.countByStatus(ImageStatus.AVAILABLE))
+        assertThat(imgRepository.countByStatus(MediaFileStatus.AVAILABLE))
                 .isEqualTo(3);
 
         var firstScanStats = scanStatsRepository.findByScanRequestId(firstScanId).orElseThrow();

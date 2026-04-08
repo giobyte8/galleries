@@ -2,7 +2,7 @@ package me.giobyte8.galleries.persistence.repositories;
 
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
-import me.giobyte8.galleries.persistence.models.ImageStatus;
+import me.giobyte8.galleries.persistence.models.MediaFileStatus;
 
 import java.util.Optional;
 import java.util.Set;
@@ -30,7 +30,7 @@ public interface CustomizedImageRepository {
      * @param status Status to assign to images
      * @return Number of updated images
      */
-    long updateStatusByParent(Directory parent, ImageStatus status);
+    long updateStatusByParent(Directory parent, MediaFileStatus status);
 
     /**
      * Removes all images that are direct children of a directory
@@ -40,7 +40,7 @@ public interface CustomizedImageRepository {
      * @param status Status of images to be removed
      * @return Number of removed images
      */
-    long deleteByParentAndStatus(Directory parent, ImageStatus status);
+    long deleteByParentAndStatus(Directory parent, MediaFileStatus status);
 
     /**
      * Removes all images that are direct children of a directory
@@ -50,7 +50,7 @@ public interface CustomizedImageRepository {
      * @param status Status of images to be removed
      * @return Paths of removed images
      */
-    Set<String> deleteAndGetPaths(Directory parent, ImageStatus status);
+    Set<String> deleteAndGetPaths(Directory parent, MediaFileStatus status);
 
     /**
      * Removes all images that are descendant of a directory, it means,

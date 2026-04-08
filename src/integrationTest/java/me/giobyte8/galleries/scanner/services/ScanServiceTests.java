@@ -1,7 +1,7 @@
 package me.giobyte8.galleries.scanner.services;
 
 import me.giobyte8.galleries.persistence.models.Directory;
-import me.giobyte8.galleries.persistence.models.ImageStatus;
+import me.giobyte8.galleries.persistence.models.MediaFileStatus;
 import me.giobyte8.galleries.persistence.repositories.DirectoryRepository;
 import me.giobyte8.galleries.persistence.repositories.ImageRepository;
 import me.giobyte8.galleries.scanner.BaseIntegrationTest;
@@ -50,7 +50,7 @@ public class ScanServiceTests extends BaseIntegrationTest {
         scanService.scan(request);
 
         // Verify three images were found
-        assertThat(imgRepo.countByStatus(ImageStatus.AVAILABLE))
+        assertThat(imgRepo.countByStatus(MediaFileStatus.AVAILABLE))
                 .isEqualTo(3);
 
         // Verify no new directories were created
@@ -74,7 +74,7 @@ public class ScanServiceTests extends BaseIntegrationTest {
         scanService.scan(request);
 
         // Verify all images were found
-        assertThat(imgRepo.countByStatus(ImageStatus.AVAILABLE))
+        assertThat(imgRepo.countByStatus(MediaFileStatus.AVAILABLE))
                 .isEqualTo(7);
 
         // Verify two new directories were created
@@ -97,7 +97,7 @@ public class ScanServiceTests extends BaseIntegrationTest {
         scanService.scan(request);
 
         // Verify all images were found
-        assertThat(imgRepo.countByStatus(ImageStatus.AVAILABLE))
+        assertThat(imgRepo.countByStatus(MediaFileStatus.AVAILABLE))
                 .isEqualTo(2);
 
         // Verify no new directories were created
