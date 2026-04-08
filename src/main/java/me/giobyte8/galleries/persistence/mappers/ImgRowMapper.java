@@ -4,7 +4,10 @@ import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.persistence.models.ImageStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -19,7 +22,17 @@ public class ImgRowMapper {
         imgMap.put("contentHash", image.getContentHash());
 
         // Add it to map even if its value is null
-        imgMap.put("datetimeOriginal", image.getDatetimeOriginal());
+        imgMap.put("captureDateTime", image.getCaptureDateTime());
+        imgMap.put(
+                "captureInstant",
+                Objects.isNull(image.getCaptureInstant())
+                        ? null
+                        : OffsetDateTime.ofInstant(
+                                image.getCaptureInstant(),
+                                ZoneOffset.UTC
+                        )
+        );
+        imgMap.put("rawCaptureDateTime", image.getRawCaptureDateTime());
 
         imgMap.put("gpsLatitude", Objects.isNull(image.getGpsLatitude())
                 ? null
@@ -37,18 +50,35 @@ public class ImgRowMapper {
     }
 
     public Image from(Map<String, Object> imgMap) {
+        Number version = (Number) imgMap.get("version");
+
         Image.ImageBuilder imgBuilder = Image.builder()
                 .path((String) imgMap.get("path"))
-                .version((Long) imgMap.get("version"))
+                .version(version == null ? null : version.longValue())
                 .contentHash((String) imgMap.get("contentHash"))
                 .cameraMaker((String) imgMap.get("cameraMaker"))
                 .cameraModel((String) imgMap.get("cameraModel"))
+                .rawCaptureDateTime((String) imgMap.get("rawCaptureDateTime"))
                 .status(ImageStatus.valueOf((String) imgMap.get("status")));
 
-        if (Objects.nonNull(imgMap.get("datetimeOriginal"))) {
-            imgBuilder.datetimeOriginal(
-                    (LocalDateTime) imgMap.get("datetimeOriginal")
-            );
+        var captureDateTimeObj = imgMap.get("captureDateTime");
+        if (captureDateTimeObj instanceof ZonedDateTime captureDateTime) {
+            imgBuilder.captureDateTime(captureDateTime);
+        } else if (
+                captureDateTimeObj instanceof OffsetDateTime captureDateTime
+        ) {
+            imgBuilder.captureDateTime(captureDateTime.toZonedDateTime());
+        }
+
+        var captureInstantObj = imgMap.get("captureInstant");
+        if (captureInstantObj instanceof Instant captureInstant) {
+            imgBuilder.captureInstant(captureInstant);
+        } else if (captureInstantObj instanceof ZonedDateTime zdtCaptureInstant) {
+            imgBuilder.captureInstant(zdtCaptureInstant.toInstant());
+        } else if (
+                captureInstantObj instanceof OffsetDateTime captureInstant
+        ) {
+            imgBuilder.captureInstant(captureInstant.toInstant());
         }
 
         if (Objects.nonNull(imgMap.get("gpsLatitude"))) {

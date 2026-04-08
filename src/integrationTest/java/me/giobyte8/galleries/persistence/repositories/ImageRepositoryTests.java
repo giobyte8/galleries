@@ -12,7 +12,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -25,6 +27,24 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
         ImgRowMapper.class,
 })
 public class ImageRepositoryTests extends BaseIntegrationTest {
+
+    private static final ZonedDateTime TEST_CAPTURE_DATE_TIME =
+            ZonedDateTime.of(
+                    2022,
+                    6,
+                    12,
+                    13,
+                    31,
+                    12,
+                    0,
+                    ZoneOffset.of("-06:00")
+            );
+
+    private static final Instant TEST_CAPTURE_INSTANT =
+            TEST_CAPTURE_DATE_TIME.toInstant();
+
+    private static final String TEST_RAW_CAPTURE_DATE_TIME =
+            "2022:06:12 13:31:12";
 
     @Autowired
     private ImageRepository imgRepository;
@@ -70,7 +90,9 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         Image img = Image.builder()
                 .path("random.jpg")
                 .contentHash("12345")
-                .datetimeOriginal(LocalDateTime.MIN)
+                .captureDateTime(TEST_CAPTURE_DATE_TIME)
+                .captureInstant(TEST_CAPTURE_INSTANT)
+                .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
                 .gpsLatitude(1d)
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
@@ -82,6 +104,18 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         // Assert image was saved
         var dbImgOpt = imgRepository.findByPath(img.getPath());
         assertTrue(dbImgOpt.isPresent());
+        assertEquals(
+                TEST_CAPTURE_DATE_TIME,
+                dbImgOpt.orElseThrow().getCaptureDateTime()
+        );
+        assertEquals(
+                TEST_CAPTURE_INSTANT,
+                dbImgOpt.orElseThrow().getCaptureInstant()
+        );
+        assertEquals(
+                TEST_RAW_CAPTURE_DATE_TIME,
+                dbImgOpt.orElseThrow().getRawCaptureDateTime()
+        );
 
         // Assert image was added to parent dir
         imgRepository.
@@ -105,7 +139,9 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         Image img = Image.builder()
                 .path("random.jpg")
                 .contentHash("12345")
-                .datetimeOriginal(LocalDateTime.now())
+                .captureDateTime(TEST_CAPTURE_DATE_TIME)
+                .captureInstant(TEST_CAPTURE_INSTANT)
+                .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
                 .cameraMaker("Samsung")
                 .cameraModel("S23 Ultra")
                 .build();
@@ -117,7 +153,7 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
     }
 
     @Test
-    void saveMissingDatetimeOriginal() {
+    void saveMissingCaptureDateTime() {
         Directory parent = Directory.builder()
                 .path("root/")
                 .build();
@@ -134,7 +170,9 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         imgRepository.saveAsChild(parent, img);
 
         Image dbImg = imgRepository.findByPath("random.jpg").orElseThrow();
-        assertNull(dbImg.getDatetimeOriginal());
+        assertNull(dbImg.getCaptureDateTime());
+        assertNull(dbImg.getCaptureInstant());
+        assertNull(dbImg.getRawCaptureDateTime());
     }
 
     @Test
@@ -155,7 +193,9 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         Image img1 = Image.builder()
                 .path("test_image.jpg")
                 .contentHash("12345")
-                .datetimeOriginal(LocalDateTime.MIN)
+                .captureDateTime(TEST_CAPTURE_DATE_TIME)
+                .captureInstant(TEST_CAPTURE_INSTANT)
+                .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
                 .gpsLatitude(1d)
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
@@ -167,7 +207,9 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         Image img2 = Image.builder()
                 .path("test_image_2.jpg")
                 .contentHash("12345")
-                .datetimeOriginal(LocalDateTime.MIN)
+                .captureDateTime(TEST_CAPTURE_DATE_TIME)
+                .captureInstant(TEST_CAPTURE_INSTANT)
+                .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
                 .gpsLatitude(1d)
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
@@ -204,7 +246,9 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         Image img1 = Image.builder()
                 .path("test_image.jpg")
                 .contentHash("12345")
-                .datetimeOriginal(LocalDateTime.MIN)
+                .captureDateTime(TEST_CAPTURE_DATE_TIME)
+                .captureInstant(TEST_CAPTURE_INSTANT)
+                .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
                 .gpsLatitude(1d)
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
@@ -216,7 +260,9 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         Image img2 = Image.builder()
                 .path("test_image_2.jpg")
                 .contentHash("12345")
-                .datetimeOriginal(LocalDateTime.MIN)
+                .captureDateTime(TEST_CAPTURE_DATE_TIME)
+                .captureInstant(TEST_CAPTURE_INSTANT)
+                .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
                 .gpsLatitude(1d)
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
@@ -234,7 +280,9 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         Image nestedImg1 = Image.builder()
                 .path("nested_dir_img_1.jpg")
                 .contentHash("12345")
-                .datetimeOriginal(LocalDateTime.MIN)
+                .captureDateTime(TEST_CAPTURE_DATE_TIME)
+                .captureInstant(TEST_CAPTURE_INSTANT)
+                .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
                 .gpsLatitude(1d)
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
@@ -246,7 +294,9 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         Image nestedImg2 = Image.builder()
                 .path("nested_dir_img_2.jpg")
                 .contentHash("12345")
-                .datetimeOriginal(LocalDateTime.MIN)
+                .captureDateTime(TEST_CAPTURE_DATE_TIME)
+                .captureInstant(TEST_CAPTURE_INSTANT)
+                .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
                 .gpsLatitude(1d)
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
@@ -275,7 +325,9 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         Image img1 = Image.builder()
                 .path("test_image.jpg")
                 .contentHash("12345")
-                .datetimeOriginal(LocalDateTime.MIN)
+                .captureDateTime(TEST_CAPTURE_DATE_TIME)
+                .captureInstant(TEST_CAPTURE_INSTANT)
+                .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
                 .gpsLatitude(1d)
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
@@ -287,7 +339,9 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         Image img2 = Image.builder()
                 .path("test_image_2.jpg")
                 .contentHash("12345")
-                .datetimeOriginal(LocalDateTime.MIN)
+                .captureDateTime(TEST_CAPTURE_DATE_TIME)
+                .captureInstant(TEST_CAPTURE_INSTANT)
+                .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
                 .gpsLatitude(1d)
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")

@@ -32,7 +32,9 @@ public class CustomizedImageRepositoryImpl implements CustomizedImageRepository 
                   SET
                     i.path = $path,
                     i.contentHash = $contentHash,
-                    i.datetimeOriginal = $datetimeOriginal,
+                    i.captureDateTime = $captureDateTime,
+                    i.captureInstant = $captureInstant,
+                    i.rawCaptureDateTime = $rawCaptureDateTime,
                     i.gpsLatitude = $gpsLatitude,
                     i.gpsLongitude = $gpsLongitude,
                     i.cameraMaker = $cameraMaker,
@@ -43,7 +45,9 @@ public class CustomizedImageRepositoryImpl implements CustomizedImageRepository 
                   SET
                     i.path = $path,
                     i.contentHash = $contentHash,
-                    i.datetimeOriginal = $datetimeOriginal,
+                    i.captureDateTime = $captureDateTime,
+                    i.captureInstant = $captureInstant,
+                    i.rawCaptureDateTime = $rawCaptureDateTime,
                     i.gpsLatitude = $gpsLatitude,
                     i.gpsLongitude = $gpsLongitude,
                     i.cameraMaker = $cameraMaker,

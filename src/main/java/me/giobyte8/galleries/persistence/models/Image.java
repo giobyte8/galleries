@@ -7,8 +7,8 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 
 @Data
@@ -24,7 +24,18 @@ public class Image {
 
     private String contentHash;
 
-    private LocalDateTime datetimeOriginal;
+    /// Represents the date and time when this Image was captured
+    /// at the timezone where it was captured.
+    private ZonedDateTime captureDateTime;
+
+    /// Represents the instant in time when this Image was captured
+    /// Useful for querying and sorting
+    private Instant captureInstant;
+
+    /// The capture date time as it was read from the image metadata,
+    /// without any parsing or timezone conversion.
+    private String rawCaptureDateTime;
+
     private Double gpsLatitude;
     private Double gpsLongitude;
 
@@ -46,11 +57,13 @@ public class Image {
             gpsLongitude = meta.getGpsLongitude().doubleValue();
         }
 
-        if (Objects.nonNull(meta.getDatetimeOriginal())) {
-            datetimeOriginal = LocalDateTime.ofInstant(
-                    meta.getDatetimeOriginal().toInstant(),
-                    ZoneId.systemDefault()
-            );
+        captureDateTime = meta.getCaptureDateTime();
+        rawCaptureDateTime = meta.getRawCaptureDateTime();
+
+        if (Objects.nonNull(captureDateTime)) {
+            captureInstant = captureDateTime.toInstant();
+        } else {
+            captureInstant = null;
         }
     }
 }
