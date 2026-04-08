@@ -3,7 +3,7 @@ package me.giobyte8.galleries.scanner.scanners;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.giobyte8.galleries.scanner.config.properties.ScannerProps;
-import me.giobyte8.galleries.scanner.metadata.ImgMetaExtractor;
+import me.giobyte8.galleries.scanner.metadata.MediaMetaExtractor;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.scanner.scanners.listeners.ScanEventsHub;
@@ -37,7 +37,7 @@ public class LocalMediaScanner implements MediaScanner {
     private final ScannerProps scannerProps;
     private final PathService pathSvc;
     private final HashingService hashingSvc;
-    private final ImgMetaExtractor imgMetaExtractor;
+    private final MediaMetaExtractor mediaMetaExtractor;
     private final ImageService imageSvc;
     private final ScanEventsHub eventsHub;
 
@@ -129,14 +129,14 @@ public class LocalMediaScanner implements MediaScanner {
 
                 // Hashes don't match, image has been updated
                 else {
-                    foundImage.setMetadata(imgMetaExtractor.extract(absPath));
+                    foundImage.setMetadata(mediaMetaExtractor.extract(absPath));
                     eventsHub.onUpdatedImageFound(parent, foundImage);
                 }
             }
 
             // No preexistent image. New image has been discovered
             else {
-                foundImage.setMetadata(imgMetaExtractor.extract(absPath));
+                foundImage.setMetadata(mediaMetaExtractor.extract(absPath));
                 eventsHub.onNewImageFound(parent, foundImage);
             }
         } catch (IOException e) {

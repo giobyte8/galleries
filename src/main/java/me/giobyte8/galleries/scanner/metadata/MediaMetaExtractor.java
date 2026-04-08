@@ -5,7 +5,7 @@ import me.giobyte8.galleries.scanner.dto.MFMetadata;
 import java.io.IOException;
 import java.nio.file.Path;
 
-public interface ImgMetaExtractor {
+public interface MediaMetaExtractor {
 
     MFMetadata extract(Path absPath) throws IOException;
 }

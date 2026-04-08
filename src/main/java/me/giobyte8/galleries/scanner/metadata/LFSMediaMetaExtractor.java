@@ -23,7 +23,7 @@ import java.nio.file.Path;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class LFSImgMetaExtractor implements ImgMetaExtractor {
+public class LFSMediaMetaExtractor implements MediaMetaExtractor {
     private final ObjectMapper jMapper;
 
     @Override

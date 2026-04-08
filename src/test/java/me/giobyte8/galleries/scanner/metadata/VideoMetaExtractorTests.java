@@ -11,8 +11,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class VideoMetaExtractorTests {
 
-    private final ImgMetaExtractor metaExtractor =
-            new LFSImgMetaExtractor(new ObjectMapper());
+    private final MediaMetaExtractor metaExtractor =
+            new LFSMediaMetaExtractor(new ObjectMapper());
 
     private final Path testContentsRoot = Paths.get(
             "src/test/resources",
