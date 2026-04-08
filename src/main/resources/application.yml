@@ -28,6 +28,11 @@ galleries:
       - jpg
       - png
       - heic
+      - webp
+    video_file_extensions:
+      - mp4
+      - mov
+      - m4v
 
 neo4j:
   uri: neo4j://${NEO4J_HOST:localhost}:${NEO4J_PORT:7687}

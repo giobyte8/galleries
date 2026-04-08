@@ -5,8 +5,10 @@ import me.giobyte8.galleries.persistence.models.DirStatus;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.persistence.models.MediaFileStatus;
+import me.giobyte8.galleries.persistence.models.Video;
 import me.giobyte8.galleries.persistence.repositories.DirectoryRepository;
 import me.giobyte8.galleries.persistence.repositories.ImageRepository;
+import me.giobyte8.galleries.persistence.repositories.VideoRepository;
 import me.giobyte8.galleries.scanner.thumbnails.ThumbnailsService;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,7 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
 
     private final DirectoryRepository dirRepository;
     private final ImageRepository imgRepository;
+    private final VideoRepository videoRepository;
     private final ThumbnailsService thumbnailsSvc;
 
     @Override
@@ -35,6 +38,9 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
 
         // Set all images under dir to 'VERIFYING' status
         imgRepository.updateStatusByParent(dir, MediaFileStatus.VERIFYING);
+
+        // Set all videos under dir to 'VERIFYING' status
+        videoRepository.updateStatusByParent(dir, MediaFileStatus.VERIFYING);
 
         // Set all children directories to 'VERIFYING' status
         dirRepository.updateStatusByParent(dir, DirStatus.VERIFYING);
@@ -72,6 +78,21 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
                         )
                 );
 
+        // If a video is still in 'VERIFYING' status, that means it
+        // wasn't found during scanning.
+        // Remove every video that remains in 'VERIFYING' status.
+        videoRepository
+
+                // TODO Mark as NOT_FOUND instead of deleting?
+                // TODO Schedule thumbs to be deleted later instead of now?
+                // TODO Schedule video record to be deleted later instead of now?
+                .deleteAndGetPaths(dir, MediaFileStatus.VERIFYING)
+                .forEach(path ->
+                        thumbnailsSvc.deleteThumbnails(
+                                Path.of(path)
+                        )
+                );
+
         // Process children directories that remains in 'VERIFYING' status
         dirRepository
                 .findByParentPathAndStatus(dir, DirStatus.VERIFYING)
@@ -84,6 +105,16 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
                             .forEach(imgPath ->
                                     thumbnailsSvc.deleteThumbnails(
                                             Path.of(imgPath)
+                                    )
+                            );
+
+                    // Remove all descendant videos from not found dir and
+                    // from subdirectories
+                    videoRepository
+                            .multilevelDeleteAndGetPaths(notFoundDir)
+                            .forEach(videoPath ->
+                                    thumbnailsSvc.deleteThumbnails(
+                                            Path.of(videoPath)
                                     )
                             );
 
@@ -126,6 +157,29 @@ public class GalleriesScanEventsListener implements ScanEventsListener {
 
     @Override
     public void onImageNotFound(Directory parent, Image img) {
+
+    }
+
+    @Override
+    public void onNewVideoFound(Directory parent, Video video) {
+        videoRepository.saveAsChild(parent, video);
+        thumbnailsSvc.generateThumbnails(Path.of(video.getPath()));
+    }
+
+    @Override
+    public void onUpdatedVideoFound(Directory parent, Video video) {
+        videoRepository.saveAsChild(parent, video);
+        thumbnailsSvc.refreshThumbnails(Path.of(video.getPath()));
+    }
+
+    @Override
+    public void onUnchangedVideoFound(Directory parent, Video video) {
+        video.setStatus(MediaFileStatus.AVAILABLE);
+        videoRepository.saveAsChild(parent, video);
+    }
+
+    @Override
+    public void onVideoNotFound(Directory parent, Video video) {
 
     }
 }

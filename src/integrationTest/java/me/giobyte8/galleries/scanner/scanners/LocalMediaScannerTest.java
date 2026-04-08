@@ -2,6 +2,7 @@ package me.giobyte8.galleries.scanner.scanners;
 
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
+import me.giobyte8.galleries.persistence.models.Video;
 import me.giobyte8.galleries.scanner.BaseIntegrationTest;
 import me.giobyte8.galleries.scanner.scanners.listeners.ScanEventsHub;
 import org.junit.jupiter.api.Test;
@@ -95,6 +96,29 @@ public class LocalMediaScannerTest extends BaseIntegrationTest {
         // Verify images found
         verify(eventsHub, times(7))
                 .onNewImageFound(any(Directory.class), any(Image.class));
+
+        verifyNoMoreInteractions(eventsHub);
+    }
+
+    @Test
+    void when_scan_videos_then_emit_video_events() {
+        var videosDir = Directory.builder()
+                .path("videos")
+                .build();
+        mediaScanner.scan(videosDir);
+
+        verify(eventsHub, times(1))
+                .onScanStarted();
+        verify(eventsHub, times(1))
+                .onScanCompleted();
+
+        verify(eventsHub, times(1))
+                .onScanStarted(videosDir);
+        verify(eventsHub, times(1))
+                .onScanCompleted(videosDir);
+
+        verify(eventsHub, times(4))
+                .onNewVideoFound(eq(videosDir), any(Video.class));
 
         verifyNoMoreInteractions(eventsHub);
     }

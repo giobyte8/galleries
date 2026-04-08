@@ -4,6 +4,7 @@ import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.MediaFileStatus;
 import me.giobyte8.galleries.persistence.repositories.DirectoryRepository;
 import me.giobyte8.galleries.persistence.repositories.ImageRepository;
+import me.giobyte8.galleries.persistence.repositories.VideoRepository;
 import me.giobyte8.galleries.scanner.BaseIntegrationTest;
 import me.giobyte8.galleries.scanner.dto.ScanRequest;
 import me.giobyte8.galleries.scanner.metrics.Metric;
@@ -31,6 +32,9 @@ public class ScanServiceTests extends BaseIntegrationTest {
 
     @Autowired
     private ImageRepository imgRepo;
+
+    @Autowired
+    private VideoRepository videoRepository;
 
     @MockitoBean
     private MetricsService metricsService;
@@ -121,5 +125,43 @@ public class ScanServiceTests extends BaseIntegrationTest {
                 .increment(Metric.THUMBS_REQUESTED_GEN);
         verify(metricsService, times(2))
                 .increment(Metric.SCAN_DIR_FOUND);
+    }
+
+    @Test
+    void test_scan_videos_gallery() {
+        var videosDir = Directory.builder()
+                .path("videos")
+                .build();
+        dirRepo.save(videosDir);
+
+        ScanRequest request = new ScanRequest(
+                UUID.randomUUID(),
+                "videos",
+                LocalDateTime.now()
+        );
+        scanService.scan(request);
+
+        assertThat(videoRepository.countByStatus(MediaFileStatus.AVAILABLE))
+                .isEqualTo(4);
+
+        assertThat(imgRepo.countByStatus(MediaFileStatus.AVAILABLE))
+                .isEqualTo(0);
+
+        assertThat(dirRepo.count())
+                .isEqualTo(1);
+    }
+
+    @Test
+    void test_scan_videos_gallery_with_metrics() {
+        test_scan_videos_gallery();
+
+        verify(metricsService, times(1))
+                .increment(Metric.SCAN_DIR_STARTED);
+        verify(metricsService, times(1))
+                .increment(Metric.SCAN_DIR_COMPLETED);
+        verify(metricsService, times(4))
+                .increment(Metric.SCAN_VIDEO_FOUND_NEW);
+        verify(metricsService, times(4))
+                .increment(Metric.THUMBS_REQUESTED_GEN);
     }
 }

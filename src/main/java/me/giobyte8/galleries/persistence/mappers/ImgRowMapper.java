@@ -21,8 +21,12 @@ public class ImgRowMapper {
         imgMap.put("version", image.getVersion());
         imgMap.put("contentHash", image.getContentHash());
 
-        // Add it to map even if its value is null
-        imgMap.put("captureDateTime", image.getCaptureDateTime());
+        imgMap.put(
+                "captureDateTime",
+                Objects.isNull(image.getCaptureDateTime())
+                        ? null
+                        : image.getCaptureDateTime().toOffsetDateTime()
+        );
         imgMap.put(
                 "captureInstant",
                 Objects.isNull(image.getCaptureInstant())

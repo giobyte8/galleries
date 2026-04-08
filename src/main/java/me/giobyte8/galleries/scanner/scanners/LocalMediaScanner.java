@@ -6,10 +6,12 @@ import me.giobyte8.galleries.scanner.config.properties.ScannerProps;
 import me.giobyte8.galleries.scanner.metadata.MediaMetaExtractor;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
+import me.giobyte8.galleries.persistence.models.Video;
 import me.giobyte8.galleries.scanner.scanners.listeners.ScanEventsHub;
 import me.giobyte8.galleries.scanner.services.HashingService;
 import me.giobyte8.galleries.services.ImageService;
 import me.giobyte8.galleries.scanner.services.PathService;
+import me.giobyte8.galleries.services.VideoService;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -39,6 +41,7 @@ public class LocalMediaScanner implements MediaScanner {
     private final HashingService hashingSvc;
     private final MediaMetaExtractor mediaMetaExtractor;
     private final ImageService imageSvc;
+    private final VideoService videoSvc;
     private final ScanEventsHub eventsHub;
 
     private final Queue<Directory> scanPendingQueue = new ArrayDeque<>();
@@ -71,8 +74,9 @@ public class LocalMediaScanner implements MediaScanner {
                     onImageFound(dir, absPath);
                 }
 
-                // Handle video files...
-                // else if (hasVideoExtension(absPath)) {
+                else if (hasVideoExtension(absPath)) {
+                    onVideoFound(dir, absPath);
+                }
             });
 
             eventsHub.onScanCompleted(dir);
@@ -144,14 +148,59 @@ public class LocalMediaScanner implements MediaScanner {
         }
     }
 
+    /**
+     * Callback invoked when a video is found during scanning.
+     *
+     * @param parent Directory where given video was found.
+     * @param absPath The absolute path of the found video.
+     */
+    private void onVideoFound(Directory parent, Path absPath) {
+        try {
+            String path = pathSvc.toRelative(absPath).toString();
+            String contentHash = hashingSvc.hashContent(absPath);
+
+            Video foundVideo = Video.builder()
+                    .path(path)
+                    .contentHash(contentHash)
+                    .build();
+
+            var dbVideoOpt = videoSvc.findByPath(path);
+            if (dbVideoOpt.isPresent()) {
+                var dbVideo = dbVideoOpt.get();
+
+                if (dbVideo.getContentHash().equals(contentHash)) {
+                    eventsHub.onUnchangedVideoFound(parent, dbVideo);
+                }
+
+                else {
+                    foundVideo.setMetadata(mediaMetaExtractor.extract(absPath));
+                    eventsHub.onUpdatedVideoFound(parent, foundVideo);
+                }
+            }
+
+            else {
+                foundVideo.setMetadata(mediaMetaExtractor.extract(absPath));
+                eventsHub.onNewVideoFound(parent, foundVideo);
+            }
+        } catch (IOException e) {
+            log.error("Error while hashing content: {}", absPath, e);
+        }
+    }
+
     private boolean hasImageExtension(Path absPath) {
+        return hasExtension(absPath, scannerProps.getImageFileExtensions());
+    }
+
+    private boolean hasVideoExtension(Path absPath) {
+        return hasExtension(absPath, scannerProps.getVideoFileExtensions());
+    }
+
+    private boolean hasExtension(Path absPath, java.util.Set<String> extensions) {
         String sPath = absPath.toString();
         String ext = sPath
                 .substring(sPath.lastIndexOf(".") + 1)
                 .toLowerCase();
 
-        return scannerProps
-                .getImageFileExtensions()
-                .contains(ext);
+        return extensions.contains(ext);
     }
 }

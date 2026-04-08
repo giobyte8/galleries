@@ -12,6 +12,7 @@ import java.util.Set;
 public class ScannerProps {
     private ContentDirsProps contentDirs;
     private Set<String> imageFileExtensions;
+    private Set<String> videoFileExtensions;
     private AMQPProps amqp;
 
     @Data

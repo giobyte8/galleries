@@ -22,6 +22,10 @@ public class ScanStatsContext {
     private final AtomicLong newImages = new AtomicLong(0);
     private final AtomicLong updatedImages = new AtomicLong(0);
     private final AtomicLong notFoundImages = new AtomicLong(0);
+    private final AtomicLong unchangedVideos = new AtomicLong(0);
+    private final AtomicLong newVideos = new AtomicLong(0);
+    private final AtomicLong updatedVideos = new AtomicLong(0);
+    private final AtomicLong notFoundVideos = new AtomicLong(0);
     private final AtomicLong foundDirectories = new AtomicLong(0);
 
     private final ScanStats.ScanStatsBuilder statsBuilder;
@@ -37,12 +41,20 @@ public class ScanStatsContext {
     public void incrementNewImages() { newImages.incrementAndGet(); }
     public void incrementUpdatedImages() { updatedImages.incrementAndGet(); }
     public void incrementNotFoundImages() { notFoundImages.incrementAndGet(); }
+    public void incrementUnchangedVideos() { unchangedVideos.incrementAndGet(); }
+    public void incrementNewVideos() { newVideos.incrementAndGet(); }
+    public void incrementUpdatedVideos() { updatedVideos.incrementAndGet(); }
+    public void incrementNotFoundVideos() { notFoundVideos.incrementAndGet(); }
     public void incrementFoundDirectories() { foundDirectories.incrementAndGet(); }
 
     public long getUnchangedImages() { return unchangedImages.get(); }
     public long getNewImages() { return newImages.get(); }
     public long getUpdatedImages() { return updatedImages.get(); }
     public long getNotFoundImages() { return notFoundImages.get(); }
+    public long getUnchangedVideos() { return unchangedVideos.get(); }
+    public long getNewVideos() { return newVideos.get(); }
+    public long getUpdatedVideos() { return updatedVideos.get(); }
+    public long getNotFoundVideos() { return notFoundVideos.get(); }
     public long getFoundDirectories() { return foundDirectories.get(); }
 
     public void startedAt(LocalDateTime startedAt) {
@@ -63,6 +75,10 @@ public class ScanStatsContext {
                 .updatedImages(getUpdatedImages())
                 .unchangedImages(getUnchangedImages())
                 .notFoundImages(getNotFoundImages())
+                .newVideos(getNewVideos())
+                .updatedVideos(getUpdatedVideos())
+                .unchangedVideos(getUnchangedVideos())
+                .notFoundVideos(getNotFoundVideos())
                 .foundDirectories(getFoundDirectories())
                 .build();
     }

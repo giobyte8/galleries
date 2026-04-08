@@ -6,6 +6,7 @@ import me.giobyte8.galleries.persistence.models.ScanStatus;
 import me.giobyte8.galleries.persistence.repositories.DirectoryRepository;
 import me.giobyte8.galleries.persistence.repositories.ImageRepository;
 import me.giobyte8.galleries.persistence.repositories.ScanStatsRepository;
+import me.giobyte8.galleries.persistence.repositories.VideoRepository;
 import me.giobyte8.galleries.scanner.BaseIntegrationTest;
 import me.giobyte8.galleries.scanner.dto.ScanRequest;
 import me.giobyte8.galleries.scanner.services.ScanService;
@@ -31,6 +32,9 @@ public class StatsScanEventsListenerTest extends BaseIntegrationTest {
 
     @Autowired
     private ImageRepository imgRepository;
+
+    @Autowired
+    private VideoRepository videoRepository;
 
     @Autowired
     private ScanStatsRepository scanStatsRepository;
@@ -125,5 +129,64 @@ public class StatsScanEventsListenerTest extends BaseIntegrationTest {
                 .as("Second scan should find all 3 images unchanged")
                 .isEqualTo(3);
         assertThat(secondScanStats.getUpdatedImages()).isEqualTo(0);
+    }
+
+    @Test
+    void test_scan_stats_tracked_for_videos() {
+        var videosDir = Directory.builder()
+                .path("videos")
+                .build();
+        dirRepository.save(videosDir);
+
+        UUID scanRequestId = UUID.randomUUID();
+        ScanRequest scanRequest = new ScanRequest(
+                scanRequestId,
+                "videos",
+                LocalDateTime.now()
+        );
+
+        scanService.scan(scanRequest);
+
+        assertThat(videoRepository.countByStatus(MediaFileStatus.AVAILABLE))
+                .isEqualTo(4);
+
+        var scanStats = scanStatsRepository
+                .findByScanRequestId(scanRequestId)
+                .orElseThrow();
+        assertThat(scanStats.getNewVideos()).isEqualTo(4);
+        assertThat(scanStats.getUnchangedVideos()).isEqualTo(0);
+        assertThat(scanStats.getUpdatedVideos()).isEqualTo(0);
+        assertThat(scanStats.getNotFoundVideos()).isEqualTo(0);
+    }
+
+    @Test
+    void test_scan_stats_with_unchanged_videos() {
+        var videosDir = Directory.builder()
+                .path("videos")
+                .build();
+        dirRepository.save(videosDir);
+
+        UUID firstScanId = UUID.randomUUID();
+        ScanRequest firstScan = new ScanRequest(
+                firstScanId,
+                "videos",
+                LocalDateTime.now()
+        );
+        scanService.scan(firstScan);
+
+        UUID secondScanId = UUID.randomUUID();
+        ScanRequest secondScan = new ScanRequest(
+                secondScanId,
+                "videos",
+                LocalDateTime.now()
+        );
+        scanService.scan(secondScan);
+
+        var secondScanStats = scanStatsRepository
+                .findByScanRequestId(secondScanId)
+                .orElseThrow();
+        assertThat(secondScanStats.getNewVideos()).isEqualTo(0);
+        assertThat(secondScanStats.getUnchangedVideos()).isEqualTo(4);
+        assertThat(secondScanStats.getUpdatedVideos()).isEqualTo(0);
     }
 }

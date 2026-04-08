@@ -23,6 +23,10 @@ galleries:
     image-file-extensions:
       - jpg
       - heic
+    video-file-extensions:
+      - mp4
+      - mov
+      - m4v
 
 neo4j:
 

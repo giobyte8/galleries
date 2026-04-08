@@ -114,6 +114,34 @@
                                       th:text="${scan.stats.notFoundImages}">0</span>
                             </td>
                         </tr>
+                        <tr th:if="${scan.stats.newVideos > 0}">
+                            <td>New videos</td>
+                            <td class="text-end">
+                                <span class="badge text-bg-success"
+                                      th:text="${scan.stats.newVideos}">0</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${scan.stats.updatedVideos > 0}">
+                            <td>Updated videos</td>
+                            <td class="text-end">
+                                <span class="badge text-bg-success"
+                                      th:text="${scan.stats.updatedVideos}">0</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${scan.stats.unchangedVideos > 0}">
+                            <td>Unchanged videos</td>
+                            <td class="text-end">
+                                <span class="badge text-bg-secondary"
+                                      th:text="${scan.stats.unchangedVideos}">0</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${scan.stats.notFoundVideos > 0}">
+                            <td>Not found videos</td>
+                            <td class="text-end">
+                                <span class="badge text-bg-danger"
+                                      th:text="${scan.stats.notFoundVideos}">0</span>
+                            </td>
+                        </tr>
                         <tr th:if="${scan.stats.foundDirectories > 0}">
                             <td>Directories</td>
                             <td class="text-end">
@@ -260,6 +288,34 @@
                                     <td class="text-end">
                                         <span class="badge text-bg-danger"
                                               th:text="${scan.stats.notFoundImages}">0</span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${scan.stats.newVideos > 0}">
+                                    <td>New videos</td>
+                                    <td class="text-end">
+                                        <span class="badge text-bg-success"
+                                              th:text="${scan.stats.newVideos}">0</span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${scan.stats.updatedVideos > 0}">
+                                    <td>Updated videos</td>
+                                    <td class="text-end">
+                                        <span class="badge text-bg-success"
+                                              th:text="${scan.stats.updatedVideos}">0</span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${scan.stats.unchangedVideos > 0}">
+                                    <td>Unchanged videos</td>
+                                    <td class="text-end">
+                                        <span class="badge text-bg-secondary"
+                                              th:text="${scan.stats.unchangedVideos}">0</span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${scan.stats.notFoundVideos > 0}">
+                                    <td>Not found videos</td>
+                                    <td class="text-end">
+                                        <span class="badge text-bg-danger"
+                                              th:text="${scan.stats.notFoundVideos}">0</span>
                                     </td>
                                 </tr>
                                 <tr th:if="${scan.stats.foundDirectories > 0}">

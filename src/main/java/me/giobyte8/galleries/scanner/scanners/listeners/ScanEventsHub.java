@@ -3,6 +3,7 @@ package me.giobyte8.galleries.scanner.scanners.listeners;
 import lombok.extern.slf4j.Slf4j;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
+import me.giobyte8.galleries.persistence.models.Video;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -97,5 +98,29 @@ public class ScanEventsHub implements ScanEventsListener {
     public void onImageNotFound(Directory parent, Image img) {
         log.debug("Image not found (deleted): {}", img.getPath());
         //listeners.forEach(l -> l.onImageNotFound(parent, img));
+    }
+
+    @Override
+    public void onNewVideoFound(Directory parent, Video video) {
+        log.debug("New video found: {}", video.getPath());
+        listeners.forEach(l -> l.onNewVideoFound(parent, video));
+    }
+
+    @Override
+    public void onUpdatedVideoFound(Directory parent, Video video) {
+        log.debug("Updated video found: {}", video.getPath());
+        listeners.forEach(l -> l.onUpdatedVideoFound(parent, video));
+    }
+
+    @Override
+    public void onUnchangedVideoFound(Directory parent, Video video) {
+        log.debug("Unchanged video found: {}", video.getPath());
+        listeners.forEach(l -> l.onUnchangedVideoFound(parent, video));
+    }
+
+    @Override
+    public void onVideoNotFound(Directory parent, Video video) {
+        log.debug("Video not found (deleted): {}", video.getPath());
+        //listeners.forEach(l -> l.onVideoNotFound(parent, video));
     }
 }

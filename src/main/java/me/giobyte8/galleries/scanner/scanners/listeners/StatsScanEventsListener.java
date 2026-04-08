@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.persistence.models.ScanStatus;
+import me.giobyte8.galleries.persistence.models.Video;
 import me.giobyte8.galleries.persistence.repositories.ScanStatsRepository;
 import org.springframework.stereotype.Service;
 
@@ -68,5 +69,25 @@ public class StatsScanEventsListener implements ScanEventsListener {
     @Override
     public void onImageNotFound(Directory parent, Image img) {
         ScanStatsContext.current().incrementNotFoundImages();
+    }
+
+    @Override
+    public void onNewVideoFound(Directory parent, Video video) {
+        ScanStatsContext.current().incrementNewVideos();
+    }
+
+    @Override
+    public void onUpdatedVideoFound(Directory parent, Video video) {
+        ScanStatsContext.current().incrementUpdatedVideos();
+    }
+
+    @Override
+    public void onUnchangedVideoFound(Directory parent, Video video) {
+        ScanStatsContext.current().incrementUnchangedVideos();
+    }
+
+    @Override
+    public void onVideoNotFound(Directory parent, Video video) {
+        ScanStatsContext.current().incrementNotFoundVideos();
     }
 }

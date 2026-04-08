@@ -47,6 +47,18 @@ public class ScanStats {
     /** Number of previously indexed images that were not found */
     private long notFoundImages;
 
+    /** Number of videos that were already in the index and unchanged */
+    private long unchangedVideos;
+
+    /** Number of newly discovered videos */
+    private long newVideos;
+
+    /** Number of previously indexed videos that were updated */
+    private long updatedVideos;
+
+    /** Number of previously indexed videos that were not found */
+    private long notFoundVideos;
+
     /** Number of directories discovered during scan */
     private long foundDirectories;
 

@@ -5,6 +5,7 @@ import me.giobyte8.galleries.scanner.metrics.Metric;
 import me.giobyte8.galleries.scanner.metrics.MetricsService;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
+import me.giobyte8.galleries.persistence.models.Video;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -61,5 +62,25 @@ public class TelemetryScanEventsListener implements ScanEventsListener {
     @Override
     public void onImageNotFound(Directory parent, Image img) {
         metricsService.increment(Metric.SCAN_IMG_NOT_FOUND);
+    }
+
+    @Override
+    public void onNewVideoFound(Directory parent, Video video) {
+        metricsService.increment(Metric.SCAN_VIDEO_FOUND_NEW);
+    }
+
+    @Override
+    public void onUpdatedVideoFound(Directory parent, Video video) {
+        metricsService.increment(Metric.SCAN_VIDEO_FOUND_UPDATED);
+    }
+
+    @Override
+    public void onUnchangedVideoFound(Directory parent, Video video) {
+        metricsService.increment(Metric.SCAN_VIDEO_FOUND_UNCHANGED);
+    }
+
+    @Override
+    public void onVideoNotFound(Directory parent, Video video) {
+        metricsService.increment(Metric.SCAN_VIDEO_NOT_FOUND);
     }
 }
