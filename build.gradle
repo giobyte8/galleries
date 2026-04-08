@@ -32,7 +32,17 @@ dependencies {
 
 	implementation 'com.drewnoakes:metadata-extractor:2.19.0'
 	implementation 'commons-codec:commons-codec:1.20.0'
-	implementation 'net.iakovlev:timeshape:2025b.26'
+
+	// Protobuf is used for OTLP metrics export, and we need to ensure a
+	// compatible version is included.
+	implementation 'com.google.protobuf:protobuf-java:4.34.1'
+
+	// TimeShape is used for timezone resolution based on coordinates
+	implementation('net.iakovlev:timeshape:2025b.26') {
+
+		// Avoid pulling an older protobuf that breaks OTLP metrics.
+		exclude group: 'com.google.protobuf', module: 'protobuf-java'
+	}
 
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 	annotationProcessor 'org.projectlombok:lombok:1.18.42'
