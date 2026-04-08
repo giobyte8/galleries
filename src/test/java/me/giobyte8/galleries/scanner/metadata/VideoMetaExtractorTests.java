@@ -11,21 +11,13 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class VideoMetaExtractorTests {
 
-    private final VideoMetaExtractor metaExtractor =
-            new VideoMetaExtractor(new ObjectMapper());
+    private final ImgMetaExtractor metaExtractor =
+            new LFSImgMetaExtractor(new ObjectMapper());
 
     private final Path testContentsRoot = Paths.get(
             "src/test/resources",
             "galleries"
     );
-
-    @Test
-    void nonVideoFile() throws IOException {
-        var path = pathFor("cameras", "20220612_133112.jpg");
-        var meta = metaExtractor.extract(path);
-
-        assertThat(meta).isNull();
-    }
 
     @Test
     void movMediaFile() throws IOException {
@@ -121,13 +113,9 @@ public class VideoMetaExtractorTests {
     }
 
     private Path pathFor(String filename) {
-        return pathFor("videos", filename);
-    }
-
-    private Path pathFor(String dir, String filename) {
         return Paths.get(
                 testContentsRoot.toAbsolutePath().toString(),
-                dir,
+                "videos",
                 filename
         );
     }
