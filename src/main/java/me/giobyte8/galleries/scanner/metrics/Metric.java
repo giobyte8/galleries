@@ -9,20 +9,20 @@ public enum Metric {
     @Deprecated SCAN_COMPLETED("scan.completed"),
     SCAN_REQUEST(MetricStr.SCAN_REQUEST),
 
-    SCAN_DIR_STARTED("scan.dir.started"),
-    SCAN_DIR_COMPLETED("scan.dir.completed"),
-    SCAN_DIR_FAILED("scan.dir.failed"),
-    SCAN_DIR_FOUND("scan.dir.found"),
+    SCAN_DIR_STARTED("gl.scan.dir.started"),
+    SCAN_DIR_COMPLETED("gl.scan.dir.completed"),
+    SCAN_DIR_FAILED("gl.scan.dir.failed"),
+    SCAN_DIR_FOUND("gl.scan.dir.found"),
 
-    SCAN_IMG_FOUND_NEW("scan.image.found.new"),
-    SCAN_IMG_FOUND_UPDATED("scan.image.found.updated"),
-    SCAN_IMG_FOUND_UNCHANGED("scan.image.found.unchanged"),
-    SCAN_IMG_NOT_FOUND("scan.image.not.found"),
+    @Deprecated SCAN_IMG_FOUND_NEW("scan.image.found.new"),
+    @Deprecated SCAN_IMG_FOUND_UPDATED("scan.image.found.updated"),
+    @Deprecated SCAN_IMG_FOUND_UNCHANGED("scan.image.found.unchanged"),
+    @Deprecated SCAN_IMG_NOT_FOUND("scan.image.not.found"),
 
-    SCAN_VIDEO_FOUND_NEW("scan.video.found.new"),
-    SCAN_VIDEO_FOUND_UPDATED("scan.video.found.updated"),
-    SCAN_VIDEO_FOUND_UNCHANGED("scan.video.found.unchanged"),
-    SCAN_VIDEO_NOT_FOUND("scan.video.not.found"),
+    @Deprecated SCAN_VIDEO_FOUND_NEW("scan.video.found.new"),
+    @Deprecated SCAN_VIDEO_FOUND_UPDATED("scan.video.found.updated"),
+    @Deprecated SCAN_VIDEO_FOUND_UNCHANGED("scan.video.found.unchanged"),
+    @Deprecated SCAN_VIDEO_NOT_FOUND("scan.video.not.found"),
 
     /// Timer (with an implicit counter) to track each found file and the
     /// time to process it. Consider using following tags:
@@ -41,9 +41,9 @@ public enum Metric {
     /// - media_type: video|image
     SCAN_MEDIA_CHANGE_DETECTION("gl.scan.media.change-detection"),
 
-    THUMBS_REQUESTED_GEN("thumbs.requested.generate"),
-    THUMBS_REQUESTED_REF("thumbs.requested.refresh"),
-    THUMBS_REQUESTED_DEL("thumbs.requested.delete");
+    THUMBS_REQUESTED_GEN("gl.thumbs.req.generate"),
+    THUMBS_REQUESTED_REF("gl.thumbs.req.refresh"),
+    THUMBS_REQUESTED_DEL("gl.thumbs.req.delete");
 
 
     private final String name;
