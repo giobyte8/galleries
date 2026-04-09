@@ -8,6 +8,9 @@ import com.drew.metadata.Metadata;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.giobyte8.galleries.scanner.dto.MFMetadata;
+import me.giobyte8.galleries.scanner.metrics.Metric;
+import me.giobyte8.galleries.scanner.metrics.MetricTag;
+import me.giobyte8.galleries.scanner.metrics.MetricsService;
 import me.giobyte8.galleries.scanner.metadata.reader.ImageMetaReader;
 import me.giobyte8.galleries.scanner.metadata.reader.Mp4ExifToolMetaReader;
 import me.giobyte8.galleries.scanner.metadata.reader.QuickTimeMetaReader;
@@ -25,11 +28,16 @@ import java.nio.file.Path;
 @RequiredArgsConstructor
 public class LFSMediaMetaExtractor implements MediaMetaExtractor {
     private final ObjectMapper jMapper;
+    private final MetricsService metricsSvc;
 
     @Override
     public MFMetadata extract(Path absPath) throws IOException {
+        long startNs = System.nanoTime();
+        String mediaType = null;
+
         try (var fIs = new BufferedInputStream(Files.newInputStream(absPath))) {
             FileType fileType = FileTypeDetector.detectFileType(fIs);
+            mediaType = mediaTypeFor(fileType);
 
             switch (fileType) {
                 case FileType.Jpeg, FileType.Heif, FileType.Png, FileType.WebP -> {
@@ -65,6 +73,24 @@ public class LFSMediaMetaExtractor implements MediaMetaExtractor {
             );
 
             return null;
+        } finally {
+            if (mediaType != null) {
+                metricsSvc.record(
+                        Metric.SCAN_META_EXTRACTION,
+                        startNs,
+                        MetricTag.MEDIA_TYPE.getName(),
+                        mediaType
+                );
+            }
         }
+    }
+
+    private String mediaTypeFor(FileType fileType) {
+        return switch (fileType) {
+            case FileType.Jpeg, FileType.Heif, FileType.Png, FileType.WebP ->
+                    "image";
+            case FileType.Mp4, FileType.QuickTime -> "video";
+            default -> null;
+        };
     }
 }

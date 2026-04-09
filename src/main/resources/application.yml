@@ -40,6 +40,21 @@ neo4j:
   password: ${NEO4J_PASSWORD:neo4j_devpass}
 
 management:
+  metrics:
+
+    # Common tags to be added to all metrics.
+    tags:
+      application: ${spring.application.name}
+
+    distribution:
+
+      # Toggles histogram for specific metrics
+      percentiles-histogram:
+        gl.scan.request: true
+        gl.scan.media.found: true
+        gl.scan.media.meta-extraction: true
+        gl.scan.media.change-detection: true
+
   endpoints:
     web:
       exposure:

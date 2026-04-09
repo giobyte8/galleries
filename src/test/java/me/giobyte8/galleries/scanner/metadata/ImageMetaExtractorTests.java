@@ -1,6 +1,12 @@
 package me.giobyte8.galleries.scanner.metadata;
 
+import me.giobyte8.galleries.scanner.metrics.MetricsService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -10,9 +16,17 @@ import java.nio.file.Paths;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+@ExtendWith(MockitoExtension.class)
 class ImageMetaExtractorTests {
-    private final MediaMetaExtractor mExtractor =
-            new LFSMediaMetaExtractor(new ObjectMapper());
+
+    @Spy
+    private ObjectMapper jMapper = new ObjectMapper();
+
+    @Mock
+    private MetricsService metricsSvc;
+
+    @InjectMocks
+    private LFSMediaMetaExtractor mExtractor;
 
     private final Path testContentsRoot = Paths.get(
             "src/test/resources",

@@ -1,5 +1,6 @@
 package me.giobyte8.galleries.scanner.scanners;
 
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.giobyte8.galleries.scanner.config.properties.ScannerProps;
@@ -7,6 +8,10 @@ import me.giobyte8.galleries.scanner.metadata.MediaMetaExtractor;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.persistence.models.Video;
+import me.giobyte8.galleries.scanner.metrics.Metric;
+import me.giobyte8.galleries.scanner.metrics.MetricTag;
+import me.giobyte8.galleries.scanner.metrics.MetricStr;
+import me.giobyte8.galleries.scanner.metrics.MetricsService;
 import me.giobyte8.galleries.scanner.scanners.listeners.ScanEventsHub;
 import me.giobyte8.galleries.scanner.services.HashingService;
 import me.giobyte8.galleries.services.ImageService;
@@ -43,10 +48,15 @@ public class LocalMediaScanner implements MediaScanner {
     private final ImageService imageSvc;
     private final VideoService videoSvc;
     private final ScanEventsHub eventsHub;
+    private final MetricsService metricsSvc;
 
     private final Queue<Directory> scanPendingQueue = new ArrayDeque<>();
 
     @Override
+    @Timed(
+            value = MetricStr.SCAN_REQUEST,
+            description = MetricStr.SCAN_REQUEST_DESC
+    )
     public void scan(Directory dir) {
         eventsHub.onScanStarted();
 
@@ -112,6 +122,9 @@ public class LocalMediaScanner implements MediaScanner {
      * @param absPath The absolute path of the found image.
      */
     private void onImageFound(Directory parent, Path absPath) {
+        long startNs = System.nanoTime();
+        String foundType = null;
+
         try {
             String path = pathSvc.toRelative(absPath).toString();
             String contentHash = hashingSvc.hashContent(absPath);
@@ -128,11 +141,13 @@ public class LocalMediaScanner implements MediaScanner {
 
                 // Hashes match, image has not changed
                 if (dbImage.getContentHash().equals(contentHash)) {
+                    foundType = "unchanged";
                     eventsHub.onUnchangedImageFound(parent, dbImage);
                 }
 
                 // Hashes don't match, image has been updated
                 else {
+                    foundType = "updated";
                     foundImage.setMetadata(mediaMetaExtractor.extract(absPath));
                     eventsHub.onUpdatedImageFound(parent, foundImage);
                 }
@@ -140,11 +155,21 @@ public class LocalMediaScanner implements MediaScanner {
 
             // No preexistent image. New image has been discovered
             else {
+                foundType = "new";
                 foundImage.setMetadata(mediaMetaExtractor.extract(absPath));
                 eventsHub.onNewImageFound(parent, foundImage);
             }
         } catch (IOException e) {
             log.error("Error while hashing content: {}", absPath, e);
+        } finally {
+            if (foundType != null) {
+                metricsSvc.record(
+                        Metric.SCAN_MEDIA_FOUND,
+                        startNs,
+                        MetricTag.MEDIA_TYPE.getName(), "image",
+                        MetricTag.FOUND_TYPE.getName(), foundType
+                );
+            }
         }
     }
 
@@ -155,6 +180,9 @@ public class LocalMediaScanner implements MediaScanner {
      * @param absPath The absolute path of the found video.
      */
     private void onVideoFound(Directory parent, Path absPath) {
+        long startNs = System.nanoTime();
+        String foundType = null;
+
         try {
             String path = pathSvc.toRelative(absPath).toString();
             String contentHash = hashingSvc.hashContent(absPath);
@@ -169,21 +197,33 @@ public class LocalMediaScanner implements MediaScanner {
                 var dbVideo = dbVideoOpt.get();
 
                 if (dbVideo.getContentHash().equals(contentHash)) {
+                    foundType = "unchanged";
                     eventsHub.onUnchangedVideoFound(parent, dbVideo);
                 }
 
                 else {
+                    foundType = "updated";
                     foundVideo.setMetadata(mediaMetaExtractor.extract(absPath));
                     eventsHub.onUpdatedVideoFound(parent, foundVideo);
                 }
             }
 
             else {
+                foundType = "new";
                 foundVideo.setMetadata(mediaMetaExtractor.extract(absPath));
                 eventsHub.onNewVideoFound(parent, foundVideo);
             }
         } catch (IOException e) {
             log.error("Error while hashing content: {}", absPath, e);
+        } finally {
+            if (foundType != null) {
+                metricsSvc.record(
+                        Metric.SCAN_MEDIA_FOUND,
+                        startNs,
+                        MetricTag.MEDIA_TYPE.getName(), "video",
+                        MetricTag.FOUND_TYPE.getName(), foundType
+                );
+            }
         }
     }
 
