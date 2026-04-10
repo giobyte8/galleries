@@ -37,7 +37,7 @@ galleries.scanner.content_dirs.root_path: ~/src/galleries/services/scanner/src/t
 
 ### Setup development users
 
-1. Generate a BCrypt hash for the default development password (`password`):
+1. (Optional) Generate a BCrypt hash for the default development password (`password`):
 
 ```shell
 ./scripts/encrypt_password.sh password
@@ -49,14 +49,38 @@ galleries.scanner.content_dirs.root_path: ~/src/galleries/services/scanner/src/t
 pip3 install bcrypt
 ```
 
-2. Replace the placeholder hash in `scripts/dev_data_reset.cypher` with the
-   generated value and execute the script against your dev database.
+> Put generated password into `dev_data_reset.cypher` file for the dev user.
 
 The seeded development admin user is:
 
 - username: `dev_admin`
 - password: `password` (before hashing)
 
+2. Configure Neo4j connection and scan directories in `scripts/.env`.
+
+The `dev_data_reste.sh` script will automatically drop and recreate the
+database, so make sure to point it to a dedicated development database to avoid data loss.
+
+Example:
+
+```dotenv
+NEO4J_HOST=host.docker.internal
+NEO4J_PORT=7687
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=<your_dev_password>
+NEO4J_DATABASE=neo4j
+
+DEV_SCAN_DIRS='
+Wallpapers
+galleries/custom/path
+'
+```
+
+3. Execute the reset script:
+
+```shell
+./scripts/dev_data_reset.sh
+```
 
 
 ## Testing

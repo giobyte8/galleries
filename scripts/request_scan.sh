@@ -29,9 +29,11 @@ RABBITMQ_API_PORT=15672
 # Message payload
 UUID=$(uuidgen)
 REQUESTED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+DIR_PATH="Wallpapers"
+
 msg="{
   \"id\": \"$UUID\",
-  \"path\": \"Wallpapers\",
+  \"path\": \"$DIR_PATH\",
   \"requestedAt\": \"$REQUESTED_AT\"
 }"
 j_msg=$(json_escape "$msg")
