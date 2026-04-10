@@ -3,19 +3,20 @@ package me.giobyte8.galleries.scanner.scanners;
 import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.giobyte8.galleries.scanner.config.properties.ScannerProps;
-import me.giobyte8.galleries.scanner.metadata.MediaMetaExtractor;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.persistence.models.Video;
+import me.giobyte8.galleries.scanner.config.properties.ScannerProps;
+import me.giobyte8.galleries.scanner.dto.Fingerprint;
+import me.giobyte8.galleries.scanner.metadata.MediaMetaExtractor;
 import me.giobyte8.galleries.scanner.metrics.Metric;
-import me.giobyte8.galleries.scanner.metrics.MetricTag;
 import me.giobyte8.galleries.scanner.metrics.MetricStr;
+import me.giobyte8.galleries.scanner.metrics.MetricTag;
 import me.giobyte8.galleries.scanner.metrics.MetricsService;
 import me.giobyte8.galleries.scanner.scanners.listeners.ScanEventsHub;
-import me.giobyte8.galleries.scanner.services.HashingService;
-import me.giobyte8.galleries.services.ImageService;
+import me.giobyte8.galleries.scanner.services.FingerprintService;
 import me.giobyte8.galleries.scanner.services.PathService;
+import me.giobyte8.galleries.services.ImageService;
 import me.giobyte8.galleries.services.VideoService;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +44,7 @@ public class LocalMediaScanner implements MediaScanner {
 
     private final ScannerProps scannerProps;
     private final PathService pathSvc;
-    private final HashingService hashingSvc;
+    private final FingerprintService fingerprintSvc;
     private final MediaMetaExtractor mediaMetaExtractor;
     private final ImageService imageSvc;
     private final VideoService videoSvc;
@@ -127,11 +128,12 @@ public class LocalMediaScanner implements MediaScanner {
 
         try {
             String path = pathSvc.toRelative(absPath).toString();
-            String contentHash = hashingSvc.hashContent(absPath);
+            var fingerprint = fingerprintSvc.forPath(absPath);
 
             Image foundImage = Image.builder()
                     .path(path)
-                    .contentHash(contentHash)
+                    .fileSize(fingerprint.fileSize())
+                    .lastModified(fingerprint.lastModified())
                     .build();
 
             // Look for same image found during previous scans
@@ -139,13 +141,13 @@ public class LocalMediaScanner implements MediaScanner {
             if (dbImageOpt.isPresent()) {
                 var dbImage = dbImageOpt.get();
 
-                // Hashes match, image has not changed
-                if (dbImage.getContentHash().equals(contentHash)) {
+                // Fingerprints match, image has not changed
+                if (Fingerprint.from(dbImage).equals(fingerprint)) {
                     foundType = "unchanged";
                     eventsHub.onUnchangedImageFound(parent, dbImage);
                 }
 
-                // Hashes don't match, image has been updated
+                // Fingerprints differ, image has been updated
                 else {
                     foundType = "updated";
                     foundImage.setMetadata(mediaMetaExtractor.extract(absPath));
@@ -185,18 +187,19 @@ public class LocalMediaScanner implements MediaScanner {
 
         try {
             String path = pathSvc.toRelative(absPath).toString();
-            String contentHash = hashingSvc.hashContent(absPath);
+            var fingerprint = fingerprintSvc.forPath(absPath);
 
             Video foundVideo = Video.builder()
                     .path(path)
-                    .contentHash(contentHash)
+                    .fileSize(fingerprint.fileSize())
+                    .lastModified(fingerprint.lastModified())
                     .build();
 
             var dbVideoOpt = videoSvc.findByPath(path);
             if (dbVideoOpt.isPresent()) {
                 var dbVideo = dbVideoOpt.get();
 
-                if (dbVideo.getContentHash().equals(contentHash)) {
+                if (Fingerprint.from(dbVideo).equals(fingerprint)) {
                     foundType = "unchanged";
                     eventsHub.onUnchangedVideoFound(parent, dbVideo);
                 }

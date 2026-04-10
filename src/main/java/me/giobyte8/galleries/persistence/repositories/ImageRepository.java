@@ -22,7 +22,6 @@ public interface ImageRepository extends
 
     Optional<Image> findByPath(String path);
 
-    Image findByPathAndContentHash(String path, String contentHash);
 
     @Query(
             value = """

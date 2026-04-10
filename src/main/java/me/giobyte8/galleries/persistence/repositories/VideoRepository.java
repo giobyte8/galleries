@@ -15,7 +15,5 @@ public interface VideoRepository extends
     long countByStatus(MediaFileStatus status);
 
     Optional<Video> findByPath(String path);
-
-    Video findByPathAndContentHash(String path, String contentHash);
 }
 

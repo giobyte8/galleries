@@ -22,7 +22,9 @@ public class Video {
     @Version
     private Long version;
 
-    private String contentHash;
+    private Long fileSize;
+
+    private Instant lastModified;
 
     /// Represents the date and time when this Video was captured
     /// at the timezone where it was captured.

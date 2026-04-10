@@ -19,7 +19,16 @@ public class ImgRowMapper {
         Map<String, Object> imgMap = new HashMap<>();
         imgMap.put("path", image.getPath());
         imgMap.put("version", image.getVersion());
-        imgMap.put("contentHash", image.getContentHash());
+        imgMap.put("fileSize", image.getFileSize());
+        imgMap.put(
+                "lastModified",
+                Objects.isNull(image.getLastModified())
+                        ? null
+                        : OffsetDateTime.ofInstant(
+                                image.getLastModified(),
+                                ZoneOffset.UTC
+                        )
+        );
 
         imgMap.put(
                 "captureDateTime",
@@ -59,11 +68,24 @@ public class ImgRowMapper {
         Image.ImageBuilder imgBuilder = Image.builder()
                 .path((String) imgMap.get("path"))
                 .version(version == null ? null : version.longValue())
-                .contentHash((String) imgMap.get("contentHash"))
                 .cameraMaker((String) imgMap.get("cameraMaker"))
                 .cameraModel((String) imgMap.get("cameraModel"))
                 .rawCaptureDateTime((String) imgMap.get("rawCaptureDateTime"))
                 .status(MediaFileStatus.valueOf((String) imgMap.get("status")));
+
+        Number fileSize = (Number) imgMap.get("fileSize");
+        imgBuilder.fileSize(fileSize == null ? null : fileSize.longValue());
+
+        var lastModifiedObj = imgMap.get("lastModified");
+        if (lastModifiedObj instanceof Instant lastModified) {
+            imgBuilder.lastModified(lastModified);
+        } else if (lastModifiedObj instanceof ZonedDateTime zdtLastModified) {
+            imgBuilder.lastModified(zdtLastModified.toInstant());
+        } else if (
+                lastModifiedObj instanceof OffsetDateTime lastModified
+        ) {
+            imgBuilder.lastModified(lastModified.toInstant());
+        }
 
         var captureDateTimeObj = imgMap.get("captureDateTime");
         if (captureDateTimeObj instanceof ZonedDateTime captureDateTime) {

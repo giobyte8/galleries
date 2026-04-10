@@ -31,7 +31,8 @@ public class CustomizedImageRepositoryImpl implements CustomizedImageRepository 
                 ON CREATE
                   SET
                     i.path = $path,
-                    i.contentHash = $contentHash,
+                    i.fileSize = $fileSize,
+                    i.lastModified = $lastModified,
                     i.captureDateTime = $captureDateTime,
                     i.captureInstant = $captureInstant,
                     i.rawCaptureDateTime = $rawCaptureDateTime,
@@ -44,7 +45,8 @@ public class CustomizedImageRepositoryImpl implements CustomizedImageRepository 
                 ON MATCH
                   SET
                     i.path = $path,
-                    i.contentHash = $contentHash,
+                    i.fileSize = $fileSize,
+                    i.lastModified = $lastModified,
                     i.captureDateTime = $captureDateTime,
                     i.captureInstant = $captureInstant,
                     i.rawCaptureDateTime = $rawCaptureDateTime,

@@ -19,7 +19,16 @@ public class VideoRowMapper {
         Map<String, Object> videoMap = new HashMap<>();
         videoMap.put("path", video.getPath());
         videoMap.put("version", video.getVersion());
-        videoMap.put("contentHash", video.getContentHash());
+        videoMap.put("fileSize", video.getFileSize());
+        videoMap.put(
+                "lastModified",
+                Objects.isNull(video.getLastModified())
+                        ? null
+                        : OffsetDateTime.ofInstant(
+                                video.getLastModified(),
+                                ZoneOffset.UTC
+                        )
+        );
 
         videoMap.put(
                 "captureDateTime",
@@ -59,7 +68,6 @@ public class VideoRowMapper {
         Video.VideoBuilder videoBuilder = Video.builder()
                 .path((String) videoMap.get("path"))
                 .version(version == null ? null : version.longValue())
-                .contentHash((String) videoMap.get("contentHash"))
                 .cameraMaker((String) videoMap.get("cameraMaker"))
                 .cameraModel((String) videoMap.get("cameraModel"))
                 .rawCaptureDateTime(
@@ -68,6 +76,22 @@ public class VideoRowMapper {
                 .status(
                         MediaFileStatus.valueOf((String) videoMap.get("status"))
                 );
+
+        Number fileSize = (Number) videoMap.get("fileSize");
+        videoBuilder.fileSize(fileSize == null ? null : fileSize.longValue());
+
+        var lastModifiedObj = videoMap.get("lastModified");
+        if (lastModifiedObj instanceof Instant lastModified) {
+            videoBuilder.lastModified(lastModified);
+        } else if (
+                lastModifiedObj instanceof ZonedDateTime zdtLastModified
+        ) {
+            videoBuilder.lastModified(zdtLastModified.toInstant());
+        } else if (
+                lastModifiedObj instanceof OffsetDateTime lastModified
+        ) {
+            videoBuilder.lastModified(lastModified.toInstant());
+        }
 
         var captureDateTimeObj = videoMap.get("captureDateTime");
         if (captureDateTimeObj instanceof ZonedDateTime captureDateTime) {

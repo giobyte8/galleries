@@ -52,32 +52,6 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
     @Autowired
     private DirectoryRepository dirRepository;
 
-    @Test
-    void findByPathAndContentHash() {
-        var path = "test/path/image.jpg";
-        var contentHash = "test_hash_12345";
-
-        // Create a test directory and image
-        Directory parent = Directory.builder()
-                .path("test/path")
-                .build();
-        dirRepository.save(parent);
-        var image = Image.builder()
-                .path(path)
-                .contentHash(contentHash)
-                .build();
-        imgRepository.saveAsChild(parent, image);
-
-        // Retrieve image by path and content hash
-        Image dbImg = imgRepository
-                .findByPathAndContentHash(path, contentHash);
-        assertEquals(image, dbImg);
-
-        // Try retrieving with updated hash
-        Image missingImg = imgRepository
-                .findByPathAndContentHash(path, "different_hash");
-        assertNull(missingImg);
-    }
 
     @Test
     void save() {
@@ -89,7 +63,6 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
 
         Image img = Image.builder()
                 .path("random.jpg")
-                .contentHash("12345")
                 .captureDateTime(TEST_CAPTURE_DATE_TIME)
                 .captureInstant(TEST_CAPTURE_INSTANT)
                 .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
@@ -138,7 +111,6 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
 
         Image img = Image.builder()
                 .path("random.jpg")
-                .contentHash("12345")
                 .captureDateTime(TEST_CAPTURE_DATE_TIME)
                 .captureInstant(TEST_CAPTURE_INSTANT)
                 .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
@@ -161,7 +133,6 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
 
         Image img = Image.builder()
                 .path("random.jpg")
-                .contentHash("12345")
                 .gpsLatitude(1d)
                 .gpsLongitude(10d)
                 .cameraMaker("Samsung")
@@ -192,7 +163,6 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
 
         Image img1 = Image.builder()
                 .path("test_image.jpg")
-                .contentHash("12345")
                 .captureDateTime(TEST_CAPTURE_DATE_TIME)
                 .captureInstant(TEST_CAPTURE_INSTANT)
                 .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
@@ -206,7 +176,6 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
 
         Image img2 = Image.builder()
                 .path("test_image_2.jpg")
-                .contentHash("12345")
                 .captureDateTime(TEST_CAPTURE_DATE_TIME)
                 .captureInstant(TEST_CAPTURE_INSTANT)
                 .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
@@ -245,7 +214,6 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
 
         Image img1 = Image.builder()
                 .path("test_image.jpg")
-                .contentHash("12345")
                 .captureDateTime(TEST_CAPTURE_DATE_TIME)
                 .captureInstant(TEST_CAPTURE_INSTANT)
                 .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
@@ -259,7 +227,6 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
 
         Image img2 = Image.builder()
                 .path("test_image_2.jpg")
-                .contentHash("12345")
                 .captureDateTime(TEST_CAPTURE_DATE_TIME)
                 .captureInstant(TEST_CAPTURE_INSTANT)
                 .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
@@ -279,7 +246,6 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
 
         Image nestedImg1 = Image.builder()
                 .path("nested_dir_img_1.jpg")
-                .contentHash("12345")
                 .captureDateTime(TEST_CAPTURE_DATE_TIME)
                 .captureInstant(TEST_CAPTURE_INSTANT)
                 .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
@@ -293,7 +259,6 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
 
         Image nestedImg2 = Image.builder()
                 .path("nested_dir_img_2.jpg")
-                .contentHash("12345")
                 .captureDateTime(TEST_CAPTURE_DATE_TIME)
                 .captureInstant(TEST_CAPTURE_INSTANT)
                 .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
@@ -324,7 +289,6 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
 
         Image img1 = Image.builder()
                 .path("test_image.jpg")
-                .contentHash("12345")
                 .captureDateTime(TEST_CAPTURE_DATE_TIME)
                 .captureInstant(TEST_CAPTURE_INSTANT)
                 .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
@@ -338,7 +302,6 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
 
         Image img2 = Image.builder()
                 .path("test_image_2.jpg")
-                .contentHash("12345")
                 .captureDateTime(TEST_CAPTURE_DATE_TIME)
                 .captureInstant(TEST_CAPTURE_INSTANT)
                 .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)

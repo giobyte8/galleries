@@ -46,30 +46,6 @@ public class VideoRepositoryTests extends BaseIntegrationTest {
     @Autowired
     private DirectoryRepository dirRepository;
 
-    @Test
-    void findByPathAndContentHash() {
-        var path = "test/path/video.mp4";
-        var contentHash = "test_hash_12345";
-
-        Directory parent = Directory.builder()
-                .path("test/path")
-                .build();
-        dirRepository.save(parent);
-
-        var video = Video.builder()
-                .path(path)
-                .contentHash(contentHash)
-                .build();
-        videoRepository.saveAsChild(parent, video);
-
-        Video dbVideo = videoRepository
-                .findByPathAndContentHash(path, contentHash);
-        assertEquals(video, dbVideo);
-
-        Video missingVideo = videoRepository
-                .findByPathAndContentHash(path, "different_hash");
-        assertNull(missingVideo);
-    }
 
     @Test
     void save() {
@@ -80,7 +56,6 @@ public class VideoRepositoryTests extends BaseIntegrationTest {
 
         Video video = Video.builder()
                 .path("test/videos/lake.mp4")
-                .contentHash("12345")
                 .captureDateTime(TEST_CAPTURE_DATE_TIME)
                 .captureInstant(TEST_CAPTURE_INSTANT)
                 .rawCaptureDateTime(TEST_RAW_CAPTURE_DATE_TIME)
@@ -117,7 +92,6 @@ public class VideoRepositoryTests extends BaseIntegrationTest {
 
         Video video = Video.builder()
                 .path("root/videos/random.mp4")
-                .contentHash("12345")
                 .gpsLatitude(19.4023d)
                 .gpsLongitude(-99.1806d)
                 .cameraMaker("Samsung")

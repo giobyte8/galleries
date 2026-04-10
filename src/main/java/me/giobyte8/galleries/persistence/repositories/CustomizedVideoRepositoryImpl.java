@@ -35,7 +35,8 @@ public class CustomizedVideoRepositoryImpl implements CustomizedVideoRepository 
                 ON CREATE
                   SET
                     v.path = $path,
-                    v.contentHash = $contentHash,
+                    v.fileSize = $fileSize,
+                    v.lastModified = $lastModified,
                     v.captureDateTime = $captureDateTime,
                     v.captureInstant = $captureInstant,
                     v.rawCaptureDateTime = $rawCaptureDateTime,
@@ -48,7 +49,8 @@ public class CustomizedVideoRepositoryImpl implements CustomizedVideoRepository 
                 ON MATCH
                   SET
                     v.path = $path,
-                    v.contentHash = $contentHash,
+                    v.fileSize = $fileSize,
+                    v.lastModified = $lastModified,
                     v.captureDateTime = $captureDateTime,
                     v.captureInstant = $captureInstant,
                     v.rawCaptureDateTime = $rawCaptureDateTime,
