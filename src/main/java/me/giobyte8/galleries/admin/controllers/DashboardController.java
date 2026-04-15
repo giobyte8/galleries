@@ -36,4 +36,11 @@ public class DashboardController {
         model.addAttribute("pageable", pageable);
         return "admin/scans";
     }
+
+    @GetMapping("/scan-schedules")
+    public String scanSchedules(Pageable pageable, Model model) {
+        model.addAttribute("currentPage", "scanSchedules");
+        model.addAttribute("pageable", pageable);
+        return "admin/scan-schedules";
+    }
 }

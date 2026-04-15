@@ -7,7 +7,9 @@ import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.repositories.DirectoryRepository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,5 +39,13 @@ public class DirectoryService {
 
         // TODO Handle non unique 'path' error
         return dirRepository.save(dir);
+    }
+
+    public List<Directory> searchByPath(String query) {
+        if (!StringUtils.hasText(query)) {
+            return List.of();
+        }
+
+        return dirRepository.searchByPath(query.trim(), 5);
     }
 }

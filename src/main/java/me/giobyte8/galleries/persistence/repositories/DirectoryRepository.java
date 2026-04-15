@@ -8,6 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -56,4 +57,14 @@ public interface DirectoryRepository extends
                     RETURN count(d)"""
     )
     Page<Directory> findRoots(Pageable pageable);
+
+    @Query("""
+            MATCH (d:Directory)
+            WHERE NOT ( ()-[:CONTAINS]->(d) )
+              AND toLower(d.path) CONTAINS toLower($query)
+            RETURN d
+            ORDER BY d.path ASC
+            LIMIT $limit
+            """)
+    List<Directory> searchByPath(String query, int limit);
 }

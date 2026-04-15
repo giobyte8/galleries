@@ -55,6 +55,9 @@
                 <a class="nav-link"
                    th:classappend="${currentPage == 'scans'} ? 'active'"
                    th:href="@{/admin/scans}">Scans</a>
+                <a class="nav-link"
+                   th:classappend="${currentPage == 'scanSchedules'} ? 'active'"
+                   th:href="@{/admin/scan-schedules}">Scan Schedules</a>
             </div>
 
             <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">

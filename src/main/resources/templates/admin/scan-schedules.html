@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout('Scan Schedules', ~{::main})}">
+<main>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h4 class="mb-0">Scan Schedules</h4>
+    </div>
+
+    <div id="scan-schedules-cards-container"
+         th:hx-get="@{/admin/fragments/scan-schedules-cards(page=${pageable.pageNumber}, size=${pageable.pageSize})}"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+        <p class="text-muted">Loading...</p>
+    </div>
+</main>
+</html>
+

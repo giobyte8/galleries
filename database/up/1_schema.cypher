@@ -17,3 +17,8 @@ IF NOT EXISTS
 FOR (video:Video)
 REQUIRE video.path IS UNIQUE;
 
+// Unique constraint to ScanSchedule.id
+CREATE CONSTRAINT ScanScheduleIdUnique
+IF NOT EXISTS
+FOR (scanSchedule:ScanSchedule)
+REQUIRE scanSchedule.id IS UNIQUE;

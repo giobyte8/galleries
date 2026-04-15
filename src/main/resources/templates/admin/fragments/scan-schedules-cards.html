@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+
+<div>
+    <div class="alert alert-danger" role="alert"
+         th:if="${error != null and !#strings.isEmpty(error)}"
+         th:text="${error}">
+        error
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">Create schedule</div>
+        <div class="card-body">
+            <form th:hx-post="@{/admin/fragments/scan-schedules(page=${scanSchedules.number}, size=${scanSchedules.size})}"
+                  hx-target="#scan-schedules-cards-container"
+                  hx-swap="innerHTML"
+                  class="row g-3">
+
+                <div class="col-12">
+                    <label class="form-label">Directory</label>
+                    <div class="directory-selector position-relative">
+                        <input type="text"
+                               name="q"
+                               class="form-control directory-query-input"
+                               placeholder="Search by directory path"
+                               autocomplete="off"
+                               hx-get="/admin/directories/autocomplete"
+                               hx-trigger="input changed delay:250ms"
+                               hx-target="#directory-autocomplete-results"
+                               hx-swap="innerHTML">
+                        <input type="hidden" name="directoryId"
+                               class="directory-id-input" required>
+                        <div id="directory-autocomplete-results"
+                             class="directory-autocomplete-results position-absolute z-3 w-100"></div>
+                    </div>
+                    <div class="form-text">Type at least 1 character. Max 5 matches.</div>
+                </div>
+
+                <div class="col-md-5">
+                    <label class="form-label">Cron expression</label>
+                    <input type="text" name="schedule" class="form-control"
+                           placeholder="0 */15 * * * *" required>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Timezone offset</label>
+                    <input type="text" name="tzOffset" id="create-tz-offset"
+                           class="form-control" placeholder="+00:00" required>
+                </div>
+
+                <div class="col-md-2 d-flex align-items-center">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox"
+                               name="enabled" value="true" checked>
+                        <label class="form-check-label">Enabled</label>
+                    </div>
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="d-grid gap-3">
+        <div class="card" th:each="scanSchedule : ${scanSchedules.content}">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-lg-7">
+                        <div class="small text-body-secondary">Directory</div>
+                        <div class="font-monospace"
+                             th:if="${scanSchedule.directory != null}"
+                             th:text="${scanSchedule.directory.path}">path</div>
+                        <div class="text-muted"
+                             th:unless="${scanSchedule.directory != null}">—</div>
+
+                        <div class="small text-body-secondary mt-2">Cron</div>
+                        <div class="font-monospace"
+                             th:text="${scanSchedule.schedule}">cron</div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="small text-body-secondary">Timezone offset</div>
+                        <div class="font-monospace"
+                             th:text="${scanSchedule.tzOffset}">+00:00</div>
+
+                        <div class="small text-body-secondary mt-2">Enabled</div>
+                        <span th:if="${scanSchedule.enabled}"
+                              class="badge text-bg-success">Yes</span>
+                        <span th:unless="${scanSchedule.enabled}"
+                              class="badge text-bg-secondary">No</span>
+                    </div>
+                    <div class="col-lg-2 text-lg-end">
+                        <button class="btn btn-sm btn-outline-primary"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                th:data-bs-target="${'#edit-scan-schedule-' + scanSchedule.id}"
+                                aria-expanded="false">
+                            Edit
+                        </button>
+                    </div>
+                </div>
+
+                <div class="small text-body-secondary mt-2">
+                    Created: <span th:text="${#temporals.format(scanSchedule.createdAt, 'yyyy-MM-dd HH:mm:ss')}">date</span>
+                    · Updated: <span th:text="${#temporals.format(scanSchedule.updatedAt, 'yyyy-MM-dd HH:mm:ss')}">date</span>
+                </div>
+
+                <div class="collapse mt-3"
+                     th:id="${'edit-scan-schedule-' + scanSchedule.id}">
+                    <form class="row g-3"
+                          th:hx-post="@{/admin/fragments/scan-schedules/{id}(id=${scanSchedule.id}, page=${scanSchedules.number}, size=${scanSchedules.size})}"
+                          hx-target="#scan-schedules-cards-container"
+                          hx-swap="innerHTML">
+
+                        <div class="col-md-6">
+                            <label class="form-label">Cron expression</label>
+                            <input type="text" name="schedule" class="form-control"
+                                   th:value="${scanSchedule.schedule}" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Timezone offset</label>
+                            <input type="text" name="tzOffset" class="form-control"
+                                   th:value="${scanSchedule.tzOffset}" required>
+                        </div>
+
+                        <div class="col-md-2 d-flex align-items-center">
+                            <div class="form-check mt-4">
+                                <input class="form-check-input" type="checkbox"
+                                       name="enabled" value="true"
+                                       th:checked="${scanSchedule.enabled}">
+                                <label class="form-check-label">Enabled</label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${scanSchedules.content.isEmpty()}"
+             class="text-center text-muted py-4 border rounded bg-body-tertiary">
+            No scan schedules found.
+        </div>
+    </div>
+
+    <div th:if="${scanSchedules.totalPages > 1}" class="mt-3">
+        <div class="d-flex justify-content-center align-items-center gap-2">
+            <a class="btn btn-sm btn-outline-secondary"
+               th:classappend="${scanSchedules.number == 0} ? ' disabled'"
+               th:hx-get="@{/admin/fragments/scan-schedules-cards(page=${scanSchedules.number - 1}, size=${scanSchedules.size})}"
+               th:hx-push-url="@{/admin/scan-schedules(page=${scanSchedules.number - 1}, size=${scanSchedules.size})}"
+               th:href="@{/admin/scan-schedules(page=${scanSchedules.number - 1}, size=${scanSchedules.size})}"
+               hx-target="#scan-schedules-cards-container"
+               hx-swap="innerHTML">Previous</a>
+
+            <span class="badge text-bg-secondary"
+                  th:text="${scanSchedules.number + 1} + ' / ' + ${scanSchedules.totalPages}">
+            </span>
+
+            <a class="btn btn-sm btn-outline-secondary"
+               th:classappend="${scanSchedules.number + 1 ge scanSchedules.totalPages} ? ' disabled'"
+               th:hx-get="@{/admin/fragments/scan-schedules-cards(page=${scanSchedules.number + 1}, size=${scanSchedules.size})}"
+               th:hx-push-url="@{/admin/scan-schedules(page=${scanSchedules.number + 1}, size=${scanSchedules.size})}"
+               th:href="@{/admin/scan-schedules(page=${scanSchedules.number + 1}, size=${scanSchedules.size})}"
+               hx-target="#scan-schedules-cards-container"
+               hx-swap="innerHTML">Next</a>
+        </div>
+    </div>
+</div>
+
+<script th:inline="none">
+    function toTzOffsetString() {
+        const offsetMinutes = -new Date().getTimezoneOffset();
+        const sign = offsetMinutes >= 0 ? '+' : '-';
+        const absOffset = Math.abs(offsetMinutes);
+        const hours = String(Math.floor(absOffset / 60)).padStart(2, '0');
+        const mins = String(absOffset % 60).padStart(2, '0');
+        return `${sign}${hours}:${mins}`;
+    }
+
+    function initDefaultTzOffset() {
+        const tzInput = document.getElementById('create-tz-offset');
+        if (tzInput && !tzInput.value) {
+            tzInput.value = toTzOffsetString();
+        }
+    }
+
+    function selectDirectoryFromSuggestion(button) {
+        const selector = button.closest('.directory-selector');
+        if (!selector) {
+            return;
+        }
+
+        const idInput = selector.querySelector('.directory-id-input');
+        const queryInput = selector.querySelector('.directory-query-input');
+        const results = selector.querySelector('.directory-autocomplete-results');
+
+        idInput.value = button.dataset.directoryId;
+        queryInput.value = button.dataset.directoryPath;
+        results.innerHTML = '';
+    }
+
+    initDefaultTzOffset();
+
+    document.addEventListener('htmx:afterSwap', function (evt) {
+        if (evt.detail.target.id === 'scan-schedules-cards-container') {
+            initDefaultTzOffset();
+        }
+    });
+</script>
+
+</body>
+</html>
+

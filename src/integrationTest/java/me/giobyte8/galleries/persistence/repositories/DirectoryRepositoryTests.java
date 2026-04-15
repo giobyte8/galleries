@@ -276,6 +276,30 @@ class DirectoryRepositoryTests extends BaseIntegrationTest {
                 "Second element should be 'root2'");
     }
 
+    @Test
+    void searchByPath() {
+        var root = createDir("root/alpha");
+        createDir("root/ALPS");
+        createDir("root/beta");
+        createDir(root, "root/alpha/child");
+
+        var results = dirRepository.searchByPath("alp", 5);
+        assertEquals(2, results.size(), "Should return two root matches");
+        assertEquals(
+                "root/ALPS",
+                results.get(0).getPath(),
+                "Results should be sorted by path"
+        );
+        assertEquals("root/alpha", results.get(1).getPath());
+        assertTrue(
+                results.stream().noneMatch(d -> d.getPath().equals("root/alpha/child")),
+                "Child directories should be excluded"
+        );
+
+        var limited = dirRepository.searchByPath("alp", 1);
+        assertEquals(1, limited.size(), "Should respect limit");
+    }
+
     private Directory createDir(String path) {
         Directory dir = Directory.builder()
                 .path(path)

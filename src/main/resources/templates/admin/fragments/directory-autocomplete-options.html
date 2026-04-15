@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div class="list-group mt-1"
+     th:if="${!directories.isEmpty()}">
+    <button type="button"
+            class="list-group-item list-group-item-action py-2"
+            th:each="dir : ${directories}"
+            th:attr="data-directory-id=${dir.id},data-directory-path=${dir.path}"
+            onclick="selectDirectoryFromSuggestion(this)">
+        <span class="font-monospace small" th:text="${dir.path}">path</span>
+    </button>
+</div>
+</body>
+</html>
+
