@@ -44,4 +44,7 @@ out/
 *.bkp
 *.dtmp
 
+# Development runtime data
+data.dev/
+
 application-local.yml

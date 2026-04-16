@@ -8,13 +8,29 @@ spring:
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
 
-logging:
-  level:
-    me.giobyte8.galleries.scanner: DEBUG
+server:
+  port: 8100
+
+jobrunr:
+  database:
+    type: sql
+    datasource: schedulerDatasource
+  background-job-server:
+    enabled: true
+  dashboard:
+    enabled: true
+    port: 8101
 
 galleries:
   security:
     remember_me_key: ${GL_REMEMBER_ME_KEY:dev-unsafe-change-me}
+
+  scheduler:
+    # noinspection SpringBootApplicationYaml
+    datasource:
+      jdbc-url: jdbc:sqlite:${SCHEDULER_SQLITE_PATH:data.dev/scheduler.db}
+      driver-class-name: org.sqlite.JDBC
+
   scanner:
     amqp:
       exchange_gl: GL_EXCHANGE

@@ -3,11 +3,12 @@ package me.giobyte8.galleries.schedule.services;
 import me.giobyte8.galleries.admin.dto.CreateScanScheduleRequest;
 import me.giobyte8.galleries.admin.dto.UpdateScanScheduleRequest;
 import me.giobyte8.galleries.exceptions.DirectoryNotFoundException;
-import me.giobyte8.galleries.schedule.exceptions.ScanScheduleNotFoundException;
 import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.ScanSchedule;
 import me.giobyte8.galleries.persistence.repositories.DirectoryRepository;
 import me.giobyte8.galleries.persistence.repositories.ScanScheduleRepository;
+import me.giobyte8.galleries.schedule.ScanScheduler;
+import me.giobyte8.galleries.schedule.exceptions.ScanScheduleNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -32,6 +33,9 @@ class ScanSchedulesServiceTests {
 
     @Mock
     private DirectoryRepository directoryRepository;
+
+    @Mock
+    private ScanScheduler scanScheduler;
 
     @InjectMocks
     private ScanSchedulesService scanSchedulesService;
@@ -79,6 +83,9 @@ class ScanSchedulesServiceTests {
                 ArgumentCaptor.forClass(ScanSchedule.class);
         verify(scanScheduleRepository).save(captor.capture());
         assertEquals("0 */15 * * * *", captor.getValue().getSchedule());
+
+        // Enabled schedule should be registered with the scheduler
+        verify(scanScheduler).upsertSchedule(saved);
     }
 
     @Test
@@ -164,6 +171,9 @@ class ScanSchedulesServiceTests {
         assertEquals("-03:00", updated.getTzOffset());
         assertFalse(updated.isEnabled());
         assertTrue(updated.getUpdatedAt().isAfter(updated.getCreatedAt()));
+
+        // Disabled schedule should be unregistered from the scheduler
+        verify(scanScheduler).upsertSchedule(updated);
     }
 
     @Test

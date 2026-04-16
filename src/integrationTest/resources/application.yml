@@ -44,3 +44,11 @@ management:
     metrics:
       export:
         enabled: false
+
+jobrunr:
+  database:
+    type: mem
+  background-job-server:
+    enabled: false
+  dashboard:
+    enabled: false

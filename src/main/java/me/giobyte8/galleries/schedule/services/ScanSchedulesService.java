@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import me.giobyte8.galleries.admin.dto.CreateScanScheduleRequest;
 import me.giobyte8.galleries.admin.dto.UpdateScanScheduleRequest;
 import me.giobyte8.galleries.exceptions.DirectoryNotFoundException;
+import me.giobyte8.galleries.schedule.ScanScheduler;
 import me.giobyte8.galleries.schedule.exceptions.ScanScheduleNotFoundException;
 import me.giobyte8.galleries.persistence.models.ScanSchedule;
 import me.giobyte8.galleries.persistence.repositories.DirectoryRepository;
@@ -28,6 +29,7 @@ public class ScanSchedulesService {
 
     private final ScanScheduleRepository scanScheduleRepository;
     private final DirectoryRepository directoryRepository;
+    private final ScanScheduler scanScheduler;
 
     @Transactional(readOnly = true)
     public Page<ScanSchedule> findAll(Pageable pageable) {
@@ -54,7 +56,9 @@ public class ScanSchedulesService {
                 .directory(directory)
                 .build();
 
-        return scanScheduleRepository.save(scanSchedule);
+        var saved = scanScheduleRepository.save(scanSchedule);
+        scanScheduler.upsertSchedule(saved);
+        return saved;
     }
 
     @Transactional
@@ -70,7 +74,9 @@ public class ScanSchedulesService {
         schedule.setTzOffset(request.tzOffset());
         schedule.setEnabled(request.enabled());
 
-        return scanScheduleRepository.save(schedule);
+        var saved = scanScheduleRepository.save(schedule);
+        scanScheduler.upsertSchedule(saved);
+        return saved;
     }
 
     private static void validateSchedule(String schedule) {

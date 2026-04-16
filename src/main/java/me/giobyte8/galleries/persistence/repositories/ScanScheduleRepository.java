@@ -9,6 +9,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Repository
 public interface ScanScheduleRepository extends
@@ -30,4 +31,6 @@ public interface ScanScheduleRepository extends
                     """
     )
     Page<ScanSchedule> findAllWithDirectory(Pageable pageable);
+
+    Stream<ScanSchedule> findByEnabled(boolean enabled);
 }
