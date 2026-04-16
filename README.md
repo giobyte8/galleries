@@ -1,5 +1,6 @@
 # Scanner
-Indexes gallery directories and images by scanning a local media library.
+Indexes gallery directories and media files by scanning a local media
+library.
 
 - [Architecture](docs/architecture.md)
 - [Development](docs/DEVELOPMENT.md)
@@ -10,16 +11,16 @@ This service:
 
 - stores managed directories in storage
 - receives scan requests through RabbitMQ
-- scans the local filesystem for image files
+- scans the local filesystem for media files
 - updates the gallery index and requests thumbnail work
-- exposes a small HTTP API to browse indexed directories and images
+- exposes a small HTTP API to browse indexed directories and media
 
 ## How it works
 
 1. A directory is registered in storage.
 2. A scan request is published to RabbitMQ.
 3. The scanner validates the request and walks the target directory.
-4. Found images are created or updated in storage.
+4. Found media files are created or updated in storage.
 5. Missing files are removed from the index after reconciliation.
 6. Thumbnail generation or deletion is requested through RabbitMQ.
 

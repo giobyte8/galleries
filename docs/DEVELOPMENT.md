@@ -5,42 +5,45 @@
   - [Integration tests](#integration-tests)
 - [Building for production](#building-for-production)
   - [Executing jar file](#executing-jar-file)
-- [Building and Releasing docker images](#building-and-releasing-docker-images)
+- [Building and releasing Docker images](#building-and-releasing-docker-images)
   - [Prerequisites](#prerequisites-for-building)
   - [Locally building and testing image](#locally-building-and-testing-image)
   - [Releasing](#release-a-new-image-version)
 
 ## Local development
-Scanner is written in java and uses gradle as build system. Clone the project and
-import it into your IDE.
+
+Scanner is written in Java and uses Gradle. Clone the project and import it
+into your IDE.
 
 ### Requirements
 
-- JDK >= 17
-- Running instances of
+- JDK 25 (as configured in `build.gradle` toolchain)
+- Running instances of:
   - RabbitMQ
   - Neo4j
-- A library of pictures to test scanner capabilities
+- A media library to test scanner behavior
   - You can start with: `src/test/resources/galleries`
 
 ### Setup application properties
 
-Some spring properties you might want to override on your IDE
+Some properties commonly overridden in IDE run configs:
 
 ```yaml
+spring.rabbitmq.username: <value>
 spring.rabbitmq.password: <value>
+neo4j.username: <value>
 neo4j.password: <value>
 
-# Point it to you dev galleries root
-galleries.scanner.content_dirs.root_path: ~/src/galleries/services/scanner/src/test/resources/galleries/cameras
+# Point to your local content root
+galleries.scanner.content_dirs.root_path: /absolute/path/to/media/library
 ```
 
-### Setup development users
+### Setup development users and seed data
 
-1. (Optional) Generate a BCrypt hash for the default development password (`password`):
+1. (Optional) Generate a BCrypt hash for a custom development password:
 
 ```shell
-./scripts/encrypt_password.sh password
+./scripts/encrypt_password.sh <plain_password>
 ```
 
 > If Python bcrypt is missing, install it first:
@@ -49,20 +52,15 @@ galleries.scanner.content_dirs.root_path: ~/src/galleries/services/scanner/src/t
 pip3 install bcrypt
 ```
 
-> Put generated password into `dev_data_reset.cypher` file for the dev user.
+> Put the generated hash into `scripts/dev_data_reset.cypher`.
 
-The seeded development admin user is:
+2. Create `scripts/.env` from `scripts/template.env` and adjust values:
 
-- username: `dev_admin`
-- password: `password` (before hashing)
-
-2. Configure Neo4j connection and scan directories in `scripts/.env`.
-
-The `dev_data_reste.sh` script will automatically drop and recreate the
-database, so make sure to point it to a dedicated development database to avoid data loss.
+```shell
+cp scripts/template.env scripts/.env
+```
 
 Example:
-
 ```dotenv
 NEO4J_HOST=host.docker.internal
 NEO4J_PORT=7687
@@ -76,141 +74,125 @@ galleries/custom/path
 '
 ```
 
-3. Execute the reset script:
+3. Run the reset script (drops existing data and reseeds):
 
 ```shell
 ./scripts/dev_data_reset.sh
 ```
 
+Optional dry-run to inspect generated Cypher first:
+
+```shell
+./scripts/dev_data_reset.sh --dry-run
+```
+
+The default seed user in `scripts/dev_data_reset.cypher` is `dev`.
 
 ## Testing
-Unit tests and integration tests are configured to run as individual suites into
-`build.gradle` file.
+
+Unit and integration tests are configured as separate Gradle suites in
+`build.gradle`.
 
 ### Integration tests
 
-Some integration tests need a real database to truthfully simulate production scenarios. The connection params are defined in `src/integrationTest/resources/application.yaml`.
+Integration tests use Testcontainers (Neo4j + RabbitMQ), so you do not need a
+manually managed test database.
 
-By default configuration points to provided database for integration tests, which is defined as `test_neo4j` service in `galleries/docker.dev/docker-compose.yml` file.
+Requirements:
 
-> NOTE: The integration tests suite will remove all data from database after each test run, hence, make sure to use a dedicated database for testing purposes.
+- Docker daemon running locally
 
-**Start provided neo4j database for tests**
-
-```shell
-docker compose up -d testn4j
-```
-
-> - Integration tests database doesn't require authentication
-> - Port mapping was changed from default to prevent conflicts with other possible instances
-
-You can now navigate to http://localhost:7074 and connect to your test database
-
-- Note that in connection params the port of target DB should be `7087` as defined in `docker-compose.yaml` file
-- Authentication method should be `No authentication` or `None`
-
-**Run integration tests**
-
-Open `build.gradle` file in IntelliJ and execute `testing.suites.integrationTest` entry.
-Or you can execute each test class/method directly.
-
-Alternatively form terminal run
+Run tests from terminal:
 
 ```shell
-> TODO: Enter command to run integration tests
+./gradlew test
+./gradlew integrationTest
 ```
+
+From IntelliJ, run `testing.suites.test` and
+`testing.suites.integrationTest` from `build.gradle`.
 
 ## Building for production
 
-Update `version` field in `build.gradle` file and run gradle build:
+Update the `version` field in `build.gradle` and build the boot jar:
 
 ```shell
 ./gradlew bootJar
 ```
-> jar file will be placed in `build/libs` directory
+
+The jar is generated under `build/libs`.
 
 ### Executing jar file
-Create a `.yml` file with appropriate values for your env. You can use
-`src/main/resources/application.yml` as a reference. Then run the
-application with:
+
+Create a `.yml` file with environment-specific values (using
+`src/main/resources/application.yml` as reference), then run:
 
 ```shell
-java -jar scanner-1.1.0.jar --spring.config.location=file:///<path_to_your_yml>
+java -jar build/libs/galleries-<version>.jar --spring.config.location=file:///<path_to_your_yml>
 ```
 
-## Building and Releasing docker images
-Multi arch prebuilt docker images are released with every version of scanner
+## Building and releasing Docker images
+
+Multi-arch Docker images are released per service version.
 
 ### Prerequisites for building
-Below are the steps required before building multi arch docker images for the
-first time in your machine.
 
 #### 1. Dedicated builder with support for multiple architectures
-Docker provides the `buildx` command, which allows to setup and use different
-image builders for different images.
 
-Create a specific builder with multi-arch support:
+Docker `buildx` lets you use dedicated builders for multi-arch images.
+
 ```shell
 docker buildx create --name hservices --use
 
-
 # Other useful commands:
-
-# List all available builders
 docker buildx ls
-
-# Switch to a specific builder
 docker buildx use hservices
-
-# List all docker contexts
 docker context ls
 ```
 
-#### 2. Login to docker registry to push images
-In order to allow docker pushes multi-arch images to registry make sure
-to be logged in:
+#### 2. Login to Docker registry to push images
 
 ```shell
 docker login
-# Enter username and password
 ```
 
 ### Locally building and testing image
-In some scenarios you may want to build and test docker image before push
-it to docker registry.
+In some scenarios you may want to build and test the Docker image before
+pushing it to a registry.
 
-1. Create your custom `scanner.env` file by using provided template as a base
-   and entering appropriate values for your env
+1. Create `docker/scanner.env` from the provided template and set values
+   for your environment.
    ```shell
-   cp scanner.template.env scanner.env
-   vim scanner.env
+   cp docker/scanner.template.env docker/scanner.env
    ```
 2. Build image without pushing it to registry
    ```shell
    # Make sure you're using the right builder:
    # > docker buildx ls
    # > docker buildx use <builder-name>
-   
+
    cd docker
    ./build_push_image.bash 0.0.1-testing
    ```
-3. Use provided script: `docker/run_dev_container.bash`.
-   You might need to edit the script to update values of `IMAGE_TAG` and 
+3. Use `docker/run_dev_container.bash`.
+   You might need to edit the script to update values of `IMAGE_TAG` and
    `HOST_CONTENT_DIR` variables before executing it.
-4. Once the container is up and running you can use the script at
-   `docker/request_scan.bash` to trigger a directory scan
+4. Once the container is running, use `docker/request_scan.bash` to
+   trigger a directory scan.
 
 ### Release a new image version
 
-1. Update `version` value in `build.gradle` file
-2. Make sure you're using the right docker builder
-   ```shell
-   docker buildx ls
-   docker buildx use <builder-name>
-   ```
-3. Run script to build and push image to registry
-   ```shell
-   # From scanner root directory
-   cd docker
-   ./build_push_image.bash <new_version> --push
-   ```
+1. Update `version` in `build.gradle`.
+2. Ensure you are using the expected builder:
+
+```shell
+docker buildx ls
+docker buildx use <builder-name>
+```
+
+3. Build and push:
+
+```shell
+cd docker
+./build_push_image.bash <new_version> --push
+```
