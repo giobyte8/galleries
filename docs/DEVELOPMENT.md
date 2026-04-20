@@ -1,4 +1,4 @@
-# Scanner development
+# Development
 
 - [Local development](#local-development)
 - [Testing](#testing)
@@ -12,7 +12,7 @@
 
 ## Local development
 
-Scanner is written in Java and uses Gradle. Clone the project and import it
+Project is written in Java and uses Gradle. Clone the project and import it
 into your IDE.
 
 ### Requirements
@@ -160,25 +160,19 @@ docker login
 In some scenarios you may want to build and test the Docker image before
 pushing it to a registry.
 
-1. Create `docker/scanner.env` from the provided template and set values
-   for your environment.
+1. Build image without pushing it to registry:
    ```shell
-   cp docker/scanner.template.env docker/scanner.env
-   ```
-2. Build image without pushing it to registry
-   ```shell
-   # Make sure you're using the right builder:
-   # > docker buildx ls
-   # > docker buildx use <builder-name>
-
    cd docker
-   ./build_push_image.bash 0.0.1-testing
+   ./image_build.bash 0.0.1-testing
    ```
-3. Use `docker/run_dev_container.bash`.
-   You might need to edit the script to update values of `IMAGE_TAG` and
-   `HOST_CONTENT_DIR` variables before executing it.
-4. Once the container is running, use `docker/request_scan.bash` to
-   trigger a directory scan.
+2. By default, the build script runs a smoke check (`image_verify.bash`)
+   that starts ephemeral Neo4j and RabbitMQ containers, checks
+   `/actuator/health`, and verifies `exiftool` is available.
+3. If you only want to build locally, skip the smoke check:
+   ```shell
+   cd docker
+   ./image_build.bash 0.0.1-testing --skip-check
+   ```
 
 ### Release a new image version
 
@@ -194,5 +188,9 @@ docker buildx use <builder-name>
 
 ```shell
 cd docker
-./build_push_image.bash <new_version> --push
+./image_build.bash <new_version> --push
 ```
+
+The release flow builds locally first and runs the same smoke check before
+pushing the multi-arch image.
+

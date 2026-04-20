@@ -1,6 +1,12 @@
-*.pyc
-
+.git/
+.github/
+.gradle/
+.idea/
+build/
 data.dev/
-db/
-docker.dev/
+database/
 docs/
+estatico/
+scripts/
+
+*.iml

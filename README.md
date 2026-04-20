@@ -1,6 +1,5 @@
-# Scanner
-Indexes gallery directories and media files by scanning a local media
-library.
+# Galleries
+Indexes directories and media files by scanning a local media library.
 
 - [Architecture](docs/architecture.md)
 - [Development](docs/DEVELOPMENT.md)
