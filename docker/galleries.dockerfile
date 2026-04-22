@@ -33,7 +33,7 @@ RUN apk add --no-cache exiftool \
 WORKDIR /opt/galleries
 COPY --from=builder /opt/galleries/build/libs/*.jar galleries.jar
 
-USER galleries
+# USER galleries
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 \
   CMD wget -q -O - http://localhost:8100/actuator/health | \

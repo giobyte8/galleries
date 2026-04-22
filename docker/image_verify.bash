@@ -113,12 +113,12 @@ docker run -d \
   -p "${SMOKE_PORT}:8100" \
   -e RABBITMQ_HOST=rabbitmq \
   -e RABBITMQ_PORT=5672 \
-  -e RABBITMQ_USERNAME=smoke \
-  -e RABBITMQ_PASSWORD=smoke \
+  -e RABBITMQ_USER=smoke \
+  -e RABBITMQ_PASS=smoke \
   -e NEO4J_HOST=neo4j \
   -e NEO4J_PORT=7687 \
-  -e NEO4J_USERNAME=neo4j \
-  -e NEO4J_PASSWORD=smokepass \
+  -e NEO4J_USER=neo4j \
+  -e NEO4J_PASS=smokepass \
   "$IMAGE_REF" >/dev/null
 
 echo "  Waiting for actuator health endpoint (${HEALTH_URL})"

@@ -5,8 +5,8 @@ spring:
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USERNAME}
-    password: ${RABBITMQ_PASSWORD}
+    username: ${RABBITMQ_USER}
+    password: ${RABBITMQ_PASS}
 
 server:
   port: 8100
@@ -28,7 +28,7 @@ galleries:
   scheduler:
     # noinspection SpringBootApplicationYaml
     datasource:
-      jdbc-url: jdbc:sqlite:${SCHEDULER_SQLITE_PATH:data.dev/scheduler.db}
+      jdbc-url: jdbc:sqlite:${GL_SCHEDULER_DB:data.dev/scheduler.db}
       driver-class-name: org.sqlite.JDBC
 
   scanner:
@@ -38,7 +38,7 @@ galleries:
       queue_gen_thumb_requests: GL_GEN_THUMB_REQUESTS
       queue_del_thumb_requests: GL_DEL_THUMB_REQUESTS
     content_dirs:
-      root_path: ${SCANNER_CONTENT_DIR:/replace/in/intellij/spring/override}
+      root_path: ${GL_CONTENTS_ROOT_PATH:/replace/in/intellij/spring/override}
     image_file_extensions:
       - jpeg
       - jpg
@@ -52,8 +52,8 @@ galleries:
 
 neo4j:
   uri: neo4j://${NEO4J_HOST:localhost}:${NEO4J_PORT:7687}
-  username: ${NEO4J_USERNAME:neo4j}
-  password: ${NEO4J_PASSWORD:neo4j_devpass}
+  username: ${NEO4J_USER:neo4j}
+  password: ${NEO4J_PASS:neo4j_devpass}
 
 management:
   metrics:
@@ -79,8 +79,8 @@ management:
   otlp:
     metrics:
       export:
-        enabled: false
-        url: http://localhost:4318/v1/metrics
+        enabled: ${OTEL_ENABLED:false}
+        url: ${OTEL_COLLECTOR_HTTP_ENDPOINT:http://localhost:4318}/v1/metrics
 
         # Use higher value in production
         step: 5s
