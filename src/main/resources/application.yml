@@ -55,6 +55,15 @@ neo4j:
   username: ${NEO4J_USER:neo4j}
   password: ${NEO4J_PASS:neo4j_devpass}
 
+logging:
+  level:
+
+    # SDN loggers: https://docs.spring.io/spring-data/neo4j/reference/appendix/logging.html
+    # Suppresses verbose warnings like:
+    #   The property `gpsLatitude` does not exist in database `neo4j`.
+    #   Verify that the spelling is correct (01N52).
+    org.springframework.data.neo4j.cypher.unrecognized: ERROR
+
 management:
   metrics:
 

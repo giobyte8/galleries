@@ -24,6 +24,18 @@ public class ScanRequestsListener {
     ))
     public void onScanRequest(ScanRequest request) {
         log.info("AMQP Scan request received: {}", request.id());
-        scanService.scan(request);
+
+        try {
+            scanService.scan(request);
+        }
+
+        // Handle possible exceptions to prevent infinite retries.
+        catch (Exception e) {
+            log.error(
+                    "Error processing scan request {}: {}",
+                    request.id(), e.getMessage(),
+                    e
+            );
+        }
     }
 }

@@ -8,6 +8,7 @@ import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.persistence.models.Video;
 import me.giobyte8.galleries.scanner.config.properties.ScannerProps;
 import me.giobyte8.galleries.scanner.dto.Fingerprint;
+import me.giobyte8.galleries.scanner.exceptions.MediaProcessingException;
 import me.giobyte8.galleries.scanner.metadata.MediaMetaExtractor;
 import me.giobyte8.galleries.scanner.metrics.Metric;
 import me.giobyte8.galleries.scanner.metrics.MetricStr;
@@ -163,6 +164,8 @@ public class LocalMediaScanner implements MediaScanner {
             }
         } catch (IOException e) {
             log.error("Error while hashing content: {}", absPath, e);
+        } catch (MediaProcessingException e) {
+            log.error("Error while processing media file: {}", absPath, e);
         } finally {
             if (foundType != null) {
                 metricsSvc.record(
@@ -218,6 +221,8 @@ public class LocalMediaScanner implements MediaScanner {
             }
         } catch (IOException e) {
             log.error("Error while hashing content: {}", absPath, e);
+        } catch (MediaProcessingException e) {
+            log.error("Error while processing media file: {}", absPath, e);
         } finally {
             if (foundType != null) {
                 metricsSvc.record(

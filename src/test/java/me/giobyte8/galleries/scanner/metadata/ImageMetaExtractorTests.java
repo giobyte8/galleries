@@ -1,5 +1,6 @@
 package me.giobyte8.galleries.scanner.metadata;
 
+import me.giobyte8.galleries.scanner.exceptions.MediaProcessingException;
 import me.giobyte8.galleries.scanner.metrics.MetricsService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +43,7 @@ class ImageMetaExtractorTests {
 
     @Test
     void jpegMetadata()
-            throws IOException {
+            throws IOException, MediaProcessingException {
         var absPath = pathFor("20220612_133112.jpg");
         var meta = mExtractor.extract(absPath);
 
@@ -60,7 +61,7 @@ class ImageMetaExtractorTests {
     }
 
     @Test
-    void heicMetadata() throws IOException {
+    void heicMetadata() throws IOException, MediaProcessingException {
         Path absPath = pathFor(
                 Path.of("cameras", "iPhone").toString(),
                 "2025-03-01T204437_IMG_0121.heic"
@@ -87,7 +88,7 @@ class ImageMetaExtractorTests {
     }
 
     @Test
-    void heicInJpgExtension() throws IOException {
+    void heicInJpgExtension() throws IOException, MediaProcessingException {
         Path absPath = pathFor(
                 Path.of("cameras", "iPhone").toString(),
                 "2025-03-01T204801_IMG_0122_edit.jpg"
@@ -114,7 +115,7 @@ class ImageMetaExtractorTests {
     }
 
     @Test
-    void pngMetadata() throws IOException {
+    void pngMetadata() throws IOException, MediaProcessingException {
         Path absPath = pathFor("2025-07-31T132949_IMG_1136.png");
         var meta = mExtractor.extract(absPath);
 
@@ -122,7 +123,7 @@ class ImageMetaExtractorTests {
     }
 
     @Test
-    void webPMetadata() throws IOException {
+    void webPMetadata() throws IOException, MediaProcessingException {
         Path absPath = pathFor("flower.webp");
         var meta = mExtractor.extract(absPath);
 

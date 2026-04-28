@@ -1,11 +1,12 @@
 package me.giobyte8.galleries.scanner.metadata;
 
 import me.giobyte8.galleries.scanner.dto.MFMetadata;
+import me.giobyte8.galleries.scanner.exceptions.MediaProcessingException;
 
 import java.io.IOException;
 import java.nio.file.Path;
 
 public interface MediaMetaExtractor {
 
-    MFMetadata extract(Path absPath) throws IOException;
+    MFMetadata extract(Path absPath) throws IOException, MediaProcessingException;
 }

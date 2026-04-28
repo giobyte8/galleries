@@ -8,6 +8,8 @@ import com.drew.metadata.Metadata;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.giobyte8.galleries.scanner.dto.MFMetadata;
+import me.giobyte8.galleries.scanner.exceptions.MediaProcessingException;
+import me.giobyte8.galleries.scanner.exceptions.UnsupportedMediaFileException;
 import me.giobyte8.galleries.scanner.metrics.Metric;
 import me.giobyte8.galleries.scanner.metrics.MetricTag;
 import me.giobyte8.galleries.scanner.metrics.MetricsService;
@@ -31,7 +33,7 @@ public class LFSMediaMetaExtractor implements MediaMetaExtractor {
     private final MetricsService metricsSvc;
 
     @Override
-    public MFMetadata extract(Path absPath) throws IOException {
+    public MFMetadata extract(Path absPath) throws IOException, MediaProcessingException {
         long startNs = System.nanoTime();
         String mediaType = null;
 
@@ -56,23 +58,12 @@ public class LFSMediaMetaExtractor implements MediaMetaExtractor {
                     return new QuickTimeMetaReader(meta).read();
                 }
 
-                default -> {
-                    log.error(
-                            "Unsupported file type: {} for file: {}",
-                            fileType,
-                            absPath
-                    );
-                    return null;
-                }
+                default -> throw new UnsupportedMediaFileException(
+                        fileType.toString()
+                );
             }
-        } catch (ImageProcessingException e) {
-            log.error(
-                    "Error while retrieving metadata for: {} - {}",
-                    absPath,
-                    e.getMessage()
-            );
-
-            return null;
+        } catch (ImageProcessingException | UnsupportedMediaFileException e) {
+            throw new MediaProcessingException("Unable to retrieve metadata.", e);
         } finally {
             if (mediaType != null) {
                 metricsSvc.record(

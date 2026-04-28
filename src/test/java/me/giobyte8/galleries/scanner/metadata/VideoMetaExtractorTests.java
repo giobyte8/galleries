@@ -1,7 +1,7 @@
 package me.giobyte8.galleries.scanner.metadata;
 
+import me.giobyte8.galleries.scanner.exceptions.MediaProcessingException;
 import me.giobyte8.galleries.scanner.metrics.MetricsService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,7 +34,7 @@ public class VideoMetaExtractorTests {
     );
 
     @Test
-    void movMediaFile() throws IOException {
+    void movMediaFile() throws IOException, MediaProcessingException {
         var path = pathFor("10 lake_hdr.mov");
         var meta = metaExtractor.extract(path);
 
@@ -48,7 +48,7 @@ public class VideoMetaExtractorTests {
     }
 
     @Test
-    void mp4MediaFile_NoMetadata() throws IOException {
+    void mp4MediaFile_NoMetadata() throws IOException, MediaProcessingException {
         var path = pathFor("11 whatsapp.mp4");
         var meta = metaExtractor.extract(path);
 
@@ -65,7 +65,7 @@ public class VideoMetaExtractorTests {
     }
 
     @Test
-    void mp4MediaFile_UTCNextDay() throws IOException {
+    void mp4MediaFile_UTCNextDay() throws IOException, MediaProcessingException {
         var path = pathFor("lake_20231006_182745.mp4");
         var meta = metaExtractor.extract(path);
 
@@ -89,7 +89,7 @@ public class VideoMetaExtractorTests {
     }
 
     @Test
-    void mp4MediaFile() throws IOException {
+    void mp4MediaFile() throws IOException, MediaProcessingException {
         var path = pathFor("pour_edit_20230619_122200_1.mp4");
         var meta = metaExtractor.extract(path);
 
@@ -119,7 +119,7 @@ public class VideoMetaExtractorTests {
      * Set the video file name to `path` and debug.
      */
     @Test
-    void m4vMediaFile() throws IOException {
+    void m4vMediaFile() throws IOException, MediaProcessingException {
         var path = pathFor("lake_20231006_182745.mp4");
         var meta = metaExtractor.extract(path);
 
