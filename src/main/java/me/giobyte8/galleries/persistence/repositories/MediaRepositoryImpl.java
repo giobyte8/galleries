@@ -88,8 +88,7 @@ public class MediaRepositoryImpl implements MediaRepository {
     private static String mediaQuery(String rel, String orderBy) {
         return """
                 MATCH (d:Directory { id: $parentId })
-                CALL {
-                    WITH d
+                CALL (d) {
                     MATCH (d)%s(i:Image)
                     RETURN i.path            AS path,
                            i.version         AS version,
@@ -105,7 +104,6 @@ public class MediaRepositoryImpl implements MediaRepository {
                            i.status          AS status,
                            'IMAGE'           AS mediaType
                     UNION ALL
-                    WITH d
                     MATCH (d)%s(v:Video)
                     RETURN v.path            AS path,
                            v.version         AS version,
@@ -135,12 +133,10 @@ public class MediaRepositoryImpl implements MediaRepository {
     private static String countQuery(String rel) {
         return """
                 MATCH (d:Directory { id: $parentId })
-                CALL {
-                    WITH d
+                CALL (d) {
                     MATCH (d)%s(i:Image)
                     RETURN i.path AS path
                     UNION ALL
-                    WITH d
                     MATCH (d)%s(v:Video)
                     RETURN v.path AS path
                 }

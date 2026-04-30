@@ -136,6 +136,30 @@ public class MediaRepositoryTests extends BaseIntegrationTest {
     }
 
     @Test
+    void findAllMediaByParentIdMixedMediaUsesStableTieBreakers() {
+        var parent = createDir("stable-order/");
+
+        createVideo(parent, "stable-order/same-path", MediaFileStatus.AVAILABLE);
+        createImage(parent, "stable-order/same-path", MediaFileStatus.AVAILABLE);
+
+        var firstPage = mediaRepository.findAllMediaByParentId(
+                parent.getId(),
+                PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC,
+                        "captureInstant"))
+        );
+        var secondPage = mediaRepository.findAllMediaByParentId(
+                parent.getId(),
+                PageRequest.of(1, 1, Sort.by(Sort.Direction.ASC,
+                        "captureInstant"))
+        );
+
+        assertEquals(2, firstPage.getTotalElements());
+        assertEquals(2, secondPage.getTotalElements());
+        assertEquals("IMAGE", firstPage.getContent().getFirst().mediaType());
+        assertEquals("VIDEO", secondPage.getContent().getFirst().mediaType());
+    }
+
+    @Test
     void findAllMediaByParentIdMapsAllFields() {
         var parent = createDir("rich/");
         Image img = Image.builder()

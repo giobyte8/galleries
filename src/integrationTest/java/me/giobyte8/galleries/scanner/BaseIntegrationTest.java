@@ -16,7 +16,7 @@ public abstract class BaseIntegrationTest {
 
     // Started once when the class is loaded, reused for all test classes
     protected static final Neo4jContainer neo4j =
-            new Neo4jContainer("neo4j:5.20-community-bullseye")
+            new Neo4jContainer("neo4j:2025")
                     .withoutAuthentication();
 
     @ServiceConnection
