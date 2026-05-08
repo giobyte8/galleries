@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Queue;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
@@ -74,8 +75,17 @@ public class LocalMediaScanner implements MediaScanner {
         Directory dir = scanPendingQueue.poll();
         eventsHub.onScanStarted(dir);
 
+        // Prepare content stream filter
+        Predicate<Path> hiddenFilesFilter = absPath -> !absPath
+                .getFileName()
+                .toString()
+                .startsWith(".");
+
         Path dirAbsPath = pathSvc.toAbsolute(dir.getPath());
-        try (Stream<Path> fStream = Files.list(dirAbsPath)) {
+        try (Stream<Path> fStream = Files
+                .list(dirAbsPath)
+                .filter(hiddenFilesFilter)
+        ) {
             fStream.forEach(absPath -> {
                 if (Files.isDirectory(absPath)) {
                     onDirFound(dir, absPath);
