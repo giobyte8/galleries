@@ -2,7 +2,7 @@ package me.giobyte8.galleries.scanner.metadata.reader;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class TimeUtilsTest {
 
@@ -36,5 +36,21 @@ class TimeUtilsTest {
         var tz = TimeUtils.getTimeZone(datetimeRaw);
 
         assertEquals("GMT-06:00", tz.getID());
+    }
+
+    @Test
+    void containsTimezoneNoTz() {
+        var datetimeRaw = "2025:11:08 12:15:12p.m.";
+        var containsTz = TimeUtils.containsTz(datetimeRaw);
+
+        assertFalse(containsTz, "Timezone is not expected");
+    }
+
+    @Test
+    void containsTimezone() {
+        var datetimeRaw = "2025:11:08 12:15:12p.m.+07:00";
+        var containsTz = TimeUtils.containsTz(datetimeRaw);
+
+        assertTrue(containsTz, "Timezone should have been detected");
     }
 }

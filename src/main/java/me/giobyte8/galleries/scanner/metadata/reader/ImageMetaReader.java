@@ -29,12 +29,23 @@ import static com.drew.metadata.exif.ExifDirectoryBase.*;
 @Slf4j
 @RequiredArgsConstructor
 public class ImageMetaReader implements MetaReader {
+    private static final DateTimeFormatter EXIF_DT_BASE_FORMATTER =
+            new DateTimeFormatterBuilder()
+                    .appendPattern("yyyy:MM:dd HH:mm:ss")
+                    .optionalStart()
+                    .appendLiteral("a.m.")
+                    .optionalEnd()
+                    .optionalStart()
+                    .appendLiteral("p.m.")
+                    .optionalEnd()
+                    .toFormatter();
+
     private static final DateTimeFormatter EXIF_DT_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss");
+            EXIF_DT_BASE_FORMATTER;
 
     private static final DateTimeFormatter EXIF_DT_TZ_FORMATTER =
             new DateTimeFormatterBuilder()
-                    .appendPattern("yyyy:MM:dd HH:mm:ss")
+                    .append(EXIF_DT_BASE_FORMATTER)
                     .optionalStart()
                     .appendOffset("+HH:MM", "+00:00")
                     .optionalEnd()
