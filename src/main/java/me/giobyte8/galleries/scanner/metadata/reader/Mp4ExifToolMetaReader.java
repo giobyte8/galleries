@@ -147,26 +147,33 @@ public class Mp4ExifToolMetaReader implements MetaReader {
         return metadata.rawCaptureDateTime().map(raw -> {
             var dtBuilder = MediaDateTime.builder().raw(raw);
 
-            ZonedDateTime captureDt;
-            if (TimeUtils.containsTz(raw)) {
-                captureDt = parseDatetimeWithTz(raw);
+            try {
+                ZonedDateTime captureDt;
+                if (TimeUtils.containsTz(raw)) {
+                    captureDt = parseDatetimeWithTz(raw);
 
-            } else {
-                var captureDtUtc = LocalDateTime
-                        .parse(raw, EXIF_FORMATTER)
+                } else {
+                    var captureDtUtc = LocalDateTime
+                            .parse(raw, EXIF_FORMATTER)
 
-                        // mp4/Samsung videos stores datetime in UTC by
-                        // ISO standard, hence, we assume it is in UTC
-                        .atZone(ZoneOffset.UTC);
+                            // mp4/Samsung videos stores datetime in UTC by
+                            // ISO standard, hence, we assume it is in UTC
+                            .atZone(ZoneOffset.UTC);
 
-                ZoneId captureZone = coordinates()
-                        .flatMap(TimeUtils::timezoneFor)
-                        .orElse(ZoneOffset.UTC);
+                    ZoneId captureZone = coordinates()
+                            .flatMap(TimeUtils::timezoneFor)
+                            .orElse(ZoneOffset.UTC);
 
-                captureDt = captureDtUtc.withZoneSameInstant(captureZone);
+                    captureDt = captureDtUtc.withZoneSameInstant(captureZone);
+                }
+
+                dtBuilder.datetime(captureDt);
+            } catch (DateTimeParseException e) {
+                log.warn(
+                        "Error parsing MP4 capture datetime: {}",
+                        e.getMessage()
+                );
             }
-
-            dtBuilder.datetime(captureDt);
 
             return dtBuilder.build();
         });

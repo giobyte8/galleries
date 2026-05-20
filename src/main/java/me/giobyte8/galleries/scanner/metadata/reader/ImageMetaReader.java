@@ -16,6 +16,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -134,11 +135,12 @@ public class ImageMetaReader implements MetaReader {
             String rawCaptureDate,
             String tzOffset
     ) {
-        try {
-            if (rawCaptureDate == null) {
-                return null;
-            }
+        if (!StringUtils.hasText(rawCaptureDate)) return null;
 
+        var mediaDtBuilder = MediaDateTime.builder()
+                .raw(rawCaptureDate);
+
+        try {
             ZonedDateTime captureDatetime;
 
             // Check if raw value already provides tz info
@@ -170,18 +172,22 @@ public class ImageMetaReader implements MetaReader {
                         .atZone(mediaTz);
             }
 
-            return MediaDateTime.builder()
-                    .raw(rawCaptureDate)
-                    .datetime(captureDatetime)
-                    .build();
-        } catch (Exception e) {
+            mediaDtBuilder.datetime(captureDatetime);
+        }
+        catch (DateTimeParseException e) {
+            log.warn(
+                    "Error parsing image capture datetime: {}",
+                    e.getMessage()
+            );
+        }
+        catch (Exception e) {
             log.error(
-                    "Error while reading image capture datetime - {}",
+                    "Error parsing image capture datetime: {}",
                     e.getMessage(),
                     e
             );
-
-            return null;
         }
+
+        return mediaDtBuilder.build();
     }
 }
