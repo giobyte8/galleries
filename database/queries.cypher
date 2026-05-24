@@ -16,6 +16,22 @@ DETACH DELETE n;
 MATCH (n:Video)
 DETACH DELETE n;
 
+// --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+// Clean up all images, videos and directories contained in a directory
+
+// Count before delete
+MATCH (d:Directory {path: 'cameras/iPhone-RO'})-[:CONTAINS*..5000]->(i:Image)
+RETURN COUNT(i);
+
+MATCH (d:Directory {path: 'cameras/iPhone-RO'})-[:CONTAINS*..5000]->(i:Image)
+DETACH DELETE i;
+
+MATCH (d:Directory {path: 'cameras/iPhone-RO'})-[:CONTAINS*..5000]->(v:Video)
+DETACH DELETE v;
+
+MATCH (d:Directory {path: 'cameras/iPhone-RO'})-[:CONTAINS*..5000]->(child:Directory)
+DETACH DELETE child;
+
 
 // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 // Seeding
