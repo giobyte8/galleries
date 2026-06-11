@@ -6,13 +6,13 @@ import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.persistence.models.Video;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Slf4j
 public class ScanEventsHub implements ScanEventsListener {
-    private final Set<ScanEventsListener> listeners = new HashSet<>();
+    private final List<ScanEventsListener> listeners = new ArrayList<>();
 
     public ScanEventsHub(
             GalleriesScanEventsListener galleriesEventsListener,

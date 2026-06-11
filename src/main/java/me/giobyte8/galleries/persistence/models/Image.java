@@ -2,10 +2,13 @@ package me.giobyte8.galleries.persistence.models;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import me.giobyte8.galleries.scanner.dto.MFMetadata;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Relationship;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -14,6 +17,8 @@ import java.util.Objects;
 @Data
 @Builder
 @Node
+@EqualsAndHashCode(exclude = "original")
+@ToString(exclude = "original")
 public class Image {
 
     @Id
@@ -46,6 +51,12 @@ public class Image {
 
     @Builder.Default
     private MediaFileStatus status = MediaFileStatus.AVAILABLE;
+
+    @Relationship(
+            type = "EDITS",
+            direction = Relationship.Direction.OUTGOING
+    )
+    private Image original;
 
     public void setMetadata(MFMetadata meta) {
         cameraMaker = meta.getCamMaker();

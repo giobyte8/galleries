@@ -6,6 +6,8 @@ import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.persistence.models.MediaFileStatus;
 import me.giobyte8.galleries.scanner.BaseIntegrationTest;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -16,6 +18,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -51,6 +54,9 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
 
     @Autowired
     private DirectoryRepository dirRepository;
+
+    @Autowired
+    private Driver neo4jDriver;
 
 
     @Test
@@ -501,6 +507,71 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
         assertEquals(3, page.getTotalElements());
     }
 
+    @Test
+    void findUnlinkedEditedPathsByParentUsesCursorPagination() {
+        Directory root = createDir("root/");
+
+        createImage(root, "root/file1.heic", MediaFileStatus.AVAILABLE);
+        createImage(root, "root/file1_edit.heic", MediaFileStatus.AVAILABLE);
+        createImage(root, "root/file2.heic", MediaFileStatus.AVAILABLE);
+        createImage(root, "root/file2_EDIT.heic", MediaFileStatus.AVAILABLE);
+        createImage(root, "root/file3.heic", MediaFileStatus.AVAILABLE);
+        createImage(root, "root/noise.jpg", MediaFileStatus.AVAILABLE);
+
+        // Page size 1 validates keyset pagination order and cursor behavior.
+        var page = imgRepository.findUnlinkedEditedPathsByParent(root, null, 1);
+        assertEquals(1, page.size());
+        assertEquals("root/file1_edit.heic", page.getFirst());
+
+        // Cursor should continue after file1_edit and include uppercase _EDIT.
+        page = imgRepository.findUnlinkedEditedPathsByParent(
+                root,
+                "root/file1_edit.heic",
+                10
+        );
+        assertEquals(1, page.size());
+        assertEquals("root/file2_EDIT.heic", page.getFirst());
+    }
+
+    @Test
+    void linkEditedToOriginalLinksOnlyDirectChildrenAndIsIdempotent() {
+        Directory root = createDir("root/");
+        Directory child = createDir(root, "root/child/");
+
+        String rootOriginal = "root/file1.heic";
+        String rootEdited = "root/file1_edit.heic";
+        createImage(root, rootOriginal, MediaFileStatus.AVAILABLE);
+        createImage(root, rootEdited, MediaFileStatus.AVAILABLE);
+
+        String childEdited = "root/child/file2_edit.heic";
+        createImage(child, childEdited, MediaFileStatus.AVAILABLE);
+
+        // Happy path: edited and original are direct siblings under root.
+        assertTrue(imgRepository.linkEditedToOriginal(
+                root,
+                rootEdited,
+                rootOriginal
+        ));
+
+        // Idempotency: linking same pair again must be a no-op.
+        assertFalse(imgRepository.linkEditedToOriginal(
+                root,
+                rootEdited,
+                rootOriginal
+        ));
+
+        // Scope guard: linking across directories must not be allowed.
+        assertFalse(imgRepository.linkEditedToOriginal(
+                child,
+                childEdited,
+                rootOriginal
+        ));
+
+        // Assert persisted relationship counts to verify previous expectations.
+        assertEquals(1, countEditsRelationship(rootEdited, rootOriginal));
+        assertEquals(0, countEditsRelationship(childEdited, rootOriginal));
+    }
+
     private void prepareTestGraph() {
         // Graphical representation of tested scenario
         //
@@ -572,5 +643,25 @@ public class ImageRepositoryTests extends BaseIntegrationTest {
                 .build();
         imgRepository.saveAsChild(parent, img);
         return img;
+    }
+
+    private long countEditsRelationship(String editedPath, String originalPath) {
+        String query = """
+                MATCH (edited:Image { path: $editedPath })
+                    -[r:EDITS]
+                    ->(original:Image { path: $originalPath })
+                RETURN count(r) AS relCount""";
+
+        try (Session session = neo4jDriver.session()) {
+            return session.executeRead(ctx ->
+                    ctx.run(query, Map.of(
+                            "editedPath", editedPath,
+                            "originalPath", originalPath
+                    ))
+                            .single()
+                            .get("relCount")
+                            .asLong()
+            );
+        }
     }
 }

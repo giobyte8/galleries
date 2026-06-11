@@ -4,6 +4,7 @@ import me.giobyte8.galleries.persistence.models.Directory;
 import me.giobyte8.galleries.persistence.models.Image;
 import me.giobyte8.galleries.persistence.models.MediaFileStatus;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -61,4 +62,29 @@ public interface CustomizedImageRepository {
      * @return Paths of all removed images
      */
     Set<String> multilevelDeleteAndGetPaths(Directory parent);
+
+    /**
+     * Returns a page of direct-child image paths that look like edited
+     * variants (for example, files containing '_edit.'), ordered by path.
+     *
+     * <p>
+     * Only images without a preexisting EDITS relationship are returned.
+     */
+    List<String> findUnlinkedEditedPathsByParent(
+            Directory parent,
+            String afterPath,
+            int limit
+    );
+
+    /**
+     * Creates an EDITS relationship from edited image to original image,
+     * only if both are direct children of the same given parent directory.
+     *
+     * @return true if relationship was created, false otherwise
+     */
+    boolean linkEditedToOriginal(
+            Directory parent,
+            String editedPath,
+            String originalPath
+    );
 }

@@ -170,4 +170,68 @@ public class CustomizedImageRepositoryImpl implements CustomizedImageRepository 
                 .all();
         return new HashSet<>(results);
     }
+
+    @Override
+    public List<String> findUnlinkedEditedPathsByParent(
+            Directory parent,
+            String afterPath,
+            int limit
+    ) {
+        String findEditedQry = """
+                MATCH (d:Directory { path: $dirPath })
+                    -[:CONTAINS]
+                    ->(i:Image)
+                WHERE
+                    NOT (i)-[:EDITS]->(:Image)
+                    AND toLower(i.path) CONTAINS '_edit.'
+                    AND ($afterPath IS NULL OR i.path > $afterPath)
+                RETURN i.path AS path
+                ORDER BY path ASC
+                LIMIT $limit""";
+
+        Map<String, Object> params = new HashMap<>(3);
+        params.put("dirPath", parent.getPath());
+        params.put("afterPath", afterPath);
+        params.put("limit", limit);
+
+        return new ArrayList<>(neo4jClient.query(findEditedQry)
+                .bindAll(params)
+                .fetchAs(String.class)
+                .mappedBy((_, record) ->
+                        record.get("path").asString()
+                )
+                .all());
+    }
+
+    @Override
+    public boolean linkEditedToOriginal(
+            Directory parent,
+            String editedPath,
+            String originalPath
+    ) {
+        String linkQry = """
+                MATCH (d:Directory { path: $dirPath })
+                    -[:CONTAINS]
+                    ->(edited:Image { path: $editedPath })
+                WHERE NOT (edited)-[:EDITS]->(:Image)
+                MATCH (d)-[:CONTAINS]->(original:Image { path: $originalPath })
+                MERGE (edited)-[r:EDITS]->(original)
+                RETURN count(r) AS linkedCount""";
+
+        Map<String, Object> params = new HashMap<>(3);
+        params.put("dirPath", parent.getPath());
+        params.put("editedPath", editedPath);
+        params.put("originalPath", originalPath);
+
+        long linkedCount = neo4jClient.query(linkQry)
+                .bindAll(params)
+                .fetchAs(Long.class)
+                .mappedBy((_, record) ->
+                        record.get("linkedCount").asLong()
+                )
+                .one()
+                .orElse(0L);
+
+        return linkedCount > 0;
+    }
 }
