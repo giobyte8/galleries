@@ -10,28 +10,28 @@ public interface ScanEventsListener {
      * Called when a scan request starts processing
      * (before any directory is scanned).
      */
-    void onScanStarted();
+    default void onScanStarted() { }
 
     /**
      * Called when a scan request has fully completed
      * (after all directories are scanned).
      */
-    void onScanCompleted();
+    default void onScanCompleted() { }
 
-    void onScanStarted(Directory dir);
+    default void onScanStarted(Directory dir) { }
 
-    void onScanCompleted(Directory dir);
+    default void onScanCompleted(Directory dir) { }
 
-    void onScanFailed(Directory dir, Exception e);
+    default void onScanFailed(Directory dir, Exception e) { }
 
-    void onDirFound(Directory parent, Directory dir);
+    default void onDirFound(Directory parent, Directory dir) { }
 
     /**
      * Called when scan detects a new image
      * @param parent Directory that contains the image
      * @param img Image that was found
      */
-    void onNewImageFound(Directory parent, Image img);
+    default void onNewImageFound(Directory parent, Image img) { }
 
     /**
      * Called when scan detects an updated image, that is, an image that
@@ -41,7 +41,7 @@ public interface ScanEventsListener {
      * @param parent Directory that contains the image
      * @param img Image that was found
      */
-    void onUpdatedImageFound(Directory parent, Image img);
+    default void onUpdatedImageFound(Directory parent, Image img) { }
 
     /**
      * Called when scan detects an unchanged image, that is, an image
@@ -51,7 +51,7 @@ public interface ScanEventsListener {
      * @param parent Directory that contains the image
      * @param img Image that was found
      */
-    void onUnchangedImageFound(Directory parent, Image img);
+    default void onUnchangedImageFound(Directory parent, Image img) { }
 
     /**
      * Called when an image previously known is not found during scanning.
@@ -60,7 +60,7 @@ public interface ScanEventsListener {
      * @param parent Directory that contained the image
      * @param img Image that was not found
      */
-    void onImageNotFound(Directory parent, Image img);
+    default void onImageNotFound(Directory parent, Image img) { }
 
     /**
      * Called when scan detects a new video.
@@ -68,7 +68,7 @@ public interface ScanEventsListener {
      * @param parent Directory that contains the video
      * @param video Video that was found
      */
-    void onNewVideoFound(Directory parent, Video video);
+    default void onNewVideoFound(Directory parent, Video video) { }
 
     /**
      * Called when scan detects an updated video, that is, a video that
@@ -78,7 +78,7 @@ public interface ScanEventsListener {
      * @param parent Directory that contains the video
      * @param video Video that was found
      */
-    void onUpdatedVideoFound(Directory parent, Video video);
+    default void onUpdatedVideoFound(Directory parent, Video video) { }
 
     /**
      * Called when scan detects an unchanged video, that is, a video
@@ -88,7 +88,7 @@ public interface ScanEventsListener {
      * @param parent Directory that contains the video
      * @param video Video that was found
      */
-    void onUnchangedVideoFound(Directory parent, Video video);
+    default void onUnchangedVideoFound(Directory parent, Video video) { }
 
     /**
      * Called when a video previously known is not found during scanning.
@@ -97,5 +97,5 @@ public interface ScanEventsListener {
      * @param parent Directory that contained the video
      * @param video Video that was not found
      */
-    void onVideoNotFound(Directory parent, Video video);
+    default void onVideoNotFound(Directory parent, Video video) { }
 }

@@ -17,13 +17,15 @@ public class ScanEventsHub implements ScanEventsListener {
     public ScanEventsHub(
             GalleriesScanEventsListener galleriesEventsListener,
             TelemetryScanEventsListener telemetryEventsListener,
-            StatsScanEventsListener statsEventsListener
+            StatsScanEventsListener statsEventsListener,
+            DirScanPostProcessingListener dirScanPostProcessingListener
     ) {
 
         // Subscribe built-in listeners
         subscribe(galleriesEventsListener);
         subscribe(telemetryEventsListener);
         subscribe(statsEventsListener);
+        subscribe(dirScanPostProcessingListener);
     }
 
     public void subscribe(ScanEventsListener listener) {
