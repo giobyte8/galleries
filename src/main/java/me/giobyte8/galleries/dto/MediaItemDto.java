@@ -1,5 +1,6 @@
 package me.giobyte8.galleries.dto;
 
+import me.giobyte8.galleries.models.MediaFormat;
 import me.giobyte8.galleries.persistence.models.MediaFileStatus;
 
 import java.time.Instant;
@@ -18,6 +19,7 @@ public record MediaItemDto(
         String cameraMaker,
         String cameraModel,
         MediaFileStatus status,
-        String mediaType
+        String mediaType,
+        MediaFormat format
 ) {
 }

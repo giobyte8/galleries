@@ -70,7 +70,7 @@ public class MediaQueryBuilder {
                    rawCaptureDateTime, lastModified,
                    gpsLatitude, gpsLongitude,
                    cameraMaker, cameraModel,
-                   status, mediaType
+                   status, mediaType, format
             ORDER BY %s
             SKIP $skip LIMIT $limit
             """;
@@ -132,6 +132,7 @@ public class MediaQueryBuilder {
                 i.cameraMaker        AS cameraMaker,
                 i.cameraModel        AS cameraModel,
                 i.status             AS status,
+                i.format             AS format,
                 'IMAGE'              AS mediaType
             """;
 
@@ -162,6 +163,7 @@ public class MediaQueryBuilder {
                 v.cameraMaker        AS cameraMaker,
                 v.cameraModel        AS cameraModel,
                 v.status             AS status,
+                v.format             AS format,
                 'VIDEO'              AS mediaType
             """;
 

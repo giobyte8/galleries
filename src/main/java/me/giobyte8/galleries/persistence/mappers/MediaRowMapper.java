@@ -1,6 +1,7 @@
 package me.giobyte8.galleries.persistence.mappers;
 
 import me.giobyte8.galleries.dto.MediaItemDto;
+import me.giobyte8.galleries.models.MediaFormat;
 import me.giobyte8.galleries.persistence.models.MediaFileStatus;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
@@ -28,7 +29,10 @@ public class MediaRowMapper {
                 nullable(r, "cameraModel", Value::asString),
                 nullable(r, "status",
                         v -> MediaFileStatus.valueOf(v.asString())),
-                nullable(r, "mediaType", Value::asString)
+                nullable(r, "mediaType", Value::asString),
+                r.get("format").isNull()
+                        ? MediaFormat.Unknown
+                        : MediaFormat.valueOf(r.get("format").asString())
         );
     }
 

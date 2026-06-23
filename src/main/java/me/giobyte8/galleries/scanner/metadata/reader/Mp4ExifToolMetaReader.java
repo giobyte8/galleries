@@ -2,6 +2,7 @@ package me.giobyte8.galleries.scanner.metadata.reader;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.giobyte8.galleries.models.MediaFormat;
 import me.giobyte8.galleries.scanner.metadata.dto.ExifToolMetadata;
 import me.giobyte8.galleries.scanner.metadata.dto.GpsCoordinates;
 import me.giobyte8.galleries.scanner.metadata.dto.MediaDateTime;
@@ -177,6 +178,11 @@ public class Mp4ExifToolMetaReader implements MetaReader {
 
             return dtBuilder.build();
         });
+    }
+
+    @Override
+    public MediaFormat mediaFormat() {
+        return MediaFormat.Mp4;
     }
 
     private static ZonedDateTime parseDatetimeWithTz(String rawDatetime) {

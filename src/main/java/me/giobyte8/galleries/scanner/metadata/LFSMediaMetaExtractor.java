@@ -44,7 +44,7 @@ public class LFSMediaMetaExtractor implements MediaMetaExtractor {
             switch (fileType) {
                 case FileType.Jpeg, FileType.Heif, FileType.Png, FileType.WebP -> {
                     Metadata meta = ImageMetadataReader.readMetadata(fIs);
-                    return new ImageMetaReader(meta).read();
+                    return new ImageMetaReader(fileType, meta).read();
                 }
 
                 case FileType.Mp4 -> {

@@ -45,6 +45,7 @@ public class CustomizedVideoRepositoryImpl implements CustomizedVideoRepository 
                     v.cameraMaker = $cameraMaker,
                     v.cameraModel = $cameraModel,
                     v.status = $status,
+                    v.format = $format,
                     v.version = 0
                 ON MATCH
                   SET
@@ -59,6 +60,7 @@ public class CustomizedVideoRepositoryImpl implements CustomizedVideoRepository 
                     v.cameraMaker = $cameraMaker,
                     v.cameraModel = $cameraModel,
                     v.status = $status,
+                    v.format = $format,
                     v.version = coalesce(v.version, 0) + 1
                 RETURN v;""";
 

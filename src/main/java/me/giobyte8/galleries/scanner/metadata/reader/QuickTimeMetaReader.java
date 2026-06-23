@@ -4,6 +4,7 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.mov.metadata.QuickTimeMetadataDirectory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.giobyte8.galleries.models.MediaFormat;
 import me.giobyte8.galleries.scanner.metadata.dto.GpsCoordinates;
 import me.giobyte8.galleries.scanner.metadata.dto.MediaDateTime;
 
@@ -121,5 +122,10 @@ public class QuickTimeMetaReader implements MetaReader {
                 })
                 .filter(Objects::nonNull)
                 .findFirst();
+    }
+
+    @Override
+    public MediaFormat mediaFormat() {
+        return MediaFormat.QuickTime;
     }
 }

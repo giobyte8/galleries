@@ -5,6 +5,7 @@ import com.drew.metadata.MetadataException;
 import com.drew.metadata.mp4.Mp4Directory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.giobyte8.galleries.models.MediaFormat;
 import me.giobyte8.galleries.scanner.metadata.dto.GpsCoordinates;
 import me.giobyte8.galleries.scanner.metadata.dto.MediaDateTime;
 
@@ -92,5 +93,10 @@ public class Mp4MetaReader implements MetaReader {
                 })
                 .filter(Objects::nonNull)
                 .findFirst();
+    }
+
+    @Override
+    public MediaFormat mediaFormat() {
+        return MediaFormat.Mp4;
     }
 }

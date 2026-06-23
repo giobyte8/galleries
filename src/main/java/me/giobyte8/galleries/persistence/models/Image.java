@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import me.giobyte8.galleries.models.MediaFormat;
 import me.giobyte8.galleries.scanner.dto.MFMetadata;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -52,6 +53,9 @@ public class Image {
     @Builder.Default
     private MediaFileStatus status = MediaFileStatus.AVAILABLE;
 
+    @Builder.Default
+    private MediaFormat format = MediaFormat.Unknown;
+
     @Relationship(
             type = "EDITS",
             direction = Relationship.Direction.OUTGOING
@@ -78,5 +82,7 @@ public class Image {
         } else {
             captureInstant = null;
         }
+
+        format = meta.getFormat();
     }
 }

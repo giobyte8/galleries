@@ -1,5 +1,6 @@
 package me.giobyte8.galleries.scanner.metadata.reader;
 
+import me.giobyte8.galleries.models.MediaFormat;
 import me.giobyte8.galleries.scanner.dto.MFMetadata;
 import me.giobyte8.galleries.scanner.metadata.dto.GpsCoordinates;
 import me.giobyte8.galleries.scanner.metadata.dto.MediaDateTime;
@@ -16,6 +17,8 @@ public interface MetaReader {
     Optional<GpsCoordinates> coordinates();
 
     Optional<MediaDateTime> captureDateTime();
+
+    MediaFormat mediaFormat();
 
     default MFMetadata read() {
         var mfMetaBuilder = MFMetadata.builder();
@@ -36,6 +39,8 @@ public interface MetaReader {
             mfMetaBuilder.rawCaptureDateTime(mDateTime.raw());
             mfMetaBuilder.captureDateTime(mDateTime.datetime());
         });
+
+        mfMetaBuilder.format(mediaFormat());
 
         return mfMetaBuilder.build();
     }

@@ -41,6 +41,7 @@ public class CustomizedImageRepositoryImpl implements CustomizedImageRepository 
                     i.cameraMaker = $cameraMaker,
                     i.cameraModel = $cameraModel,
                     i.status = $status,
+                    i.format = $format,
                     i.version = 0
                 ON MATCH
                   SET
@@ -55,6 +56,7 @@ public class CustomizedImageRepositoryImpl implements CustomizedImageRepository 
                     i.cameraMaker = $cameraMaker,
                     i.cameraModel = $cameraModel,
                     i.status = $status,
+                    i.format = $format,
                     i.version = coalesce(i.version, 0) + 1
                 RETURN i;""";
 

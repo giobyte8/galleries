@@ -1,5 +1,6 @@
 package me.giobyte8.galleries.persistence.mappers;
 
+import me.giobyte8.galleries.models.MediaFormat;
 import me.giobyte8.galleries.persistence.models.MediaFileStatus;
 import me.giobyte8.galleries.persistence.models.Video;
 import org.springframework.stereotype.Service;
@@ -59,6 +60,7 @@ public class VideoRowMapper {
         videoMap.put("cameraMaker", video.getCameraMaker());
         videoMap.put("cameraModel", video.getCameraModel());
         videoMap.put("status", video.getStatus().toString());
+        videoMap.put("format", video.getFormat().toString());
         return videoMap;
     }
 
@@ -121,6 +123,10 @@ public class VideoRowMapper {
 
         if (Objects.nonNull(videoMap.get("gpsLongitude"))) {
             videoBuilder.gpsLongitude((Double) videoMap.get("gpsLongitude"));
+        }
+
+        if (Objects.nonNull(videoMap.get("format"))) {
+            videoBuilder.format(MediaFormat.valueOf((String) videoMap.get("format")));
         }
 
         return videoBuilder.build();

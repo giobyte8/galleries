@@ -2,6 +2,7 @@ package me.giobyte8.galleries.persistence.models;
 
 import lombok.Builder;
 import lombok.Data;
+import me.giobyte8.galleries.models.MediaFormat;
 import me.giobyte8.galleries.scanner.dto.MFMetadata;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -47,6 +48,9 @@ public class Video {
     @Builder.Default
     private MediaFileStatus status = MediaFileStatus.AVAILABLE;
 
+    @Builder.Default
+    private MediaFormat format = MediaFormat.Unknown;
+
     public void setMetadata(MFMetadata meta) {
         cameraMaker = meta.getCamMaker();
         cameraModel = meta.getCamModel();
@@ -67,6 +71,8 @@ public class Video {
         } else {
             captureInstant = null;
         }
+
+        format = meta.getFormat();
     }
 }
 

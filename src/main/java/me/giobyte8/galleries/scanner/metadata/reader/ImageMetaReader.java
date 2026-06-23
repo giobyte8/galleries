@@ -1,11 +1,13 @@
 package me.giobyte8.galleries.scanner.metadata.reader;
 
+import com.drew.imaging.FileType;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.GpsDirectory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.giobyte8.galleries.models.MediaFormat;
 import me.giobyte8.galleries.scanner.metadata.dto.GpsCoordinates;
 import me.giobyte8.galleries.scanner.metadata.dto.MediaDateTime;
 import org.springframework.util.StringUtils;
@@ -55,6 +57,7 @@ public class ImageMetaReader implements MetaReader {
                     .optionalEnd()
                     .toFormatter();
 
+    private final FileType fileType;
     private final Metadata metadata;
 
     @Override
@@ -189,5 +192,18 @@ public class ImageMetaReader implements MetaReader {
         }
 
         return mediaDtBuilder.build();
+    }
+
+    public MediaFormat mediaFormat() {
+
+        // Map from drew.imaging.FileType to internal MediaFormat
+        return switch (fileType) {
+            case FileType.Jpeg -> MediaFormat.Jpeg;
+            case FileType.Png -> MediaFormat.Png;
+            case FileType.WebP -> MediaFormat.WebP;
+
+            case FileType.Heif -> MediaFormat.Heic;
+            default -> MediaFormat.Unknown;
+        };
     }
 }

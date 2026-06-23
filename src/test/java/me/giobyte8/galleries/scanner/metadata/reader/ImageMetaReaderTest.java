@@ -1,5 +1,6 @@
 package me.giobyte8.galleries.scanner.metadata.reader;
 
+import com.drew.imaging.FileType;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.GpsDirectory;
@@ -106,7 +107,7 @@ class ImageMetaReaderTest {
         lenient().when(meta.getDirectoriesOfType(GpsDirectory.class))
                 .thenReturn(List.of());
 
-        var datetimeOpt = new ImageMetaReader(meta).captureDateTime();
+        var datetimeOpt = new ImageMetaReader(FileType.Jpeg, meta).captureDateTime();
         assertTrue(datetimeOpt.isPresent());
 
         MediaDateTime mediaDateTime = datetimeOpt.get();
