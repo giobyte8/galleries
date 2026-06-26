@@ -1,6 +1,7 @@
 package me.giobyte8.galleries.scanner.metadata;
 
 import me.giobyte8.galleries.scanner.exceptions.MediaProcessingException;
+import me.giobyte8.galleries.scanner.metadata.format.MediaFormatResolver;
 import me.giobyte8.galleries.scanner.metrics.MetricsService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +22,9 @@ public class VideoMetaExtractorTests {
 
     @Spy
     private ObjectMapper jMapper = new ObjectMapper();
+
+    @Spy
+    private MediaFormatResolver formatResolver = new MediaFormatResolver(jMapper);
 
     @Mock
     private MetricsService metricsSvc;

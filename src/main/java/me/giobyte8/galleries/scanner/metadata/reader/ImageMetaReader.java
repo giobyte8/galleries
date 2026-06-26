@@ -1,6 +1,5 @@
 package me.giobyte8.galleries.scanner.metadata.reader;
 
-import com.drew.imaging.FileType;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
@@ -57,7 +56,7 @@ public class ImageMetaReader implements MetaReader {
                     .optionalEnd()
                     .toFormatter();
 
-    private final FileType fileType;
+    private final MediaFormat format;
     private final Metadata metadata;
 
     @Override
@@ -195,15 +194,6 @@ public class ImageMetaReader implements MetaReader {
     }
 
     public MediaFormat mediaFormat() {
-
-        // Map from drew.imaging.FileType to internal MediaFormat
-        return switch (fileType) {
-            case FileType.Jpeg -> MediaFormat.Jpeg;
-            case FileType.Png -> MediaFormat.Png;
-            case FileType.WebP -> MediaFormat.WebP;
-
-            case FileType.Heif -> MediaFormat.Heic;
-            default -> MediaFormat.Unknown;
-        };
+        return format;
     }
 }

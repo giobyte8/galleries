@@ -1,21 +1,21 @@
 package me.giobyte8.galleries.scanner.metadata;
 
-import com.drew.imaging.FileType;
-import com.drew.imaging.FileTypeDetector;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.giobyte8.galleries.models.MediaFormat;
 import me.giobyte8.galleries.scanner.dto.MFMetadata;
 import me.giobyte8.galleries.scanner.exceptions.MediaProcessingException;
 import me.giobyte8.galleries.scanner.exceptions.UnsupportedMediaFileException;
-import me.giobyte8.galleries.scanner.metrics.Metric;
-import me.giobyte8.galleries.scanner.metrics.MetricTag;
-import me.giobyte8.galleries.scanner.metrics.MetricsService;
+import me.giobyte8.galleries.scanner.metadata.format.MediaFormatResolver;
 import me.giobyte8.galleries.scanner.metadata.reader.ImageMetaReader;
 import me.giobyte8.galleries.scanner.metadata.reader.Mp4ExifToolMetaReader;
 import me.giobyte8.galleries.scanner.metadata.reader.QuickTimeMetaReader;
+import me.giobyte8.galleries.scanner.metrics.Metric;
+import me.giobyte8.galleries.scanner.metrics.MetricTag;
+import me.giobyte8.galleries.scanner.metrics.MetricsService;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
@@ -29,6 +29,7 @@ import java.nio.file.Path;
 @Slf4j
 @RequiredArgsConstructor
 public class LFSMediaMetaExtractor implements MediaMetaExtractor {
+    private final MediaFormatResolver formatResolver;
     private final ObjectMapper jMapper;
     private final MetricsService metricsSvc;
 
@@ -38,28 +39,28 @@ public class LFSMediaMetaExtractor implements MediaMetaExtractor {
         String mediaType = null;
 
         try (var fIs = new BufferedInputStream(Files.newInputStream(absPath))) {
-            FileType fileType = FileTypeDetector.detectFileType(fIs);
-            mediaType = mediaTypeFor(fileType);
+            MediaFormat format = formatResolver.forPath(absPath);
+            mediaType = mediaTypeFor(format);
 
-            switch (fileType) {
-                case FileType.Jpeg, FileType.Heif, FileType.Png, FileType.WebP -> {
+            switch (format) {
+                case Jpeg, Heic, Png, WebP -> {
                     Metadata meta = ImageMetadataReader.readMetadata(fIs);
-                    return new ImageMetaReader(fileType, meta).read();
+                    return new ImageMetaReader(format, meta).read();
                 }
 
-                case FileType.Mp4 -> {
+                case Mp4 -> {
                     return Mp4ExifToolMetaReader
                             .forFile(absPath, jMapper)
                             .read();
                 }
 
-                case FileType.QuickTime -> {
+                case QuickTime -> {
                     Metadata meta = ImageMetadataReader.readMetadata(fIs);
                     return new QuickTimeMetaReader(meta).read();
                 }
 
                 default -> throw new UnsupportedMediaFileException(
-                        fileType.toString()
+                        format.toString()
                 );
             }
         } catch (ImageProcessingException | UnsupportedMediaFileException e) {
@@ -76,11 +77,10 @@ public class LFSMediaMetaExtractor implements MediaMetaExtractor {
         }
     }
 
-    private String mediaTypeFor(FileType fileType) {
-        return switch (fileType) {
-            case FileType.Jpeg, FileType.Heif, FileType.Png, FileType.WebP ->
-                    "image";
-            case FileType.Mp4, FileType.QuickTime -> "video";
+    private String mediaTypeFor(MediaFormat format) {
+        return switch (format) {
+            case Jpeg, Heic, Png, WebP -> "image";
+            case Mp4, QuickTime -> "video";
             default -> null;
         };
     }
