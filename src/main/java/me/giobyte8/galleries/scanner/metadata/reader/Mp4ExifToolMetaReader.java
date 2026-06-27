@@ -14,11 +14,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.time.OffsetDateTime;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -27,22 +22,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @RequiredArgsConstructor
 public class Mp4ExifToolMetaReader implements MetaReader {
-
-    // Handles ExifTool default format: "2026:04:05 14:48:22"
-    private static final DateTimeFormatter EXIF_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss");
-
-    private static final DateTimeFormatter EXIF_TZ_FORMATTER =
-            new DateTimeFormatterBuilder()
-                    .appendPattern("yyyy:MM:dd HH:mm:ss")
-                    .optionalStart()
-                    .appendOffset("+HH:MM", "+00:00")
-                    .optionalEnd()
-                    .optionalStart()
-                    .appendOffset("+HHMM", "+0000")
-                    .optionalEnd()
-                    .toFormatter();
-
     private final DateTimeParsersChain dateTimeParsers;
     private final ExifToolMetadata metadata;
 
@@ -166,15 +145,4 @@ public class Mp4ExifToolMetaReader implements MetaReader {
         return MediaFormat.Mp4;
     }
 
-    private static ZonedDateTime parseDatetimeWithTz(String rawDatetime) {
-        try {
-            return OffsetDateTime
-                    .parse(rawDatetime, EXIF_TZ_FORMATTER)
-                    .toZonedDateTime();
-        } catch (DateTimeParseException ignored) {
-            return OffsetDateTime
-                    .parse(rawDatetime, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-                    .toZonedDateTime();
-        }
-    }
 }

@@ -12,6 +12,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoField;
 import java.util.Optional;
 
 /// Parses standard EXIF datetime strings.
@@ -32,7 +33,11 @@ class ExifDateTimeParser implements DateTimeParser {
 
     private static final DateTimeFormatter EXIF_FORMATTER =
             new DateTimeFormatterBuilder()
-                    .appendPattern("yyyy:MM:dd HH:mm:ss")
+                    .appendPattern("yyyy:MM:dd HH:mm")
+                    .optionalStart()
+                    .appendLiteral(":")
+                    .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+                    .optionalEnd()
                     .optionalStart()
                     .appendLiteral("a.m.")
                     .optionalEnd()
