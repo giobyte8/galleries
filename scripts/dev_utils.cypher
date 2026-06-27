@@ -5,7 +5,7 @@ MATCH (n:Image) DETACH DELETE n;
 MATCH (n:Video) DETACH DELETE n;
 MATCH (n:Directory) DETACH DELETE n;
 
-MERGE (walls:Directory {
+MERGE (iphone:Directory {
     id: '74156b41-ea23-45e0-ba28-ee7673d39980',
     path: 'cameras/iPhone-RO',
     recursive: true,
@@ -35,3 +35,16 @@ MERGE (galleries:Directory {
 MATCH (d:Directory {path: 'Wallpapers/horizontal'})
 SET d.status = 'SCAN_PENDING'
 RETURN d;
+
+
+// --- --- ---
+// Queries
+
+// Images without a captureDateTime
+MATCH (n:Image) WHERE n.captureDateTime IS NULL RETURN n;
+
+// No captureDateTime in given path prefix
+MATCH (n:Image)
+WHERE n.path STARTS WITH 'cameras/iPhone-RO/'
+  AND n.captureDateTime IS NULL
+RETURN n;
