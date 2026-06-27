@@ -32,12 +32,22 @@ class LenientExifDateTimeParser implements DateTimeParser {
 
     private static final DateTimeFormatter FORMATTER =
             new DateTimeFormatterBuilder()
-                    .appendPattern("yyyy:MM:dd HH:mm")
+                    .appendPattern("yyyy:MM:dd HH")
+
+                    // Minutes handling ':0' or ':00'
+                    .appendLiteral(":")
+                    .appendValue(
+                            ChronoField.MINUTE_OF_HOUR,
+                            1, 2, SignStyle.NOT_NEGATIVE
+                    )
+
+                    // Seconds handling ':0' or ':00'
                     .appendLiteral(":")
                     .appendValue(
                             ChronoField.SECOND_OF_MINUTE,
                             1, 2, SignStyle.NOT_NEGATIVE
                     )
+
                     .optionalStart()
                     .appendFraction(
                             ChronoField.NANO_OF_SECOND, 1, 9, true
