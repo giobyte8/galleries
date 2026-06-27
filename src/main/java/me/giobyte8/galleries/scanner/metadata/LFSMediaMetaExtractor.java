@@ -13,6 +13,7 @@ import me.giobyte8.galleries.scanner.metadata.format.MediaFormatResolver;
 import me.giobyte8.galleries.scanner.metadata.reader.ImageMetaReader;
 import me.giobyte8.galleries.scanner.metadata.reader.Mp4ExifToolMetaReader;
 import me.giobyte8.galleries.scanner.metadata.reader.QuickTimeMetaReader;
+import me.giobyte8.galleries.scanner.metadata.reader.datetime.DateTimeParsersChain;
 import me.giobyte8.galleries.scanner.metrics.Metric;
 import me.giobyte8.galleries.scanner.metrics.MetricTag;
 import me.giobyte8.galleries.scanner.metrics.MetricsService;
@@ -32,6 +33,7 @@ public class LFSMediaMetaExtractor implements MediaMetaExtractor {
     private final MediaFormatResolver formatResolver;
     private final ObjectMapper jMapper;
     private final MetricsService metricsSvc;
+    private final DateTimeParsersChain datetimeParsers;
 
     @Override
     public MFMetadata extract(Path absPath) throws IOException, MediaProcessingException {
@@ -45,12 +47,12 @@ public class LFSMediaMetaExtractor implements MediaMetaExtractor {
             switch (format) {
                 case Jpeg, Heic, Png, WebP -> {
                     Metadata meta = ImageMetadataReader.readMetadata(fIs);
-                    return new ImageMetaReader(format, meta).read();
+                    return new ImageMetaReader(datetimeParsers, format, meta).read();
                 }
 
                 case Mp4 -> {
                     return Mp4ExifToolMetaReader
-                            .forFile(absPath, jMapper)
+                            .forFile(absPath, jMapper, datetimeParsers)
                             .read();
                 }
 

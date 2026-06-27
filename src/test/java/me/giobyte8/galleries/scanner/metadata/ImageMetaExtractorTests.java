@@ -2,6 +2,7 @@ package me.giobyte8.galleries.scanner.metadata;
 
 import me.giobyte8.galleries.scanner.exceptions.MediaProcessingException;
 import me.giobyte8.galleries.scanner.metadata.format.MediaFormatResolver;
+import me.giobyte8.galleries.scanner.metadata.reader.datetime.DateTimeParsersChain;
 import me.giobyte8.galleries.scanner.metrics.MetricsService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +30,9 @@ class ImageMetaExtractorTests {
 
     @Mock
     private MetricsService metricsSvc;
+
+    @Spy
+    private DateTimeParsersChain parsersChain = DateTimeParsersChain.defaultChain();
 
     @InjectMocks
     private LFSMediaMetaExtractor mExtractor;

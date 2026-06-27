@@ -6,6 +6,7 @@ import me.giobyte8.galleries.models.MediaFormat;
 import me.giobyte8.galleries.scanner.metadata.dto.ExifToolMetadata;
 import me.giobyte8.galleries.scanner.metadata.dto.GpsCoordinates;
 import me.giobyte8.galleries.scanner.metadata.dto.MediaDateTime;
+import me.giobyte8.galleries.scanner.metadata.reader.datetime.DateTimeParsersChain;
 import org.springframework.util.CollectionUtils;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -13,10 +14,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -45,11 +43,13 @@ public class Mp4ExifToolMetaReader implements MetaReader {
                     .optionalEnd()
                     .toFormatter();
 
+    private final DateTimeParsersChain dateTimeParsers;
     private final ExifToolMetadata metadata;
 
     public static Mp4ExifToolMetaReader forFile(
             Path absPath,
-            ObjectMapper jMapper
+            ObjectMapper jMapper,
+            DateTimeParsersChain dateTimeParsers
     ) throws IOException {
 
         // --- ExifTool Command Assembly ---
@@ -113,7 +113,7 @@ public class Mp4ExifToolMetaReader implements MetaReader {
             }
 
             ExifToolMetadata metadata = results.getFirst();
-            return new Mp4ExifToolMetaReader(metadata);
+            return new Mp4ExifToolMetaReader(dateTimeParsers, metadata);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -148,33 +148,14 @@ public class Mp4ExifToolMetaReader implements MetaReader {
         return metadata.rawCaptureDateTime().map(raw -> {
             var dtBuilder = MediaDateTime.builder().raw(raw);
 
-            try {
-                ZonedDateTime captureDt;
-                if (TimeUtils.containsTz(raw)) {
-                    captureDt = parseDatetimeWithTz(raw);
-
-                } else {
-                    var captureDtUtc = LocalDateTime
-                            .parse(raw, EXIF_FORMATTER)
-
-                            // mp4/Samsung videos stores datetime in UTC by
-                            // ISO standard, hence, we assume it is in UTC
-                            .atZone(ZoneOffset.UTC);
-
-                    ZoneId captureZone = coordinates()
-                            .flatMap(TimeUtils::timezoneFor)
-                            .orElse(ZoneOffset.UTC);
-
-                    captureDt = captureDtUtc.withZoneSameInstant(captureZone);
-                }
-
-                dtBuilder.datetime(captureDt);
-            } catch (DateTimeParseException e) {
-                log.warn(
-                        "Error parsing MP4 capture datetime: {}",
-                        e.getMessage()
-                );
-            }
+            var dateTime = dateTimeParsers
+                    .parse(
+                            raw,
+                            null,
+                            coordinates().orElse(null)
+                    )
+                    .orElse(null);
+            dtBuilder.datetime(dateTime);
 
             return dtBuilder.build();
         });
