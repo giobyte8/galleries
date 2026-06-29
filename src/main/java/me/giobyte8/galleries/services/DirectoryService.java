@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import me.giobyte8.galleries.dto.CreateDirectoryDto;
 import me.giobyte8.galleries.dto.Page;
 import me.giobyte8.galleries.persistence.models.Directory;
+import me.giobyte8.galleries.persistence.projections.DirWithLineage;
 import me.giobyte8.galleries.persistence.repositories.DirectoryRepository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,10 @@ public class DirectoryService {
 
     public Optional<Directory> getById(UUID directoryId) {
         return dirRepository.findById(directoryId);
+    }
+
+    public Optional<DirWithLineage> getWithLineageById(UUID directoryId) {
+        return dirRepository.findWithLineageById(directoryId);
     }
 
     public Directory createDirectory(CreateDirectoryDto createDirDto) {

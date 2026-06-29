@@ -1,6 +1,7 @@
 package me.giobyte8.galleries.persistence.repositories;
 
 import me.giobyte8.galleries.persistence.models.Directory;
+import me.giobyte8.galleries.persistence.projections.DirWithLineage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -19,6 +20,15 @@ public interface DirectoryRepository extends
         CustomizedDirectoryRepository {
 
     Optional<Directory> findByPath(String path);
+
+    @Query(value = """
+        MATCH (dir:Directory { id: $id })
+        OPTIONAL MATCH path = (dir)<-[:CONTAINS*..5]-(ancestors:Directory)
+        WITH dir, ancestors, path
+        RETURN dir AS directory, collect(DISTINCT ancestors) AS lineage;
+        """
+    )
+    Optional<DirWithLineage> findWithLineageById(UUID id);
 
     @Query(
             value = """

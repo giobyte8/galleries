@@ -48,3 +48,9 @@ MATCH (n:Image)
 WHERE n.path STARTS WITH 'cameras/iPhone-RO/'
   AND n.captureDateTime IS NULL
 RETURN n;
+
+// Directory with lineage
+MATCH (dir:Directory { id: $id })
+OPTIONAL MATCH path = (dir)<-[:CONTAINS*..5]-(ancestors:Directory)
+WITH dir, ancestors, path
+RETURN dir AS directory, collect(DISTINCT ancestors) AS lineage;

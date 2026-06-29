@@ -5,6 +5,7 @@ import me.giobyte8.galleries.dto.CreateDirectoryDto;
 import me.giobyte8.galleries.dto.Page;
 import me.giobyte8.galleries.exceptions.DirectoryNotFoundException;
 import me.giobyte8.galleries.persistence.models.Directory;
+import me.giobyte8.galleries.persistence.projections.DirWithLineage;
 import me.giobyte8.galleries.services.DirectoryService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -47,9 +48,9 @@ public class DirectoriesController {
     }
 
     @GetMapping("/{directoryId}")
-    public Directory getById(@PathVariable UUID directoryId) {
+    public DirWithLineage getWithLineage(@PathVariable UUID directoryId) {
         return directorySvc
-                .getById(directoryId)
+                .getWithLineageById(directoryId)
                 .orElseThrow(() -> new DirectoryNotFoundException(
                         "Directory with id '%s' not found".formatted(directoryId)
                 ));

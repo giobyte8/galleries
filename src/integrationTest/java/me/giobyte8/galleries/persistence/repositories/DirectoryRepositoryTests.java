@@ -300,6 +300,39 @@ class DirectoryRepositoryTests extends BaseIntegrationTest {
         assertEquals(1, limited.size(), "Should respect limit");
     }
 
+    @Test
+    void findWithLineageById() {
+        Directory root = createDir("root");
+        Directory child1 = createDir(root, "root/child1");
+
+        var result = dirRepository.findWithLineageById(root.getId());
+        assertTrue(result.isPresent(), "Result should be present");
+
+        var dirWithLineage = result.get();
+        assertEquals(root.getId(), dirWithLineage.directory().getId(), "Directory ID should match");
+        assertEquals(0, dirWithLineage.lineage().size(), "Lineage should be empty for root");
+
+
+        result = dirRepository.findWithLineageById(child1.getId());
+        assertTrue(result.isPresent(), "Result should be present");
+
+        dirWithLineage = result.get();
+        assertEquals(
+                child1.getId(),
+                dirWithLineage.directory().getId(),
+                "Directory ID should match");
+        assertEquals(
+                1,
+                dirWithLineage.lineage().size(),
+                "Lineage should contain one ancestor");
+        assertEquals(
+                root.getId(),
+                dirWithLineage.lineage().getFirst().getId(),
+                "Ancestor ID should match");
+    }
+
+
+
     private Directory createDir(String path) {
         Directory dir = Directory.builder()
                 .path(path)
